@@ -108,6 +108,17 @@ Project snapshots are covered in
 - Frontmatter migration from existing Markdown trackers.
 - Server-rendered dashboard with list, kanban, detail, search, and create/edit flows.
 - Keyboard-friendly dashboard triage for search, filters, create, and item focus.
+- Settings page for theme colours, display defaults (language and theme),
+  default estimated time, the agent sessions widget, live-update options, and
+  management of access tokens, including the tokens defined in `server.toml`.
+- Live dashboard updates: open views follow changes made by agents, the CLI,
+  the API, or imports without a manual reload, through server-sent events with
+  automatic fallback to periodic refresh.
+- Optional *Active agent sessions* widget on the Kanban board and Overview page.
+- Item content is rendered as formatted Markdown (headings, lists, tables, code,
+  block quotes, links, images); raw HTML is shown as text, not executed.
+- Dashboard interface in English, Hungarian, and Simplified Chinese; status
+  names follow the selected language.
 - Dashboard project creation with starter templates, language switching, and
   first-run setup checklist.
 - MCP tools for coding-agent workflows.
@@ -250,6 +261,25 @@ name = "My Project"
 ```
 
 Dashboard: `http://127.0.0.1:8765/dashboard/myproject`
+
+## Settings Page
+
+Open **Settings** from the dashboard navigation to change settings at runtime,
+without restarting the server. Changes are saved to
+`data/settings.json` (or `server.toml` for `server.toml` tokens) and recorded in
+the settings audit log. Each group has defaults and a reset button.
+
+- **Theme colours:** colours for light and dark mode, with reset to the default palette.
+- **Display:** default language and default theme (light, dark, or system).
+- **Tracking defaults:** default estimated time for new items.
+- **Agent sessions widget:** whether the widget is shown on the Kanban board and
+  Overview, which session statuses and information it shows, and its scope.
+- **Live updates:** on/off, fallback refresh interval, highlight duration, and
+  whether a view being edited shows a notice or applies changes after saving.
+- **Access tokens:** create, rename, change scopes, regenerate, and delete
+  dashboard tokens. Reveal and regenerate work in place, without a page reload.
+  A regenerated token must be updated in every client that uses it, such as
+  `.mcp.json`.
 
 ## Demo Data
 
