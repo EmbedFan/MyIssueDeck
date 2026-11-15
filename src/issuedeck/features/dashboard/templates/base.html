@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="{{ lang | default('en') }}"
       x-data="{
-        theme: localStorage.getItem('theme') || 'light',
+        theme: (function (v) {
+          if (v !== 'system') return v;
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        })(localStorage.getItem('theme') || '{{ default_theme | default("light") }}'),
         toggleTheme() {
           this.theme = this.theme === 'dark' ? 'light' : 'dark';
           localStorage.setItem('theme', this.theme);
@@ -263,6 +266,8 @@
       to   { transform: translateX(100%); opacity: 0; }
     }
   </style>
+  {# Colour overrides from the settings page (FEA-0004); values are validated hex colours. #}
+  {{ theme_style | default("") | safe }}
 </head>
 
 <body class="text-gray-900 dark:text-gray-100 antialiased min-h-screen">

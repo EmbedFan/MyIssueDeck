@@ -28,6 +28,30 @@ versioning once public releases begin.
   hours (30 minutes), and migration `0007` backfills that value on existing
   items that have none.
 
+- Added a dashboard settings page (`/dashboard/settings`) whose changes apply
+  without a restart: light and dark accent colours with a reset to the built-in
+  palette, default language and theme (light, dark or system), the default
+  estimated time for new items, project name and description, and API tokens
+  (create, rename, change scopes, regenerate, delete). Dashboard-created tokens
+  are stored only as SHA-256 hashes in `data/tokens.json`; a new or regenerated
+  value is shown once. Tokens in `server.toml` stay read-only. Every change is
+  appended to `data/settings_audit.jsonl` without secret values.
+- The settings page now manages the tokens defined in `server.toml` too
+  (IS-0003): a masked preview, show value, regenerate (new value shown once, the
+  old one stops working at once), and rename or change scopes for `[[tokens]]`
+  entries. The file is edited in place, so comments and other settings stay,
+  and it is validated before it is replaced. The administrator token cannot be
+  renamed, and cannot be regenerated while `ISSUEDECK_API_TOKEN` sets it. The
+  auth middleware now reads config tokens on every request.
+- Settings page navigation and presentation (IS-0003, part 2): the Settings
+  menu item now sits after *Import Files* with a gear icon, and the page shows
+  the same project menu as the other pages. Tokens are shown as cards with
+  separate name, scope and value elements. Show value, Regenerate, create, edit
+  and delete update the card in place instead of reloading the page (the token
+  routes answer with JSON when asked for it and still work as plain forms). The
+  dashboard stylesheet was rebuilt, because the page used classes that were
+  missing from it, and a test now fails when a settings template uses a class
+  that is not in `dashboard.css`.
 - Hungarian status names (IS-0002): with Hungarian selected, the Kanban headers,
   the Overview charts and the status selectors show the standard status names in
   Hungarian. Custom statuses keep their project label. English and Chinese are

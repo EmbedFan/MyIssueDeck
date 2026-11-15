@@ -400,6 +400,86 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "relationship.blocks": "Blocks",
         "relationship.blocked_by": "Blocked by",
         "relationship.related_to": "Related",
+        "settings.accent": "Accent",
+        "settings.appearance": "Theme colours",
+        "settings.appearance_help": (
+            "Set the accent colours used for light mode and dark mode. "
+            "Reset returns to the built-in palette."
+        ),
+        "settings.audit": "Recent changes",
+        "settings.audit_empty": "No changes recorded yet.",
+        "settings.config_tokens": "Tokens from server.toml",
+        "settings.copied": "Copied",
+        "settings.copy": "Copy",
+        "settings.created_msg": "Token created. Copy the value now; it is shown only once.",
+        "settings.hide": "Hide",
+        "settings.regenerated_msg": "New value generated. The old value no longer works.",
+        "settings.saved": "Saved.",
+        "settings.config_not_editable": (
+            "The location of server.toml is not known, so these tokens cannot be changed here."
+        ),
+        "settings.config_tokens_help": (
+            "These tokens are stored in server.toml. Changes are written to that file and "
+            "apply at once. After regenerating a token, update every client that uses it, "
+            "for example .mcp.json."
+        ),
+        "settings.env_managed": "Set by the ISSUEDECK_API_TOKEN environment variable.",
+        "settings.masked_value": "Masked preview of the token value",
+        "settings.regenerate_config_confirm": (
+            "Regenerate this token? The old value stops working immediately and server.toml "
+            "is rewritten. Clients that use the old value, such as .mcp.json, must be updated."
+        ),
+        "settings.reveal": "Show value",
+        "settings.token_value_help": (
+            "This is the current value of the token. Do not share it."
+        ),
+        "settings.token_value_title": "Token value",
+        "settings.create_token": "Create token",
+        "settings.dark_mode": "Dark mode",
+        "settings.default_estimated_time": "Default estimated time for new items (hours)",
+        "settings.default_language": "Default language",
+        "settings.default_theme": "Default theme",
+        "settings.delete_confirm": "Delete this token? Anything using it will stop working.",
+        "settings.display": "Display",
+        "settings.help": "Changes take effect immediately and do not need a server restart.",
+        "settings.hours_help": (
+            "Leave empty for no default. Used when an item is created "
+            "without an estimate."
+        ),
+        "settings.light_mode": "Light mode",
+        "settings.new_token_help": (
+            "Copy this value now. It is not shown again; regenerate the "
+            "token if you lose it."
+        ),
+        "settings.new_token_title": "New token",
+        "settings.no_runtime_tokens": "No tokens created here yet.",
+        "settings.nav": "Settings",
+        "settings.primary": "Primary",
+        "settings.project": "Project",
+        "settings.project_description": "Description",
+        "settings.project_name": "Project name",
+        "settings.project_select": "Project",
+        "settings.regenerate": "Regenerate",
+        "settings.regenerate_confirm": (
+            "Regenerate this token? The current value will stop "
+            "working immediately."
+        ),
+        "settings.reset_colours": "Reset colours to default",
+        "settings.reset_confirm": "Reset both colour schemes to the built-in palette?",
+        "settings.runtime_tokens": "Tokens created in the dashboard",
+        "settings.theme_dark": "Dark",
+        "settings.theme_light": "Light",
+        "settings.theme_system": "System",
+        "settings.title": "Settings",
+        "settings.token_name": "Name",
+        "settings.token_scopes": "Scopes",
+        "settings.tokens": "API tokens",
+        "settings.tokens_help": (
+            "Create, rename, change the scopes of, or regenerate tokens. "
+            "Regenerating a token invalidates its old value."
+        ),
+        "settings.tracking": "Tracking defaults",
+        "settings.tracking_help": "Applies to items created from now on.",
         "search.placeholder": "Search items...",
         "search.empty": "Type to search...",
         "search.all": "View all results",
@@ -856,7 +936,11 @@ _MESSAGES: dict[str, dict[str, str]] = {
 
 
 def language_from_request(request: Request) -> str:
-    raw = request.cookies.get(DASHBOARD_LANG_COOKIE) or DEFAULT_LANG
+    """Cookie first; without a cookie, the default language from the settings page."""
+    raw = request.cookies.get(DASHBOARD_LANG_COOKIE)
+    if not raw:
+        runtime = getattr(request.app.state, "runtime_settings", None)
+        raw = runtime.settings()["default_language"] if runtime else DEFAULT_LANG
     return raw if raw in SUPPORTED_LANGS else DEFAULT_LANG
 
 

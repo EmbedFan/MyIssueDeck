@@ -162,6 +162,9 @@
       <span>{{ t("nav.import_files") }}</span>
     </a>
 
+    <!-- Settings -->
+    {% include "components/sidebar_settings_link.html" %}
+
     <!-- Divider -->
     <div class="pt-2 pb-1">
       <hr class="border-ledger-line dark:border-ledger-darkLine">
@@ -189,6 +192,7 @@
         </svg>
         <span>{{ t("nav.new_project") }}</span>
       </a>
+      {% include "components/sidebar_settings_link.html" %}
     {% endif %}
   </nav>
 

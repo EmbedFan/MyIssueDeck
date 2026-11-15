@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from urllib.parse import quote
 
@@ -18,11 +18,30 @@ DASHBOARD_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
 
+def sha256_hex(value: str) -> str:
+    return hashlib.sha256(value.encode()).hexdigest()
+
+
 @dataclass(frozen=True)
 class BearerTokenCredential:
+    """A bearer token: either the plaintext (config tokens) or its SHA-256 (runtime tokens)."""
+
     name: str
-    token: str
     scopes: frozenset[str]
+    token: str | None = None
+    token_sha256: str | None = None
+
+    @property
+    def session_key(self) -> str:
+        """Key used to sign dashboard session cookies for this credential."""
+        return self.token if self.token is not None else (self.token_sha256 or "")
+
+    def matches(self, presented: str) -> bool:
+        if self.token is not None:
+            return hmac.compare_digest(presented, self.token)
+        if self.token_sha256:
+            return hmac.compare_digest(sha256_hex(presented), self.token_sha256)
+        return False
 
     def allows(self, required_scope: str) -> bool:
         if "admin" in self.scopes:
@@ -84,6 +103,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         dashboard_login_path: str = "/dashboard/login",
         dashboard_cookie_name: str = DASHBOARD_SESSION_COOKIE,
         dashboard_session_max_age_seconds: int = DASHBOARD_SESSION_MAX_AGE_SECONDS,
+        token_provider: Callable[[], Iterable[BearerTokenCredential]] | None = None,
     ):
         super().__init__(app)
         if tokens is None:
@@ -96,11 +116,10 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
                     scopes=frozenset({"admin"}),
                 ),
             )
-        self._tokens = tuple(tokens)
-        self._dashboard_session_tokens = tuple(
-            credential.token for credential in self._tokens
-            if credential.allows("admin")
-        )
+        self._static_tokens = tuple(tokens)
+        # Runtime tokens (FEA-0004) are read on every request, so changes apply
+        # without a restart.
+        self._token_provider = token_provider
         self._exempt = tuple(exempt_paths)
         self._dashboard_paths = tuple(dashboard_paths)
         self._dashboard_login_path = dashboard_login_path
@@ -142,10 +161,14 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         if not header.lower().startswith("bearer "):
             return None, "missing bearer token"
         presented = header.split(" ", 1)[1]
-        for credential in self._tokens:
-            if hmac.compare_digest(presented, credential.token):
+        for credential in self._credentials():
+            if credential.matches(presented):
                 return credential, ""
         return None, "invalid bearer token"
+
+    def _credentials(self) -> tuple[BearerTokenCredential, ...]:
+        extra = tuple(self._token_provider()) if self._token_provider else ()
+        return (*self._static_tokens, *extra)
 
     def _required_scope(self, request: Request) -> str:
         if self._is_dashboard_path(request.url.path):
@@ -160,10 +183,11 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         return any(
             is_valid_dashboard_session_cookie(
                 cookie_value,
-                token,
+                credential.session_key,
                 max_age_seconds=self._dashboard_session_max_age_seconds,
             )
-            for token in self._dashboard_session_tokens
+            for credential in self._credentials()
+            if credential.allows("admin") and credential.session_key
         )
 
     def _is_dashboard_path(self, path: str) -> bool:

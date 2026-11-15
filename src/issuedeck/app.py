@@ -20,8 +20,13 @@ from issuedeck.core.config import (
 from issuedeck.core.db import make_engine, make_session_factory
 from issuedeck.core.errors import ConfigError, install_error_handlers
 from issuedeck.core.logging import configure_logging
+from issuedeck.core.runtime_settings import RuntimeSettings
 from issuedeck.core.webhooks import WebhookDispatcher
 from issuedeck.features.dashboard.routes import router as dashboard_router
+from issuedeck.features.dashboard.settings_routes import (
+    apply_tracking_defaults,
+)
+from issuedeck.features.dashboard.settings_routes import router as settings_router
 from issuedeck.features.items.models import Item
 from issuedeck.features.items.routes import router as items_router
 from issuedeck.features.projects.routes import router as projects_router
@@ -105,17 +110,29 @@ def create_app(server_toml: Path | str) -> FastAPI:
         server_cfg.email_notifications,
     )
 
-    install_error_handlers(app)
-    app.add_middleware(
-        BearerTokenMiddleware,
-        tokens=[
+    runtime_settings = RuntimeSettings(server_cfg.data_dir)
+    app.state.runtime_settings = runtime_settings
+    app.state.server_toml = Path(server_toml)
+
+    def _auth_credentials() -> list[BearerTokenCredential]:
+        # Read on every request so tokens changed on the settings page (config
+        # tokens and runtime tokens) apply without a restart.
+        config_tokens = [
             BearerTokenCredential(
                 name=token.name,
                 token=token.token.get_secret_value(),
                 scopes=frozenset(token.normalized_scopes()),
             )
             for token in server_cfg.auth_tokens()
-        ],
+        ]
+        return [*config_tokens, *runtime_settings.token_credentials()]
+    apply_tracking_defaults(registry, runtime_settings.settings()["default_estimated_time"])
+
+    install_error_handlers(app)
+    app.add_middleware(
+        BearerTokenMiddleware,
+        tokens=[],
+        token_provider=_auth_credentials,
         exempt_paths=(
             "/",
             "/healthz",
@@ -134,6 +151,9 @@ def create_app(server_toml: Path | str) -> FastAPI:
     app.include_router(work_sessions_router)
     app.include_router(relationships_router)
     app.include_router(search_router)
+    # The settings router must come before the dashboard router: its fixed path
+    # /dashboard/settings would otherwise match the project route /dashboard/{key}.
+    app.include_router(settings_router)
     app.include_router(dashboard_router)
 
     static_dir = Path(__file__).resolve().parent / "features" / "dashboard" / "static"

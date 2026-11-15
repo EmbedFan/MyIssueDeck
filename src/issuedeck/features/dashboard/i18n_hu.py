@@ -396,6 +396,84 @@ MESSAGES_HU: dict[str, str] = {
     "relationship.blocks": "Blokkolja",
     "relationship.blocked_by": "Blokkolta",
     "relationship.related_to": "Kapcsolódó",
+    "settings.accent": "Kiemelő szín",
+    "settings.appearance": "Témaszínek",
+    "settings.appearance_help": (
+        "A világos és a sötét módhoz használt kiemelő színek beállítása. "
+        "Az alaphelyzet visszaállítja a beépített palettát."
+    ),
+    "settings.audit": "Legutóbbi módosítások",
+    "settings.audit_empty": "Még nincs rögzített módosítás.",
+    "settings.config_tokens": "A server.toml tokenjei",
+    "settings.copied": "Másolva",
+    "settings.copy": "Másolás",
+    "settings.created_msg": (
+        "A token létrejött. Másolja ki most az értékét; csak egyszer jelenik meg."
+    ),
+    "settings.hide": "Elrejtés",
+    "settings.regenerated_msg": "Új érték generálva. A régi érték már nem működik.",
+    "settings.saved": "Mentve.",
+    "settings.config_not_editable": (
+        "A server.toml helye nem ismert, ezért ezek a tokenek itt nem módosíthatók."
+    ),
+    "settings.config_tokens_help": (
+        "Ezek a tokenek a server.toml fájlban vannak. A módosítások a fájlba íródnak, "
+        "és azonnal érvényesek. Újragenerálás után frissítse a token minden kliensét, "
+        "például a .mcp.json fájlt."
+    ),
+    "settings.env_managed": "Az ISSUEDECK_API_TOKEN környezeti változó adja meg.",
+    "settings.masked_value": "A token értékének maszkolt előnézete",
+    "settings.regenerate_config_confirm": (
+        "Újragenerálja ezt a tokent? A régi érték azonnal érvényét veszti, és a server.toml "
+        "újraíródik. A régi értéket használó klienseket, például a .mcp.json fájlt, "
+        "frissíteni kell."
+    ),
+    "settings.reveal": "Érték megjelenítése",
+    "settings.token_value_help": "A token jelenlegi értéke. Ne ossza meg.",
+    "settings.token_value_title": "A token értéke",
+    "settings.create_token": "Token létrehozása",
+    "settings.dark_mode": "Sötét mód",
+    "settings.default_estimated_time": "Alapértelmezett becsült idő az új elemekhez (óra)",
+    "settings.default_language": "Alapértelmezett nyelv",
+    "settings.default_theme": "Alapértelmezett téma",
+    "settings.delete_confirm": "Törli ezt a tokent? A használó alkalmazások leállnak.",
+    "settings.display": "Megjelenítés",
+    "settings.help": "A módosítások azonnal érvényesek, a szerver újraindítása nélkül.",
+    "settings.hours_help": (
+        "Üresen hagyva nincs alapértelmezés. Akkor használjuk, ha becslés nélkül jön létre elem."
+    ),
+    "settings.light_mode": "Világos mód",
+    "settings.new_token_help": (
+        "Másolja ki most. Később nem jelenik meg újra; ha elveszíti, generáljon újat."
+    ),
+    "settings.new_token_title": "Új token",
+    "settings.no_runtime_tokens": "Itt még nincs létrehozott token.",
+    "settings.nav": "Beállítások",
+    "settings.primary": "Elsődleges",
+    "settings.project": "Projekt",
+    "settings.project_description": "Leírás",
+    "settings.project_name": "Projekt neve",
+    "settings.project_select": "Projekt",
+    "settings.regenerate": "Újragenerálás",
+    "settings.regenerate_confirm": (
+        "Újragenerálja ezt a tokent? A jelenlegi érték azonnal érvényét veszti."
+    ),
+    "settings.reset_colours": "Színek alaphelyzetbe állítása",
+    "settings.reset_confirm": "Visszaállítja mindkét színsémát a beépített palettára?",
+    "settings.runtime_tokens": "Az irányítópulton létrehozott tokenek",
+    "settings.theme_dark": "Sötét",
+    "settings.theme_light": "Világos",
+    "settings.theme_system": "Rendszer",
+    "settings.title": "Beállítások",
+    "settings.token_name": "Név",
+    "settings.token_scopes": "Hatókörök",
+    "settings.tokens": "API-tokenek",
+    "settings.tokens_help": (
+        "Tokenek létrehozása, átnevezése, hatókörének módosítása vagy újragenerálása. "
+        "Az újragenerálás érvényteleníti a régi értéket."
+    ),
+    "settings.tracking": "Időkövetési alapértelmezések",
+    "settings.tracking_help": "Az ezután létrehozott elemekre vonatkozik.",
     "search.placeholder": "Elemek keresése...",
     "search.empty": "Kezdjen el gépelni a kereséshez...",
     "search.all": "Összes találat megtekintése",

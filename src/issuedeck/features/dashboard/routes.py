@@ -30,6 +30,7 @@ from issuedeck.core.errors import (
     ProjectDeletionBlocked,
     ProjectDeletionNotConfirmed,
 )
+from issuedeck.core.runtime_settings import DEFAULT_SETTINGS, theme_style
 from issuedeck.features.dashboard.helpers import (
     all_tags,
     count_by_field,
@@ -187,7 +188,11 @@ def _ctx(request: Request, project_key: str | None = None, **extra):
     project = registry.project(project_key) if project_key else None
     lang = language_from_request(request)
     t = make_translator(lang)
+    runtime = getattr(request.app.state, "runtime_settings", None)
+    appearance = runtime.settings() if runtime else DEFAULT_SETTINGS
     return {
+        "theme_style": theme_style(appearance),
+        "default_theme": appearance["default_theme"],
         "projects": projects,
         "project": project,
         "project_key": project_key,
@@ -846,15 +851,21 @@ async def dashboard_login_submit(
 ):
     server_cfg = request.app.state.registry.server
     next_url = _safe_dashboard_next(next)
-    matched_token = None
+    matched_key = None
     for credential in server_cfg.auth_tokens():
         if "admin" not in credential.normalized_scopes():
             continue
         value = credential.token.get_secret_value()
         if hmac.compare_digest(token, value):
-            matched_token = value
+            matched_key = value
             break
-    if matched_token is None:
+    if matched_key is None:
+        # Runtime tokens (FEA-0004) are hashed; the hash also keys the session.
+        for credential in request.app.state.runtime_settings.token_credentials():
+            if "admin" in credential.scopes and credential.matches(token):
+                matched_key = credential.session_key
+                break
+    if matched_key is None:
         return render(
             "pages/login.html", request,
             **_ctx(request),
@@ -866,7 +877,7 @@ async def dashboard_login_submit(
     response = RedirectResponse(url=next_url, status_code=303)
     response.set_cookie(
         DASHBOARD_SESSION_COOKIE,
-        make_dashboard_session_cookie(matched_token),
+        make_dashboard_session_cookie(matched_key),
         max_age=DASHBOARD_SESSION_MAX_AGE_SECONDS,
         httponly=True,
         samesite="lax",

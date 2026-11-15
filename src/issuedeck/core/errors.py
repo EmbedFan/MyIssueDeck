@@ -30,6 +30,16 @@ class ProjectNotFound(IssueDeckError):
     http_status = 404
 
 
+class InvalidSetting(IssueDeckError):
+    code = "invalid_setting"
+    http_status = 422
+
+
+class TokenNotFound(IssueDeckError):
+    code = "token_not_found"
+    http_status = 404
+
+
 class ProjectDeletionNotConfirmed(IssueDeckError):
     code = "project_deletion_not_confirmed"
     http_status = 422

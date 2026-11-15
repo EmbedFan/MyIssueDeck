@@ -386,6 +386,11 @@ class ConfigRegistry:
             raise ConfigError(f"duplicate project key '{project.key}'")
         self._projects[project.key] = project
 
+    def replace_project(self, project: ProjectConfig) -> None:
+        """Swap in a reloaded config for an existing project (FEA-0004 project settings)."""
+        self.project(project.key)  # raises ProjectNotFound
+        self._projects[project.key] = project
+
     def unregister_project(self, key: str) -> ProjectConfig:
         """Remove a project from the in-memory registry and return it."""
         project = self.project(key)  # raises ProjectNotFound
