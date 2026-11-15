@@ -1,5 +1,11 @@
 # Requested features
 
+## FEA-0004:
+
+	Localise the software to Hungarian too.
+	
+---
+
 
 ## FEA-0004: Settings Page with Theme Colours and Token Management
 
