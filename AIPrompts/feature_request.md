@@ -1,6 +1,17 @@
 # Requested features
 
 
+## FEA-0004: Settings Page with Theme Colours and Token Management
+
+**Summary:** Provide a settings page where colours can be set by hand for light and dark mode, with a reset to the default palette, and where access tokens can be changed, added and regenerated.
+
+**Description:** The dashboard shall include a settings page that allows the user to:
+
+- set the colour scheme manually for light mode and for dark mode, with a control to reset the colours to the developer-defined default palette;
+- create new access tokens, change their settings, and regenerate an existing token.
+
+---
+
 ## FEA-0003: Safe Project Deletion
 
 **Summary:** Provide a safe way to delete a project.
