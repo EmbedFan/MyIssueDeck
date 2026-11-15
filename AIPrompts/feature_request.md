@@ -1,6 +1,6 @@
 # Requested features
 
-## FEA-0004: Hungarian Localisation
+## FEA-0005: Hungarian Localisation
 
 **Status:** Not implemented. Note: this entry reuses the ID FEA-0004 of the settings page below; it should be renumbered (for example FEA-0005).
 
