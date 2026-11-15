@@ -1,9 +1,61 @@
 # Requested features
 
-## FEA-0006
+## FEA-0006: Agent Sessions Widget on the Kanban Board and Live View Updates
 
-	On the Kanban table at top also required the widget "Active agent sessions"
-	It shall be implement as optional item,  add this settings to the Config page.
+**Status:** Not implemented.
+
+**Summary:** Provide an optional *Active agent sessions* widget at the top of the Kanban board, and make the open dashboard views follow changes made by background tasks (for example AI agent sessions) without a manual reload. Both functions shall be configurable on the Settings page.
+
+### Task 1: *Active agent sessions* widget on the Kanban board
+
+**Description:** The Kanban board shall be able to display the *Active agent sessions* widget, which the Overview page already provides, above the board columns. The widget shall be optional: it is switched on, and configured, on the Settings page.
+
+**Settings** (Settings page, section *Agent sessions widget*). Every setting has a default value and can be reset to it.
+
+| Setting | Allowed values | Default |
+|---|---|---|
+| Show the widget on the Kanban board | on / off | off |
+| Show the widget on the Overview page | on / off | on |
+| Session statuses shown | active, paused | active, paused |
+| Also show sessions completed within the last | 0 (off) to 240 minutes | 0 |
+| Maximum number of sessions shown | 1 to 20 | 8 |
+| Scope | current project / all projects | current project |
+| Initial state | expanded / collapsed | expanded |
+| Information shown for a session | agent name, item, goal, last update, number of updates (each on or off) | all on |
+
+**Requirements:**
+- When the widget is switched off, it shall not be displayed and shall not occupy any space.
+- Each session entry shall link to its item. When there is no session to show, an explanatory text shall be displayed.
+- The widget shall follow the selected language and theme, and its texts shall be available in every supported language.
+- A change of these settings shall take effect without restarting the server and shall be recorded in the settings audit log.
+
+**Related items:** FEA-0004 (Settings page: the place of the settings and of the audit log); FEA-0005 (Hungarian localisation: the new texts shall be translated); IS-0002 (the status names shown in the widget follow the language).
+
+### Task 2: Live updates of the dashboard views
+
+**Description:** When a background task, for example an AI agent session, changes data that is shown in the current view, the server shall emit an event and the user interface shall follow it without a manual reload.
+
+**Requirements:**
+- **Events.** The server shall emit an event when an item is created, updated, changes status, is shipped, deleted or restored, when a relationship changes, when a work session starts, is updated or finishes, and when an activity entry is added. Events shall be emitted whatever the source of the change (dashboard, API, MCP or import).
+- **Delivery.** Events shall be delivered to the open views through a push channel (server-sent events). When the channel is unavailable, the views shall fall back to periodic refresh, and the channel shall reconnect automatically.
+- **Views that follow.** Kanban board, list, Overview (counters, charts and the widget) and item page (fields, content, activity and work sessions).
+- **Applying changes.** Changes shall be applied in place. An element that is being edited (an open form, text being typed, a card being dragged) shall never be overwritten; a notice shall be displayed instead, from which the user can apply the change. Many events in a short time shall be combined, so that the page stays responsive.
+- **Feedback.** Changed entries shall be highlighted briefly, and a connection indicator shall show whether the view is up to date.
+- **Security.** Events shall be subject to the same authorisation as the rest of the dashboard, shall only concern projects the user may see, and shall not contain secrets.
+
+**Settings** (Settings page, section *Live updates*). Every setting has a default value and can be reset to it.
+
+| Setting | Allowed values | Default |
+|---|---|---|
+| Live updates | on / off | on |
+| Fallback refresh interval | 5 to 300 seconds | 30 |
+| Highlight changed entries for | 0 (off) to 30 seconds | 3 |
+| When the view being edited changes | show a notice / apply after saving | show a notice |
+| Views that follow live updates | Kanban, list, Overview, item page (each on or off) | all on |
+| Events followed | item changes, work sessions, activity entries (each on or off) | all on |
+| Show the connection indicator | on / off | on |
+
+**Related items:** FEA-0004 (Settings page: the place of the settings and of the audit log); FEA-0002 (Time overview diagram: the Overview charts follow the updates); FEA-0001 (the estimated and spent time fields change when an agent records time); IS-0004 (the Markdown content pane is rendered again after a live update).
 
 ---
 
