@@ -1,6 +1,8 @@
 # Requested features
 
-## FEA-0004:
+## FEA-0004: Hungarian Localisation
+
+**Status:** Not implemented. Note: this entry reuses the ID FEA-0004 of the settings page below; it should be renumbered (for example FEA-0005).
 
 	Localise the software to Hungarian too.
 	
@@ -8,6 +10,8 @@
 
 
 ## FEA-0004: Settings Page with Theme Colours and Token Management
+
+**Status:** Not implemented.
 
 **Summary:** Provide a settings page where colours can be set by hand for light and dark mode, with a reset to the default palette, and where access tokens can be changed, added and regenerated.
 
@@ -25,6 +29,8 @@ Changes take effect without restarting the server where possible, and each chang
 
 ## FEA-0003: Safe Project Deletion
 
+**Status:** Implemented, not yet committed (tracked as FEAT-0003 in MyIssueDesk).
+
 **Summary:** Provide a safe way to delete a project.
 
 **Description:** The dashboard shall offer an option to delete a project. Deletion shall be protected against accidental use, for example by requiring explicit confirmation before the project and its items are removed.
@@ -33,6 +39,8 @@ Changes take effect without restarting the server where possible, and each chang
 
 ## FEA-0002: Time Overview Diagram
 
+**Status:** Implemented in commit 8d7356a (tracked as FEAT-0002 in MyIssueDesk).
+
 **Summary:** Add a diagram showing the estimated and spent time to the Overview page.
 
 **Description:** The dashboard Overview page shall include a new diagram that visualises the *Estimated time* and *Time spent* fields, so that planned and actual effort can be compared at a glance.
@@ -40,6 +48,8 @@ Changes take effect without restarting the server where possible, and each chang
 ---
 
 ## FEA-0001: Estimated and Actual Time Fields
+
+**Status:** Implemented in commit efa1c6b (tracked as FEAT-0001 in MyIssueDesk). The default estimated time of 0.5 h is added by IS-0001 (commit 8d7356a).
 
 **Summary:** Add two default fields, *Estimated time* and *Time spent*, to all items.
 
