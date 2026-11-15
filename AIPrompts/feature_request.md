@@ -2,7 +2,7 @@
 
 ## FEA-0006: Agent Sessions Widget on the Kanban Board and Live View Updates
 
-**Status:** Not implemented.
+**Status:** Implemented, not yet committed (tracked as FEAT-0006 in MyIssueDesk). Task 1 and Task 2 are complete with the settings listed below. Two notes: changes written by other processes (the CLI) are noticed by a watcher in the server and shown within a few seconds; the events are not filtered by project on the server, because every dashboard user is an administrator and the events contain identifiers only.
 
 **Summary:** Provide an optional *Active agent sessions* widget at the top of the Kanban board, and make the open dashboard views follow changes made by background tasks (for example AI agent sessions) without a manual reload. Both functions shall be configurable on the Settings page.
 
