@@ -263,6 +263,14 @@ class CustomFieldConfig(BaseModel):
         return self
 
 
+#: Built-in custom fields added to every project unless the project defines the
+#: same key itself. Values are hours.
+DEFAULT_CUSTOM_FIELDS: dict[str, CustomFieldConfig] = {
+    "estimated_time": CustomFieldConfig(label="Estimated time (h)", type="number"),
+    "time_spent": CustomFieldConfig(label="Time spent (h)", type="number"),
+}
+
+
 class ProjectConfig(BaseModel):
     key: str
     name: str
@@ -304,6 +312,9 @@ class ProjectConfig(BaseModel):
                     "custom field keys must start with a letter and use "
                     "lowercase letters, numbers, - or _"
                 )
+
+        for field_key, default in DEFAULT_CUSTOM_FIELDS.items():
+            self.custom_fields.setdefault(field_key, default.model_copy())
 
         return self
 

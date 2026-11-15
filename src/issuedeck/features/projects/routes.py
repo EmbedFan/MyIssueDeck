@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request
 
-from issuedeck.features.projects.schemas import ProjectDetail, ProjectList
+from issuedeck.features.projects.schemas import ProjectDetail, ProjectList, TimeSummary
 from issuedeck.features.projects.service import ProjectService
 
 router = APIRouter(prefix="/api/v1/projects", tags=["projects"])
@@ -15,6 +15,15 @@ async def list_projects(request: Request):
     session = request.app.state.session_factory()
     try:
         return await ProjectService(request.app.state.registry, session).list_projects()
+    finally:
+        await session.close()
+
+
+@router.get("/{key}/time-summary", response_model=TimeSummary)
+async def get_time_summary(key: str, request: Request):
+    session = request.app.state.session_factory()
+    try:
+        return await ProjectService(request.app.state.registry, session).time_summary(key)
     finally:
         await session.close()
 

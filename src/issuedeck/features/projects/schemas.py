@@ -18,6 +18,13 @@ class ProjectList(BaseModel):
     projects: list[ProjectSummary]
 
 
+class TimeSummary(BaseModel):
+    project_key: str
+    unit: str = "hours"
+    estimated_time: float
+    time_spent: float
+
+
 class ProjectDetail(BaseModel):
     key: str
     name: str

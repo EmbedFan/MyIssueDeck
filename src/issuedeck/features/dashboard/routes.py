@@ -1111,6 +1111,9 @@ async def project_overview(project_key: str, request: Request):
         status_counts = await count_by_field(session, project_key, "status")
         kind_counts = await count_by_field(session, project_key, "kind")
         total = await total_count(session, project_key)
+        item_repo = ItemRepo(session)
+        estimated_total = await item_repo.sum_custom_number(project_key, "estimated_time")
+        spent_total = await item_repo.sum_custom_number(project_key, "time_spent")
     finally:
         await session.close()
 
@@ -1148,6 +1151,8 @@ async def project_overview(project_key: str, request: Request):
         "pages/home.html", request,
         **_ctx(request, project_key),
         total=total,
+        estimated_total=f"{estimated_total:g}",
+        spent_total=f"{spent_total:g}",
         status_counts=status_counts,
         kind_counts=kind_counts,
         recent_items=recent.items,

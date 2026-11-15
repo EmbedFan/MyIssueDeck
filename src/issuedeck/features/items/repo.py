@@ -322,6 +322,15 @@ class ItemRepo:
         )
         return list((await self._s.execute(stmt)).scalars().all())
 
+    async def sum_custom_number(self, project_key: str, field_key: str) -> float:
+        """Sum a numeric custom field over the project's non-deleted items."""
+        value = func.json_extract(Item.custom_fields_json, _json_path(field_key))
+        stmt = select(func.coalesce(func.sum(func.cast(value, Float)), 0.0)).where(
+            Item.project_key == project_key,
+            Item.deleted_at.is_(None),
+        )
+        return float((await self._s.execute(stmt)).scalar() or 0.0)
+
 
 def _iso_now() -> str:
     return datetime.now(UTC).isoformat()

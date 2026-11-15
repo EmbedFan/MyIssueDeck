@@ -54,3 +54,32 @@
   </div>
 
 </div>
+
+{# Time totals (FEA-0001) #}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+  <div class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 flex items-center gap-4">
+    <div class="flex-shrink-0 w-11 h-11 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+      <svg class="w-6 h-6 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ t("stats.estimated_time") }}</p>
+      <p class="text-2xl font-display font-bold text-gray-900 dark:text-white">{{ estimated_total }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 flex items-center gap-4">
+    <div class="flex-shrink-0 w-11 h-11 rounded-md bg-primary-50 dark:bg-primary-950 flex items-center justify-center">
+      <svg class="w-6 h-6 text-primary-700 dark:text-primary-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ t("stats.time_spent") }}</p>
+      <p class="text-2xl font-display font-bold text-gray-900 dark:text-white">{{ spent_total }}</p>
+    </div>
+  </div>
+
+</div>

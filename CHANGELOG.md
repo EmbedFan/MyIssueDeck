@@ -17,6 +17,10 @@ versioning once public releases begin.
 - Added `issuedeck export-project-template` for turning an existing project
   config into a reusable local template pack.
 - Added dashboard install controls for local project-template example packs.
+- Added built-in `estimated_time` and `time_spent` number custom fields (hours)
+  to every project; a project that defines the same key keeps its own
+  definition. Added total estimated and spent time to the dashboard Overview
+  page and to `GET /api/v1/projects/{key}/time-summary`.
 
 ## [0.8.0] - 2026-05-02
 
