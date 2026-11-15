@@ -1,2 +1,114 @@
 @import "tailwindcss";
 @config "../../../../../../tailwind.config.cjs";
+
+/*
+ * Live updates (FEA-0006): a changed entry flashes briefly, and the "view changed"
+ * notice sits at the bottom right until the user applies the change.
+ */
+@keyframes live-flash {
+  from { background-color: color-mix(in srgb, var(--dt-primary) 28%, transparent); }
+  to { background-color: transparent; }
+}
+.live-changed { animation: live-flash 1.8s ease-out; }
+.live-notice {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.6rem 0.9rem;
+  background: var(--dt-panel);
+  color: var(--dt-ink);
+  border: 1px solid var(--dt-line-strong);
+  border-left: 3px solid var(--dt-primary);
+  border-radius: 0.5rem;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+  font-size: 0.875rem;
+}
+.live-notice button {
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.375rem;
+  background: var(--dt-primary);
+  color: var(--dt-panel);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/*
+ * Rendered Markdown (IS-0004): the item content pane and the form preview.
+ * Tailwind's reset removes heading sizes, list markers and table borders, so
+ * they are restored here. Colours come from the --dt-* theme variables defined
+ * in base.html, so light and dark mode follow the theme.
+ */
+.md-content {
+  color: var(--dt-ink-soft);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.md-content > :first-child { margin-top: 0; }
+.md-content > :last-child { margin-bottom: 0; }
+.md-content h1, .md-content h2, .md-content h3,
+.md-content h4, .md-content h5, .md-content h6 {
+  color: var(--dt-ink);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.5em 0 0.5em;
+}
+.md-content h1 { font-size: 1.5rem; padding-bottom: 0.3em; border-bottom: 1px solid var(--dt-line); }
+.md-content h2 { font-size: 1.25rem; padding-bottom: 0.25em; border-bottom: 1px solid var(--dt-line); }
+.md-content h3 { font-size: 1.1rem; }
+.md-content h4 { font-size: 1rem; }
+.md-content h5, .md-content h6 { font-size: 0.9375rem; color: var(--dt-muted); }
+.md-content p, .md-content ul, .md-content ol,
+.md-content blockquote, .md-content pre, .md-content table { margin: 0 0 1em; }
+.md-content ul { list-style: disc; padding-left: 1.5em; }
+.md-content ol { list-style: decimal; padding-left: 1.5em; }
+.md-content li { margin: 0.25em 0; }
+.md-content li > ul, .md-content li > ol { margin: 0.25em 0; }
+.md-content li > input[type="checkbox"] { margin-right: 0.4em; vertical-align: middle; }
+.md-content ul:has(> li > input[type="checkbox"]) { list-style: none; padding-left: 0.25em; }
+.md-content a { color: var(--dt-primary); text-decoration: underline; text-underline-offset: 2px; }
+.md-content strong { color: var(--dt-ink); font-weight: 600; }
+.md-content del { opacity: 0.7; }
+.md-content code {
+  font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+  font-size: 0.875em;
+  background: var(--dt-panel-alt);
+  border: 1px solid var(--dt-line);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+}
+.md-content pre {
+  background: var(--dt-panel-alt);
+  border: 1px solid var(--dt-line);
+  border-radius: 0.5rem;
+  padding: 0.85em 1em;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.md-content pre code { background: none; border: 0; padding: 0; font-size: 0.85em; }
+.md-content blockquote {
+  border-left: 3px solid var(--dt-primary);
+  padding: 0.1em 1em;
+  color: var(--dt-muted);
+}
+.md-content hr { border: 0; border-top: 1px solid var(--dt-line); margin: 1.5em 0; }
+.md-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.md-content th, .md-content td {
+  border: 1px solid var(--dt-line);
+  padding: 0.4em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+.md-content th { background: var(--dt-panel-alt); color: var(--dt-ink); font-weight: 600; }
+.md-content img { max-width: 100%; height: auto; border-radius: 0.5rem; }

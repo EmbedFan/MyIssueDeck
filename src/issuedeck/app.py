@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -19,9 +20,12 @@ from issuedeck.core.config import (
 )
 from issuedeck.core.db import make_engine, make_session_factory
 from issuedeck.core.errors import ConfigError, install_error_handlers
+from issuedeck.core.events import get_bus
+from issuedeck.core.live_watch import ChangeWatcher
 from issuedeck.core.logging import configure_logging
 from issuedeck.core.runtime_settings import RuntimeSettings
 from issuedeck.core.webhooks import WebhookDispatcher
+from issuedeck.features.dashboard.live_routes import router as live_router
 from issuedeck.features.dashboard.routes import router as dashboard_router
 from issuedeck.features.dashboard.settings_routes import (
     apply_tracking_defaults,
@@ -97,7 +101,13 @@ def create_app(server_toml: Path | str) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         await _validate_db_against_registry(session_factory, registry)
+        # Live dashboard updates (FEA-0006): notice changes written by other processes.
+        watcher = asyncio.create_task(ChangeWatcher(session_factory, get_bus()).run())
         yield
+        watcher.cancel()
+        get_bus().close()  # end the open event streams so shutdown is not held up
+        with suppress(asyncio.CancelledError):
+            await watcher
         await engine.dispose()
 
     app = FastAPI(title="IssueDeck", version=__version__, lifespan=lifespan)
@@ -154,6 +164,7 @@ def create_app(server_toml: Path | str) -> FastAPI:
     # The settings router must come before the dashboard router: its fixed path
     # /dashboard/settings would otherwise match the project route /dashboard/{key}.
     app.include_router(settings_router)
+    app.include_router(live_router)
     app.include_router(dashboard_router)
 
     static_dir = Path(__file__).resolve().parent / "features" / "dashboard" / "static"

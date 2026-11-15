@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from issuedeck.core import events as live_events
 from issuedeck.core.config import ConfigRegistry
 from issuedeck.core.errors import (
     ItemNotFound,
@@ -74,6 +75,9 @@ class RelationshipService:
             relation_type=_inverse_type(relation_type), created_at=now,
         )
         await self._s.commit()
+        live_events.publish(
+            "relationship.changed", project_key, [from_local_id, to_local_id],
+        )
         return RelationshipOut(
             rel_id=forward.id, from_local_id=from_local_id,
             to_local_id=to_local_id, relation_type=relation_type,
@@ -89,3 +93,5 @@ class RelationshipService:
             relation_type=row.relation_type,
         )
         await self._s.commit()
+        # The removal only knows row ids, so every open view is asked to refresh.
+        live_events.publish("relationship.changed")

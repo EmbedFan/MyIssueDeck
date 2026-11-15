@@ -1,5 +1,41 @@
 # Requested issues
 
+## IS-0005: Layout Defects on the Settings Page
+
+**Status:** Open.
+
+**Related features:** FEA-0004 (Settings page), FEA-0006 (Agent sessions widget and live updates)
+
+**Summary:** Form fields and cards on the Settings page are not aligned, which makes the page look unfinished.
+
+**Observed defects** (dark theme, wide window):
+1. *Agent sessions widget* section: in the row with *Also show sessions completed within the last* and *Maximum number of sessions*, the first label wraps onto two lines, so its input is lower than the input beside it. The row *Scope* and *Initial state* is affected in the same way.
+2. *Live updates* section: in the row with *Fallback refresh interval*, *Highlight changed entries for* and *When the view being edited changes*, the middle label wraps onto two lines, so its input is lower than the other two.
+3. *Display* and *Tracking defaults* cards: the first fields of the two cards start at different heights, because only one card has a description line, and the *Save* buttons are at different heights.
+
+**Requirements:**
+- The inputs of the fields in one row shall be on the same line, whatever the length of the labels, in every supported language and at every window width.
+- Cards that stand side by side shall have the same structure: a heading, a description, the fields, and the action buttons aligned along the bottom edge of the cards.
+- On a narrow window the fields shall be stacked without overlap or horizontal scrolling.
+- A test shall fail when the alignment rules of these rows and cards are removed.
+
+---
+
+## IS-0004: Markdown Rendering in the Item Content Pane
+
+**Summary:** The content of an item shall be displayed as correctly formatted Markdown on the item page.
+
+**Description:** The content of an item is converted by a script in the browser, but it is displayed without formatting: headings, bullet and numbered lists, tables and code blocks are not distinguishable from plain text, because the style classes the page relies on do not exist in the stylesheet. In addition, characters such as `>`, `<`, `&` and quotation marks are altered before the conversion, so block quotes, comparisons and code samples are displayed incorrectly. The converted content is inserted into the page without any sanitising.
+
+**Requirements:**
+- Headings, paragraphs, emphasis, ordered, unordered and task lists, links, block quotes, inline code, fenced code blocks, tables, horizontal rules and images shall be displayed with clear formatting, in both light and dark mode.
+- The Markdown source shall reach the converter unchanged, with all characters preserved.
+- Raw HTML in the content shall not be executed (it shall be displayed as text), and links and images with unsafe addresses (for example `javascript:`) shall not be active. Links to external addresses shall open in a new tab without access to the opener page.
+- The preview in the item form shall use the same conversion and formatting as the item page.
+- No new runtime dependency shall be added.
+
+---
+
 ## IS-0003: Server Configuration Tokens on the Settings Page
 
 **Status:** Implemented in commit c41fa00 (tracked as IS-0003 in MyIssueDesk), including Part 2.

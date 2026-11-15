@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from issuedeck.core import events as live_events
 from issuedeck.core.config import ConfigRegistry
 from issuedeck.core.errors import InvalidTransition, ItemNotFound, WorkSessionNotFound
 from issuedeck.features.items.models import Item, WorkSession, WorkSessionUpdate
@@ -93,7 +94,11 @@ class WorkSessionService:
         item.updated_at = now
         await self._s.commit()
         refreshed = await self._repo.get(project_key, session.id)
-        return self._to_detail(refreshed)
+        detail = self._to_detail(refreshed)
+        live_events.publish(
+            "session.started", project_key, [detail.local_id], session_id=session.id,
+        )
+        return detail
 
     async def update(
         self,
@@ -141,7 +146,11 @@ class WorkSessionService:
             )
         await self._s.commit()
         refreshed = await self._repo.get(project_key, session_id)
-        return self._to_detail(refreshed)
+        detail = self._to_detail(refreshed)
+        live_events.publish(
+            "session.updated", project_key, [detail.local_id], session_id=session_id,
+        )
+        return detail
 
     async def finish(
         self,
@@ -185,7 +194,11 @@ class WorkSessionService:
             )
         await self._s.commit()
         refreshed = await self._repo.get(project_key, session_id)
-        return self._to_detail(refreshed)
+        detail = self._to_detail(refreshed)
+        live_events.publish(
+            "session.finished", project_key, [detail.local_id], session_id=session_id,
+        )
+        return detail
 
     async def get(self, project_key: str, session_id: int) -> WorkSessionDetail:
         session = await self._load_session(project_key, session_id)

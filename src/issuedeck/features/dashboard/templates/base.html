@@ -36,6 +36,12 @@
 
   <!-- marked.js -->
   <script src="/dashboard/static/js/marked.min.js"></script>
+  <script src="/dashboard/static/js/markdown.js"></script>
+  {% if live_config %}
+    {# Live updates (FEA-0006): settings for static/js/live.js, loaded once the page is parsed. #}
+    <script type="application/json" id="live-config">{{ live_config | tojson }}</script>
+    <script defer src="/dashboard/static/js/live.js"></script>
+  {% endif %}
 
   <!-- HTMX config -->
   <script>

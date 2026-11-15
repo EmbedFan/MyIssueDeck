@@ -245,6 +245,30 @@
       </div>
     </div>
 
+    {% if live_config and live_config.indicator %}
+      <span id="live-indicator" data-state="connecting" role="status" aria-live="polite"
+            title="{{ t('live.connecting') }}"
+            class="inline-flex h-8 items-center gap-1.5 rounded-md border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel px-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+        <span data-live-state="connecting">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+            <span class="hidden sm:inline">{{ t("live.connecting") }}</span>
+          </span>
+        </span>
+        <span data-live-state="connected" class="hidden">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-green-500"></span>
+            <span class="hidden sm:inline">{{ t("live.connected") }}</span>
+          </span>
+        </span>
+        <span data-live-state="offline" class="hidden">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+            <span class="hidden sm:inline">{{ t("live.offline") }}</span>
+          </span>
+        </span>
+      </span>
+    {% endif %}
     <a href="/dashboard/settings"
        title="{{ t('settings.nav') }}"
        aria-label="{{ t('settings.nav') }}"

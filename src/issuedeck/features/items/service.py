@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from issuedeck.core import events as live_events
 from issuedeck.core.config import ConfigRegistry, WebhookEvent
 from issuedeck.core.errors import (
     InvalidTransition,
@@ -480,6 +481,7 @@ class ItemService:
         )
         item.updated_at = created_at
         await self._s.commit()
+        live_events.publish("activity.added", project_key, [local_id])
         return self._to_event(event)
 
     async def get(
@@ -635,6 +637,9 @@ class ItemService:
         )
 
     def _emit_webhook(self, event: WebhookEvent, item: ItemSummary) -> None:
+        # Every committed item change passes through here, so it is also where the
+        # live dashboard views are told about it (FEA-0006).
+        live_events.publish(event, item.project_key, [item.local_id])
         if self._webhook_dispatcher is None:
             return
         self._webhook_dispatcher.emit(event, item)

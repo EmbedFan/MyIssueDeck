@@ -43,7 +43,41 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "default_language": "en",
     "default_theme": "light",
     "default_estimated_time": 0.5,
+    # FEA-0006, task 1: the "Active agent sessions" widget.
+    "agent_widget": {
+        "show_kanban": False,
+        "show_overview": True,
+        "statuses": ["active", "paused"],
+        "completed_minutes": 0,
+        "max_sessions": 8,
+        "scope": "project",
+        "initial_state": "expanded",
+        "info": {
+            "agent": True, "item": True, "goal": True, "last_update": True, "updates": True,
+        },
+    },
+    # FEA-0006, task 2: live updates of the dashboard views.
+    "live": {
+        "enabled": True,
+        "fallback_seconds": 30,
+        "highlight_seconds": 3,
+        "while_editing": "notice",
+        "views": {"kanban": True, "list": True, "overview": True, "item": True},
+        "events": {"items": True, "sessions": True, "activity": True},
+        "indicator": True,
+    },
 }
+
+#: Settings groups that can be reset to their defaults as a unit.
+RESETTABLE_GROUPS = ("theme", "agent_widget", "live")
+
+WIDGET_STATUSES = ("active", "paused")
+WIDGET_SCOPES = ("project", "all")
+WIDGET_STATES = ("expanded", "collapsed")
+WIDGET_INFO = ("agent", "item", "goal", "last_update", "updates")
+LIVE_VIEWS = ("kanban", "list", "overview", "item")
+LIVE_EVENTS = ("items", "sessions", "activity")
+LIVE_EDITING = ("notice", "after_save")
 
 _lock = threading.Lock()
 
@@ -72,6 +106,87 @@ def _check_hex(value: object, field: str) -> str:
     return value.lower()
 
 
+def _deep_merge(base: dict[str, Any], extra: dict[str, Any]) -> dict[str, Any]:
+    """``base`` with the keys of ``extra`` applied, nested dicts merged key by key."""
+    merged = json.loads(json.dumps(base))
+    for key, value in extra.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _int_in(value: object, low: int, high: int, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int | float) or value != int(value):
+        raise InvalidSetting(f"{field} must be a whole number", details={"field": field})
+    number = int(value)
+    if not low <= number <= high:
+        raise InvalidSetting(
+            f"{field} must be between {low} and {high}", details={"field": field},
+        )
+    return number
+
+
+def _flags(value: object, allowed: tuple[str, ...], field: str) -> dict[str, bool]:
+    if not isinstance(value, dict) or set(value) != set(allowed):
+        raise InvalidSetting(f"{field} must set each of: {', '.join(allowed)}",
+                             details={"field": field})
+    if not all(isinstance(flag, bool) for flag in value.values()):
+        raise InvalidSetting(f"{field} values must be on or off", details={"field": field})
+    return {name: value[name] for name in allowed}
+
+
+def _bool(value: object, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise InvalidSetting(f"{field} must be on or off", details={"field": field})
+    return value
+
+
+def _choice(value: object, allowed: tuple[str, ...], field: str) -> str:
+    if value not in allowed:
+        raise InvalidSetting(
+            f"{field} must be one of: {', '.join(allowed)}", details={"field": field},
+        )
+    return str(value)
+
+
+def validate_agent_widget(group: dict[str, Any]) -> dict[str, Any]:
+    """Check a complete ``agent_widget`` group and return it normalised."""
+    statuses = group.get("statuses")
+    if not isinstance(statuses, list) or not all(s in WIDGET_STATUSES for s in statuses):
+        raise InvalidSetting(
+            f"statuses shown must be some of: {', '.join(WIDGET_STATUSES)}",
+            details={"field": "statuses"},
+        )
+    return {
+        "show_kanban": _bool(group.get("show_kanban"), "show on the Kanban board"),
+        "show_overview": _bool(group.get("show_overview"), "show on the Overview page"),
+        "statuses": [s for s in WIDGET_STATUSES if s in statuses],
+        "completed_minutes": _int_in(group.get("completed_minutes"), 0, 240, "completed within"),
+        "max_sessions": _int_in(group.get("max_sessions"), 1, 20, "maximum sessions"),
+        "scope": _choice(group.get("scope"), WIDGET_SCOPES, "scope"),
+        "initial_state": _choice(group.get("initial_state"), WIDGET_STATES, "initial state"),
+        "info": _flags(group.get("info"), WIDGET_INFO, "information shown"),
+    }
+
+
+def validate_live(group: dict[str, Any]) -> dict[str, Any]:
+    """Check a complete ``live`` group and return it normalised."""
+    return {
+        "enabled": _bool(group.get("enabled"), "live updates"),
+        "fallback_seconds": _int_in(group.get("fallback_seconds"), 5, 300, "refresh interval"),
+        "highlight_seconds": _int_in(group.get("highlight_seconds"), 0, 30, "highlight time"),
+        "while_editing": _choice(group.get("while_editing"), LIVE_EDITING, "while editing"),
+        "views": _flags(group.get("views"), LIVE_VIEWS, "views"),
+        "events": _flags(group.get("events"), LIVE_EVENTS, "events"),
+        "indicator": _bool(group.get("indicator"), "connection indicator"),
+    }
+
+
+_GROUP_VALIDATORS = {"agent_widget": validate_agent_widget, "live": validate_live}
+
+
 def theme_style(settings: dict[str, Any]) -> str:
     """CSS that overrides the dashboard accent variables for light and dark mode."""
     light = settings["theme"]["light"]
@@ -98,6 +213,14 @@ class RuntimeSettings:
                 for mode in ("light", "dark"):
                     if isinstance(value.get(mode), dict):
                         merged["theme"][mode].update(value[mode])
+            elif key in _GROUP_VALIDATORS and isinstance(value, dict):
+                # Keys added in later versions keep their defaults; a stored group
+                # that no longer validates falls back to the defaults as a whole.
+                candidate = _deep_merge(merged[key], value)
+                try:
+                    merged[key] = _GROUP_VALIDATORS[key](candidate)
+                except InvalidSetting:
+                    pass
             elif key in merged:
                 merged[key] = value
         return merged
@@ -132,6 +255,17 @@ class RuntimeSettings:
                         )
                     else:
                         updated[key] = float(value)
+                elif key in _GROUP_VALIDATORS:
+                    if not isinstance(value, dict):
+                        raise InvalidSetting(f"{key} must be a group of settings",
+                                             details={"field": key})
+                    unknown = set(value) - set(DEFAULT_SETTINGS[key])
+                    if unknown:
+                        raise InvalidSetting(
+                            f"unknown {key} setting(s): {', '.join(sorted(unknown))}",
+                            details={"field": key},
+                        )
+                    updated[key] = _GROUP_VALIDATORS[key](_deep_merge(updated[key], value))
                 else:
                     raise InvalidSetting(f"unknown setting '{key}'", details={"field": key})
             _write_json(self._dir / SETTINGS_FILE, updated)
@@ -142,12 +276,18 @@ class RuntimeSettings:
             return updated
 
     def reset_theme(self, *, actor: str = "dashboard") -> dict:
+        return self.reset_group("theme", actor=actor)
+
+    def reset_group(self, group: str, *, actor: str = "dashboard") -> dict:
+        """Put one settings group back to its defaults (theme, agent_widget or live)."""
+        if group not in RESETTABLE_GROUPS:
+            raise InvalidSetting(f"unknown settings group '{group}'", details={"field": group})
         with _lock:
             current = self.settings()
             updated = json.loads(json.dumps(current))
-            updated["theme"] = json.loads(json.dumps(DEFAULT_SETTINGS["theme"]))
+            updated[group] = json.loads(json.dumps(DEFAULT_SETTINGS[group]))
             _write_json(self._dir / SETTINGS_FILE, updated)
-            self._audit("theme.reset", actor, {"changed": ["theme"]})
+            self._audit(f"{group}.reset", actor, {"changed": [group]})
             return updated
 
     # --- tokens -------------------------------------------------------------

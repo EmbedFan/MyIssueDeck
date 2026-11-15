@@ -6,7 +6,7 @@ import hmac
 import json
 import re
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -18,6 +18,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy import func, select
 
+from issuedeck.core import events as live_events
 from issuedeck.core.auth import (
     DASHBOARD_SESSION_COOKIE,
     DASHBOARD_SESSION_MAX_AGE_SECONDS,
@@ -181,6 +182,83 @@ def _work_session_svc(request: Request):
     )
 
 
+def _live_config(settings: dict, t, project_key: str | None, extra: dict) -> dict | None:
+    """What static/js/live.js needs on this page, or None when the page does not follow.
+
+    A page follows when the route marks it (``live_view``), live updates are on, and
+    the settings page has not switched that view off.
+    """
+    live = settings["live"]
+    view = extra.get("live_view")
+    if not view or not live["enabled"] or not live["views"].get(view):
+        return None
+    return {
+        "view": view,
+        "project_key": project_key,
+        "local_id": extra.get("live_local_id"),
+        "fallback_seconds": live["fallback_seconds"],
+        "highlight_seconds": live["highlight_seconds"],
+        "while_editing": live["while_editing"],
+        "events": live["events"],
+        "indicator": live["indicator"],
+        # The widget can show sessions of every project; those events must refresh it too.
+        "all_projects": settings["agent_widget"]["scope"] == "all",
+        "strings": {
+            "connecting": t("live.connecting"),
+            "connected": t("live.connected"),
+            "offline": t("live.offline"),
+            "notice": t("live.notice"),
+            "apply": t("live.apply"),
+        },
+    }
+
+
+async def _agent_widget(request: Request, project_key: str, where: str) -> dict:
+    """Data for the "Active agent sessions" widget on the Overview or Kanban page.
+
+    ``where`` is "overview" or "kanban". Which sessions are shown follows the settings
+    page (FEA-0006): statuses, an optional window for completed sessions, the maximum,
+    the scope (this project or all) and which details each entry shows.
+    """
+    runtime = getattr(request.app.state, "runtime_settings", None)
+    cfg = (runtime.settings() if runtime else DEFAULT_SETTINGS)["agent_widget"]
+    if not cfg["show_kanban" if where == "kanban" else "show_overview"]:
+        return {"show": False}
+
+    statuses = list(cfg["statuses"])
+    if cfg["completed_minutes"] > 0:
+        statuses.append("completed")
+    sessions: list = []
+    if statuses:
+        registry = request.app.state.registry
+        keys = (
+            [project_key] if cfg["scope"] == "project"
+            else [p.key for p in registry.all_projects()]
+        )
+        cutoff = datetime.now(UTC) - timedelta(minutes=cfg["completed_minutes"])
+        for key in keys:
+            work_svc, session = _work_session_svc(request)
+            try:
+                found = await work_svc.list_sessions(key, statuses=statuses, limit=50)
+            finally:
+                await session.close()
+            for entry in found.sessions:
+                if entry.status == "completed":
+                    ended = datetime.fromisoformat(entry.ended_at or entry.updated_at)
+                    if ended < cutoff:
+                        continue
+                sessions.append(entry)
+        sessions.sort(key=lambda s: s.updated_at, reverse=True)
+        sessions = sessions[: cfg["max_sessions"]]
+    return {
+        "show": True,
+        "sessions": sessions,
+        "expanded": cfg["initial_state"] == "expanded",
+        "info": cfg["info"],
+        "show_project": cfg["scope"] == "all",
+    }
+
+
 def _ctx(request: Request, project_key: str | None = None, **extra):
     """Build common template context."""
     registry = request.app.state.registry
@@ -191,6 +269,7 @@ def _ctx(request: Request, project_key: str | None = None, **extra):
     runtime = getattr(request.app.state, "runtime_settings", None)
     appearance = runtime.settings() if runtime else DEFAULT_SETTINGS
     return {
+        "live_config": _live_config(appearance, t, project_key, extra),
         "theme_style": theme_style(appearance),
         "default_theme": appearance["default_theme"],
         "projects": projects,
@@ -562,6 +641,8 @@ async def _record_import_batch(
         metadata_json=json.dumps(metadata or {}, sort_keys=True),
     ))
     await session.commit()
+    # Imports write through the repo, not the item service, so tell the live views.
+    live_events.publish("project.changed", project_key)
 
 
 async def _import_batch_item_counts(
@@ -1213,15 +1294,7 @@ async def project_overview(project_key: str, request: Request):
     finally:
         await session.close()
 
-    work_svc, session = _work_session_svc(request)
-    try:
-        active_work_sessions = await work_svc.list_sessions(
-            project_key,
-            statuses=["active", "paused"],
-            limit=8,
-        )
-    finally:
-        await session.close()
+    agent_widget = await _agent_widget(request, project_key, "overview")
 
     project = registry.project(project_key)
 
@@ -1246,22 +1319,20 @@ async def project_overview(project_key: str, request: Request):
 
     return render(
         "pages/home.html", request,
-        **_ctx(request, project_key),
+        **_ctx(request, project_key, live_view="overview"),
         total=total,
-        time_chart_json=json.dumps(time_chart),
         has_time_data=bool(estimated_total or spent_total),
         estimated_total=f"{estimated_total:g}",
         spent_total=f"{spent_total:g}",
         status_counts=status_counts,
         kind_counts=kind_counts,
         recent_items=recent.items,
-        active_work_sessions=active_work_sessions.sessions,
+        agent_widget=agent_widget,
         show_setup_checklist=total <= 8,
         setup_checklist_steps=_overview_onboarding_steps(
             project_key, project, total, status_counts,
         ),
-        status_chart_json=json.dumps(status_chart),
-        kind_chart_json=json.dumps(kind_chart),
+        chart_data={"status": status_chart, "kind": kind_chart, "time": time_chart},
         active_page="overview",
     )
 
@@ -1827,8 +1898,9 @@ async def kanban_board(project_key: str, request: Request):
 
     return render(
         "pages/kanban.html", request,
-        **_ctx(request, project_key),
+        **_ctx(request, project_key, live_view="kanban"),
         columns=columns,
+        agent_widget=await _agent_widget(request, project_key, "kanban"),
         active_page="kanban",
     )
 
@@ -1945,7 +2017,7 @@ async def list_view(
         "pages/list.html", request,
         is_htmx=is_htmx,
         partial_template="components/item_list_content.html" if is_htmx else None,
-        **_ctx(request, project_key),
+        **_ctx(request, project_key, live_view="list"),
         items=result.items,
         next_cursor=result.next_cursor,
         all_tags=tags,
@@ -2147,7 +2219,7 @@ async def item_detail(project_key: str, local_id: str, request: Request):
 
     return render(
         "pages/item_detail.html", request,
-        **_ctx(request, project_key),
+        **_ctx(request, project_key, live_view="item", live_local_id=local_id),
         item=item,
         work_sessions=work_sessions.sessions,
         active_page="detail",

@@ -28,8 +28,15 @@
     </a>
   </div>
 
+  {# ── Active agent sessions (optional, FEA-0006) ── #}
+  {% if agent_widget.show %}
+    <div class="mb-4">
+      {% include "components/agent_sessions_widget.html" %}
+    </div>
+  {% endif %}
+
   {# ── Kanban columns ── #}
-  <div class="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4" id="kanban-board">
+  <div class="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4" id="kanban-board" data-live-region="board">
     {% for status_key, items in columns.items() %}
       {% set colors = status_color(status_key) %}
       <div class="min-w-[280px] max-w-[320px] flex-shrink-0 flex flex-col

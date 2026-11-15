@@ -5,6 +5,7 @@
 {% block content %}
 <div class="space-y-6" x-data="{ shipOpen: false }">
 
+  <div data-live-region="details" class="space-y-6">
   {# ── Header section ── #}
   <div class="space-y-4">
     {# Back button #}
@@ -265,7 +266,9 @@
     </div>
   </div>
   {% endif %}
+  </div>
 
+  <div data-live-region="content" class="space-y-6">
   {# ── Body section ── #}
   <div class="rounded-lg border border-gray-200 dark:border-gray-800
               bg-white dark:bg-gray-900 shadow-sm">
@@ -274,32 +277,18 @@
     </div>
     <div class="px-5 py-4">
       {% if item.body %}
-        {# Hidden template holding raw markdown #}
-        <script type="text/template" id="md-source">{{ item.body }}</script>
-        <div id="md-rendered"
-             class="prose prose-sm dark:prose-invert max-w-none
-                    prose-headings:text-gray-900 dark:prose-headings:text-gray-100
-                    prose-headings:font-semibold
-                    prose-h1:text-xl prose-h1:border-b prose-h1:border-gray-200 prose-h1:dark:border-gray-700 prose-h1:pb-2
-                    prose-h2:text-lg
-                    prose-p:text-gray-700 prose-p:dark:text-gray-300
-                    prose-a:text-primary-600 prose-a:dark:text-primary-400
-                    prose-code:text-sm prose-code:bg-gray-100 prose-code:dark:bg-gray-800
-                    prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono
-                    prose-pre:bg-gray-50 prose-pre:dark:bg-gray-800 prose-pre:border prose-pre:border-gray-200 prose-pre:dark:border-gray-700 prose-pre:rounded-lg
-                    prose-li:text-gray-700 prose-li:dark:text-gray-300
-                    prose-blockquote:border-primary-300 prose-blockquote:dark:border-primary-700
-                    prose-img:rounded-lg prose-img:shadow-sm
-                    prose-table:text-sm
-                    prose-th:bg-gray-50 prose-th:dark:bg-gray-800
-                    prose-td:border-gray-200 prose-td:dark:border-gray-700">
-        </div>
+        {# The Markdown source as JSON: tojson escapes it for HTML, and JSON.parse gives
+           back exactly the original text (a text/template script would keep entities). #}
+        <script type="application/json" id="md-source">{{ item.body | tojson }}</script>
+        <div id="md-rendered" class="md-content"></div>
       {% else %}
         <p class="text-sm text-gray-400 dark:text-gray-600 italic">{{ t("common.empty_body") }}</p>
       {% endif %}
     </div>
   </div>
+  </div>
 
+  <div data-live-region="sessions" class="space-y-6">
   <div class="rounded-lg border border-gray-200 dark:border-gray-800
               bg-white dark:bg-gray-900 shadow-sm">
     <div class="flex items-center justify-between gap-3 px-5 py-3 border-b border-gray-200 dark:border-gray-800">
@@ -310,7 +299,7 @@
       {% if work_sessions %}
         <ol class="space-y-4">
           {% for session in work_sessions %}
-            <li class="rounded-md border border-gray-100 dark:border-gray-800 px-4 py-3">
+            <li data-live-key="session-{{ session.id }}" class="rounded-md border border-gray-100 dark:border-gray-800 px-4 py-3">
               <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div class="min-w-0 space-y-2">
                   <div class="flex flex-wrap items-center gap-2">
@@ -354,7 +343,9 @@
       {% endif %}
     </div>
   </div>
+  </div>
 
+  <div data-live-region="activity" class="space-y-6">
   {# ── Activity timeline section ── #}
   <div class="rounded-lg border border-gray-200 dark:border-gray-800
               bg-white dark:bg-gray-900 shadow-sm">
@@ -396,7 +387,7 @@
       {% if item.events %}
         <ol class="relative ml-2 border-l border-gray-200 dark:border-gray-800">
           {% for event in item.events %}
-            <li class="relative pl-5 pb-5 last:pb-0">
+            <li data-live-key="event-{{ event.id }}" class="relative pl-5 pb-5 last:pb-0">
               <span class="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full
                            bg-primary-600 dark:bg-primary-400
                            ring-4 ring-white dark:ring-gray-900"></span>
@@ -425,7 +416,9 @@
       {% endif %}
     </div>
   </div>
+  </div>
 
+  <div data-live-region="ship" class="space-y-6">
   {# ── Ship records section ── #}
   {% if item.ship_records %}
   <div class="rounded-lg border border-gray-200 dark:border-gray-800
@@ -488,7 +481,9 @@
     </div>
   </div>
   {% endif %}
+  </div>
 
+  <div data-live-region="relationships" class="space-y-6">
   {# ── Relationships section ── #}
   <div class="rounded-lg border border-gray-200 dark:border-gray-800
               bg-white dark:bg-gray-900 shadow-sm">
@@ -585,6 +580,7 @@
         </form>
       </div>
     </div>
+  </div>
   </div>
 
   {# ── Ship modal (Alpine.js) ── #}
@@ -718,13 +714,18 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Render markdown body
+function renderBody() {
+  // renderMarkdown (static/js/markdown.js) neutralises raw HTML and unsafe links.
   var sourceEl = document.getElementById('md-source');
   var renderEl = document.getElementById('md-rendered');
   if (sourceEl && renderEl) {
-    renderEl.innerHTML = marked.parse(sourceEl.textContent);
+    renderEl.innerHTML = window.renderMarkdown(JSON.parse(sourceEl.textContent));
   }
+}
+document.addEventListener('DOMContentLoaded', renderBody);
+// After a live update the content region is new HTML: render the Markdown again.
+document.addEventListener('live:applied', function (event) {
+  if (event.detail && event.detail.regions.indexOf('content') !== -1) renderBody();
 });
 </script>
 {% endblock %}

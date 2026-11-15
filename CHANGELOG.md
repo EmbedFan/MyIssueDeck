@@ -7,6 +7,12 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Fixed
+
+- Settings page layout (IS-0005): inputs in one row of the widget and live-update
+  sections now line up even when a label wraps, and the Display and Tracking
+  cards have the same structure with their Save buttons on the bottom edge.
+
 ### Added
 
 - Added `issuedeck validate-project-templates` for local template-pack TOML
@@ -43,6 +49,28 @@ versioning once public releases begin.
   and it is validated before it is replaced. The administrator token cannot be
   renamed, and cannot be regenerated while `ISSUEDECK_API_TOKEN` sets it. The
   auth middleware now reads config tokens on every request.
+- Agent sessions widget and live view updates (FEA-0006). The *Active agent
+  sessions* widget can now also be shown above the Kanban board; it is optional
+  and configured on the settings page (show on Kanban, default off; show on
+  Overview, default on; statuses, completed-within window, maximum, scope,
+  initial state, details shown). Open Kanban, list, Overview and item-page views
+  follow changes made by agents, the API, MCP, imports or the CLI without a
+  reload: the server publishes small events (item, relationship, work session
+  and activity changes) over server-sent events at `/dashboard/events`, the page
+  re-fetches itself and swaps the marked regions in place, highlights changed
+  entries, shows a connection indicator, and falls back to periodic refresh.
+  A region being edited is never overwritten (a notice with an *Apply changes*
+  button, or apply after saving, as set). A server-side watcher notices writes
+  made by other processes. Everything is configurable under *Live updates* on
+  the settings page, each group with a reset. Events carry identifiers only.
+- Markdown in the item content pane and the form preview (IS-0004): headings,
+  lists, task lists, tables, code, block quotes, links and images are now
+  formatted (the page relied on `prose` classes from a plugin that is not
+  installed), in light and dark mode. The body reaches the renderer as JSON, so
+  `<`, `>`, `&` and quotes are kept, and a new `markdown.js` shows raw HTML as
+  text and drops `javascript:`/`data:` link and image addresses; external links
+  open with `rel="noopener noreferrer"`. The form's Alpine `x-data` no longer
+  breaks when the body contains a double quote.
 - Settings page navigation and presentation (IS-0003, part 2): the Settings
   menu item now sits after *Import Files* with a gear icon, and the page shows
   the same project menu as the other pages. Tokens are shown as cards with

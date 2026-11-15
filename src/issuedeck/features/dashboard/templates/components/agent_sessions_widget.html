@@ -1,0 +1,85 @@
+{#
+  "Active agent sessions" widget, shared by the Overview page and the Kanban board
+  (FEA-0006). Expects `agent_widget` (from routes._agent_widget): sessions, expanded,
+  info (which details to show) and show_project (when the scope is all projects).
+  Only the list and the count are live regions, so a user's open/closed choice on the
+  <details> element survives a live update.
+#}
+<section class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine overflow-hidden"
+         aria-label="{{ t('home.work_sessions_title') }}" data-agent-widget>
+  <details class="group" {% if agent_widget.expanded %}open{% endif %}>
+    <summary class="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 bg-ledger-surfaceAlt dark:bg-ledger-darkPanelAlt">
+      <span class="flex items-center gap-2">
+        <svg class="h-4 w-4 text-gray-500 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">{{ t("home.work_sessions_title") }}</h2>
+      </span>
+      <span class="text-xs text-gray-500 dark:text-gray-400" data-live-region="agent-sessions-count">{{ agent_widget.sessions | length }}</span>
+    </summary>
+    <div data-live-region="agent-sessions">
+      {% if agent_widget.sessions %}
+        <ul class="divide-y divide-gray-100 dark:divide-gray-700 border-t border-ledger-line dark:border-ledger-darkLine">
+          {% for session in agent_widget.sessions %}
+            <li class="px-5 py-4" data-live-key="session-{{ session.project_key }}-{{ session.id }}">
+              <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div class="min-w-0 space-y-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium
+                                 {% if session.status == 'paused' %}
+                                   bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300
+                                 {% elif session.status == 'active' %}
+                                   bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300
+                                 {% else %}
+                                   bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300
+                                 {% endif %}">
+                      <span class="h-1.5 w-1.5 rounded-full
+                                   {% if session.status == 'paused' %}bg-amber-500{% elif session.status == 'active' %}bg-green-500{% else %}bg-gray-400{% endif %}"></span>
+                      {{ work_session_status_labels.get(session.status, session.status) }}
+                    </span>
+                    {% if agent_widget.info.agent %}
+                      <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ session.agent_name }}</span>
+                    {% endif %}
+                    {% if agent_widget.show_project %}
+                      <span class="rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 font-mono text-xs text-gray-600 dark:text-gray-300">{{ session.project_key }}</span>
+                    {% endif %}
+                    {% if agent_widget.info.item and session.local_id %}
+                      <a href="/dashboard/{{ session.project_key }}/items/{{ session.local_id }}"
+                         class="text-xs font-mono text-primary-700 dark:text-primary-300 hover:underline">
+                        {{ session.local_id }}
+                      </a>
+                    {% endif %}
+                  </div>
+                  {% if agent_widget.info.item %}
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">
+                      {{ session.item_title or t("common.no") }}
+                    </p>
+                  {% endif %}
+                  {% if agent_widget.info.goal %}
+                    <p class="text-sm leading-6 text-gray-600 dark:text-gray-400 break-words">
+                      {{ session.goal }}
+                    </p>
+                  {% endif %}
+                </div>
+                {% if agent_widget.info.updates or agent_widget.info.last_update %}
+                  <div class="flex flex-row gap-4 text-xs text-gray-500 dark:text-gray-400 md:flex-col md:items-end md:gap-1">
+                    {% if agent_widget.info.updates %}
+                      <span>{{ session.update_count }} {{ t("work_session.updates_suffix") }}</span>
+                    {% endif %}
+                    {% if agent_widget.info.last_update %}
+                      <time datetime="{{ session.updated_at }}">{{ session.updated_at[:16] | replace('T', ' ') }}</time>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="px-5 py-8 text-center border-t border-ledger-line dark:border-ledger-darkLine">
+          <p class="text-sm text-gray-400 dark:text-gray-500">{{ t("home.work_sessions_empty") }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </details>
+</section>

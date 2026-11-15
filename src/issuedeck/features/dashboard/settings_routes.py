@@ -37,8 +37,15 @@ from issuedeck.core.config_file import update_token as rewrite_token_block
 from issuedeck.core.errors import InvalidSetting, ProjectNotFound, TokenNotFound
 from issuedeck.core.runtime_settings import (
     LANGUAGES,
+    LIVE_EDITING,
+    LIVE_EVENTS,
+    LIVE_VIEWS,
     THEMES,
     TOKEN_SCOPES,
+    WIDGET_INFO,
+    WIDGET_SCOPES,
+    WIDGET_STATES,
+    WIDGET_STATUSES,
     RuntimeSettings,
     clean_scopes,
     clean_token_name,
@@ -123,6 +130,13 @@ async def _render_settings(
         runtime_cards=[_runtime_card(record) for record in runtime.public_tokens()],
         audit_entries=runtime.audit_log(20),
         scope_choices=TOKEN_SCOPES,
+        widget_statuses=WIDGET_STATUSES,
+        widget_scopes=WIDGET_SCOPES,
+        widget_states=WIDGET_STATES,
+        widget_info=WIDGET_INFO,
+        live_views=LIVE_VIEWS,
+        live_events=LIVE_EVENTS,
+        live_editing=LIVE_EDITING,
         language_choices=LANGUAGES,
         theme_choices=THEMES,
         error=error,
@@ -175,6 +189,110 @@ async def save_appearance(
 async def reset_appearance(request: Request):
     _runtime(request).reset_theme(actor=ACTOR)
     return _redirect()
+
+
+# --- agent sessions widget and live updates (FEA-0006) -------------------------
+
+
+def _on(value: str | None) -> bool:
+    """A checkbox is sent as a value when ticked and not at all when it is not."""
+    return value is not None
+
+
+STATUSES_FORM = Form([], alias="statuses")
+
+
+@router.post("/agent-widget")
+async def save_agent_widget(
+    request: Request,
+    show_kanban: str | None = Form(None),
+    show_overview: str | None = Form(None),
+    statuses: list[str] = STATUSES_FORM,
+    completed_minutes: str = Form("0"),
+    max_sessions: str = Form("8"),
+    scope: str = Form("project"),
+    initial_state: str = Form("expanded"),
+    info_agent: str | None = Form(None),
+    info_item: str | None = Form(None),
+    info_goal: str | None = Form(None),
+    info_last_update: str | None = Form(None),
+    info_updates: str | None = Form(None),
+):
+    try:
+        group = {
+            "show_kanban": _on(show_kanban),
+            "show_overview": _on(show_overview),
+            "statuses": statuses,
+            "completed_minutes": _whole(completed_minutes, "completed within"),
+            "max_sessions": _whole(max_sessions, "maximum sessions"),
+            "scope": scope,
+            "initial_state": initial_state,
+            "info": {
+                "agent": _on(info_agent), "item": _on(info_item), "goal": _on(info_goal),
+                "last_update": _on(info_last_update), "updates": _on(info_updates),
+            },
+        }
+        _runtime(request).update_settings({"agent_widget": group}, actor=ACTOR)
+    except InvalidSetting as exc:
+        return await _render_settings(request, error=exc.message, status_code=422)
+    return _redirect()
+
+
+@router.post("/agent-widget/reset")
+async def reset_agent_widget(request: Request):
+    _runtime(request).reset_group("agent_widget", actor=ACTOR)
+    return _redirect()
+
+
+@router.post("/live")
+async def save_live(
+    request: Request,
+    enabled: str | None = Form(None),
+    fallback_seconds: str = Form("30"),
+    highlight_seconds: str = Form("3"),
+    while_editing: str = Form("notice"),
+    view_kanban: str | None = Form(None),
+    view_list: str | None = Form(None),
+    view_overview: str | None = Form(None),
+    view_item: str | None = Form(None),
+    event_items: str | None = Form(None),
+    event_sessions: str | None = Form(None),
+    event_activity: str | None = Form(None),
+    indicator: str | None = Form(None),
+):
+    try:
+        group = {
+            "enabled": _on(enabled),
+            "fallback_seconds": _whole(fallback_seconds, "refresh interval"),
+            "highlight_seconds": _whole(highlight_seconds, "highlight time"),
+            "while_editing": while_editing,
+            "views": {
+                "kanban": _on(view_kanban), "list": _on(view_list),
+                "overview": _on(view_overview), "item": _on(view_item),
+            },
+            "events": {
+                "items": _on(event_items), "sessions": _on(event_sessions),
+                "activity": _on(event_activity),
+            },
+            "indicator": _on(indicator),
+        }
+        _runtime(request).update_settings({"live": group}, actor=ACTOR)
+    except InvalidSetting as exc:
+        return await _render_settings(request, error=exc.message, status_code=422)
+    return _redirect()
+
+
+@router.post("/live/reset")
+async def reset_live(request: Request):
+    _runtime(request).reset_group("live", actor=ACTOR)
+    return _redirect()
+
+
+def _whole(raw: str, field: str) -> int:
+    try:
+        return int(raw.strip())
+    except ValueError as exc:
+        raise InvalidSetting(f"{field} must be a whole number", details={"field": field}) from exc
 
 
 # --- display and tracking -------------------------------------------------------

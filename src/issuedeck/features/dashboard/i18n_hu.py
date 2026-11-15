@@ -396,6 +396,60 @@ MESSAGES_HU: dict[str, str] = {
     "relationship.blocks": "Blokkolja",
     "relationship.blocked_by": "Blokkolta",
     "relationship.related_to": "Kapcsolódó",
+    "live.apply": "Módosítások alkalmazása",
+    "live.connected": "Élő",
+    "live.connecting": "Kapcsolódás...",
+    "live.notice": "Ez a nézet megváltozott.",
+    "live.offline": "Nincs kapcsolat: időszakos frissítés",
+    "settings.live.enabled": "A változások élő követése",
+    "settings.live.event_activity": "Tevékenységi bejegyzések",
+    "settings.live.event_items": "Elemek változásai",
+    "settings.live.event_sessions": "Munkamenetek",
+    "settings.live.events": "Követett események",
+    "settings.live.editing_after_save": "Alkalmazás mentés után",
+    "settings.live.editing_notice": "Értesítés megjelenítése",
+    "settings.live.fallback": "Tartalék frissítési időköz (másodperc, 5–300)",
+    "settings.live.help": (
+        "A megnyitott nézetek újratöltés nélkül követik az ügynökök, az API vagy az "
+        "importok változtatásait."
+    ),
+    "settings.live.highlight": (
+        "A megváltozott bejegyzések kiemelése (másodperc, 0–30; 0 = ki)"
+    ),
+    "settings.live.indicator": "A kapcsolat jelzőjének megjelenítése",
+    "settings.live.title": "Élő frissítés",
+    "settings.live.view_item": "Elemoldal",
+    "settings.live.view_kanban": "Kanban tábla",
+    "settings.live.view_list": "Lista",
+    "settings.live.view_overview": "Áttekintés",
+    "settings.live.views": "Az élő frissítést követő nézetek",
+    "settings.live.while_editing": "Ha a szerkesztett nézet megváltozik",
+    "settings.reset_group": "E beállítások visszaállítása az alapértelmezettre",
+    "settings.reset_group_confirm": "Visszaállítja ezt a beállításcsoportot az alapértelmezettre?",
+    "settings.widget.completed_minutes": (
+        "Az elmúlt percekben befejezett munkamenetek is (perc, 0–240; 0 = ki)"
+    ),
+    "settings.widget.help": (
+        "Az Aktív ügynöki munkamenetek modul megjeleníthető az Áttekintés oldalon és a "
+        "Kanban tábla tetején."
+    ),
+    "settings.widget.info": "A munkamenetnél megjelenített adatok",
+    "settings.widget.info_agent": "Ügynök neve",
+    "settings.widget.info_goal": "Cél",
+    "settings.widget.info_item": "Elem",
+    "settings.widget.info_last_update": "Utolsó frissítés",
+    "settings.widget.info_updates": "Frissítések száma",
+    "settings.widget.initial_state": "Kezdeti állapot",
+    "settings.widget.max_sessions": "A munkamenetek legnagyobb száma (1–20)",
+    "settings.widget.scope": "Hatókör",
+    "settings.widget.scope_all": "Minden projekt",
+    "settings.widget.scope_project": "Jelenlegi projekt",
+    "settings.widget.show_kanban": "Megjelenítés a Kanban táblán",
+    "settings.widget.show_overview": "Megjelenítés az Áttekintés oldalon",
+    "settings.widget.state_collapsed": "Összecsukva",
+    "settings.widget.state_expanded": "Kinyitva",
+    "settings.widget.statuses": "A megjelenített munkamenet-állapotok",
+    "settings.widget.title": "Ügynöki munkamenetek modul",
     "settings.accent": "Kiemelő szín",
     "settings.appearance": "Témaszínek",
     "settings.appearance_help": (
@@ -474,6 +528,9 @@ MESSAGES_HU: dict[str, str] = {
     ),
     "settings.tracking": "Időkövetési alapértelmezések",
     "settings.tracking_help": "Az ezután létrehozott elemekre vonatkozik.",
+    "settings.display_help": (
+        "Az a nyelv és téma, amelyet a rendszer akkor használ, ha a felhasználó nem választott."
+    ),
     "search.placeholder": "Elemek keresése...",
     "search.empty": "Kezdjen el gépelni a kereséshez...",
     "search.all": "Összes találat megtekintése",
