@@ -2,7 +2,7 @@
 
 ## FEA-0005: Hungarian Localisation
 
-**Status:** Not implemented. Note: this entry reuses the ID FEA-0004 of the settings page below; it should be renumbered (for example FEA-0005).
+**Status:** Implemented, not yet committed (tracked as FEAT-0004 in MyIssueDesk).
 
 	Localise the software to Hungarian too.
 	
