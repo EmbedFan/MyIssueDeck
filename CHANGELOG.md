@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-15
+
 ### Fixed
 
 - Settings page layout (IS-0005): inputs in one row of the widget and live-update
