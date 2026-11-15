@@ -7,8 +7,13 @@
 
 **Description:** The dashboard shall include a settings page that allows the user to:
 
-- set the colour scheme manually for light mode and for dark mode, with a control to reset the colours to the developer-defined default palette;
-- create new access tokens, change their settings, and regenerate an existing token.
+- **Theme colours:** set the colour scheme manually for light mode and for dark mode, with a control to reset the colours to the developer-defined default palette;
+- **Access tokens:** create new access tokens, change their name and scopes, and regenerate an existing token, with the new value shown once;
+- **Project settings:** edit the project name and description and the default values of the custom fields, such as the default estimated time;
+- **Tracking defaults:** set the default estimated time for new items, and the time unit shown in the dashboard;
+- **Display:** choose the default language and the default theme (light, dark or system).
+
+Changes take effect without restarting the server where possible, and each change is recorded in the item event history.
 
 ---
 
