@@ -314,6 +314,37 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "page.kanban.title": "Kanban",
         "page.list.title": "List",
         "page.search.title": "Search",
+        "project_delete.active_sessions": (
+            "{count} active or paused work session(s) block deletion. "
+            "Finish or cancel them first."
+        ),
+        "project_delete.backup_note": (
+            "Before anything is removed, an audit-bundle backup is saved under "
+            "data/deleted-projects/ and the project config is archived under "
+            "projects/.deleted/."
+        ),
+        "project_delete.cancel": "Cancel",
+        "project_delete.confirm_button": "Delete project permanently",
+        "project_delete.confirm_label": "Type the project key {project_key} to confirm",
+        "project_delete.deleted_items": "Items already deleted",
+        "project_delete.download_backup": "Download an audit bundle now",
+        "project_delete.error.active_sessions": (
+            "This project has active or paused work sessions. "
+            "Finish or cancel them first. Nothing was deleted."
+        ),
+        "project_delete.error.not_confirmed": (
+            "What you typed does not match the project key. Nothing was deleted."
+        ),
+        "project_delete.import_batches": "Import batches",
+        "project_delete.items": "Items",
+        "project_delete.link": "Delete project",
+        "project_delete.title": "Delete project",
+        "project_delete.warning": (
+            "This permanently removes the project \"{name}\" and everything in it. "
+            "It cannot be undone from the dashboard."
+        ),
+        "project_delete.will_remove": "This will remove",
+        "project_delete.work_sessions": "Work sessions",
         "project_form.description": "Description",
         "project_form.description_placeholder": "Short context for this workspace",
         "project_form.error.exists": "Project '{project_key}' already exists.",
@@ -696,6 +727,29 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "page.kanban.title": "看板",
         "page.list.title": "列表",
         "page.search.title": "搜索",
+        "project_delete.active_sessions": (
+            "有 {count} 个活跃或暂停的工作会话，无法删除。请先结束或取消它们。"
+        ),
+        "project_delete.backup_note": (
+            "删除前会自动把审计包备份保存到 data/deleted-projects/，"
+            "并把项目配置归档到 projects/.deleted/。"
+        ),
+        "project_delete.cancel": "取消",
+        "project_delete.confirm_button": "永久删除项目",
+        "project_delete.confirm_label": "输入项目键 {project_key} 以确认",
+        "project_delete.deleted_items": "已删除的条目",
+        "project_delete.download_backup": "立即下载审计包",
+        "project_delete.error.active_sessions": (
+            "该项目有活跃或暂停的工作会话。请先结束或取消它们。未删除任何内容。"
+        ),
+        "project_delete.error.not_confirmed": "输入内容与项目键不一致。未删除任何内容。",
+        "project_delete.import_batches": "导入批次",
+        "project_delete.items": "条目",
+        "project_delete.link": "删除项目",
+        "project_delete.title": "删除项目",
+        "project_delete.warning": "这将永久删除项目“{name}”及其全部内容，且无法在仪表盘中撤销。",
+        "project_delete.will_remove": "将删除",
+        "project_delete.work_sessions": "工作会话",
         "project_form.description": "描述",
         "project_form.description_placeholder": "这个工作区的简短说明",
         "project_form.error.exists": "项目 '{project_key}' 已存在。",

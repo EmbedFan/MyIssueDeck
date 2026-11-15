@@ -28,6 +28,13 @@ versioning once public releases begin.
   hours (30 minutes), and migration `0007` backfills that value on existing
   items that have none.
 
+- Added safe project deletion in the dashboard (`/dashboard/{key}/delete`,
+  linked from the project Overview). The user must type the exact project key,
+  deletion is blocked while work sessions are active or paused, an audit-bundle
+  backup is written to `data/deleted-projects/` first, all project rows are
+  removed in one transaction, and the config file is archived to
+  `projects/.deleted/` instead of being erased.
+
 ### Changed
 
 - The Overview time chart now uses amber for estimated time and blue for time

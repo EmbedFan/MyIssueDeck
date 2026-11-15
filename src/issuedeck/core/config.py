@@ -386,6 +386,12 @@ class ConfigRegistry:
             raise ConfigError(f"duplicate project key '{project.key}'")
         self._projects[project.key] = project
 
+    def unregister_project(self, key: str) -> ProjectConfig:
+        """Remove a project from the in-memory registry and return it."""
+        project = self.project(key)  # raises ProjectNotFound
+        del self._projects[key]
+        return project
+
     def validate_kind(self, project_key: str, kind: str) -> KindConfig:
         pc = self.project(project_key)
         if kind not in pc.kinds:

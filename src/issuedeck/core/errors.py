@@ -30,6 +30,16 @@ class ProjectNotFound(IssueDeckError):
     http_status = 404
 
 
+class ProjectDeletionNotConfirmed(IssueDeckError):
+    code = "project_deletion_not_confirmed"
+    http_status = 422
+
+
+class ProjectDeletionBlocked(IssueDeckError):
+    code = "project_deletion_blocked"
+    http_status = 409
+
+
 class ItemNotFound(IssueDeckError):
     code = "item_not_found"
     http_status = 404

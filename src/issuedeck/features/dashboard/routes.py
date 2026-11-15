@@ -23,7 +23,12 @@ from issuedeck.core.auth import (
     make_dashboard_session_cookie,
 )
 from issuedeck.core.config import ProjectConfig
-from issuedeck.core.errors import ConfigError, IssueDeckError
+from issuedeck.core.errors import (
+    ConfigError,
+    IssueDeckError,
+    ProjectDeletionBlocked,
+    ProjectDeletionNotConfirmed,
+)
 from issuedeck.features.dashboard.helpers import (
     all_tags,
     count_by_field,
@@ -42,6 +47,7 @@ from issuedeck.features.dashboard.i18n import (
 )
 from issuedeck.features.dashboard.saved_filters import (
     delete_dashboard_filter,
+    delete_project_filters,
     filter_params_from_form,
     get_saved_dashboard_filter,
     list_saved_dashboard_filters,
@@ -88,6 +94,7 @@ from issuedeck.features.projects.project_templates import (
     list_project_templates,
     render_project_toml,
 )
+from issuedeck.features.projects.service import ProjectService
 from issuedeck.features.relationships.repo import RelationshipRepo
 from issuedeck.features.relationships.service import RelationshipService
 from issuedeck.features.search.repo import SearchRepo
@@ -1095,6 +1102,71 @@ async def download_audit_bundle(project_key: str, request: Request):
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+# ---------------------------------------------------------------------------
+# Project deletion (FEA-0003)
+# ---------------------------------------------------------------------------
+
+async def _render_project_delete(
+    request: Request,
+    project_key: str,
+    *,
+    error: str | None = None,
+    status_code: int = 200,
+):
+    registry = request.app.state.registry
+    session = request.app.state.session_factory()
+    try:
+        preview = await ProjectService(registry, session).deletion_preview(project_key)
+    finally:
+        await session.close()
+    return render(
+        "pages/project_delete.html", request,
+        **_ctx(request, project_key),
+        preview=preview,
+        error=error,
+        status_code=status_code,
+    )
+
+
+@router.get("/{project_key}/delete")
+async def delete_project_page(project_key: str, request: Request):
+    request.app.state.registry.project(project_key)  # 404 if missing
+    return await _render_project_delete(request, project_key)
+
+
+@router.post("/{project_key}/delete")
+async def delete_project_submit(
+    project_key: str,
+    request: Request,
+    confirm_key: str = Form(""),
+):
+    registry = request.app.state.registry
+    registry.project(project_key)  # 404 if missing
+    t = make_translator(language_from_request(request))
+
+    error: str | None = None
+    status_code = 200
+    session = request.app.state.session_factory()
+    try:
+        await ProjectService(registry, session).delete_project(
+            project_key, confirm_key=confirm_key.strip(),
+        )
+    except ProjectDeletionNotConfirmed:
+        error, status_code = t("project_delete.error.not_confirmed"), 422
+    except ProjectDeletionBlocked:
+        error, status_code = t("project_delete.error.active_sessions"), 409
+    finally:
+        await session.close()
+
+    if error:
+        return await _render_project_delete(
+            request, project_key, error=error, status_code=status_code,
+        )
+
+    delete_project_filters(registry.server.data_dir, project_key)
+    return RedirectResponse(url="/dashboard/", status_code=303)
 
 
 # ---------------------------------------------------------------------------

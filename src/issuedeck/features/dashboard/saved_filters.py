@@ -107,6 +107,20 @@ def delete_dashboard_filter(data_dir: Path, project_key: str, filter_id: str) ->
     return True
 
 
+def delete_project_filters(data_dir: Path, project_key: str) -> int:
+    """Remove every saved filter of a project; return how many were removed."""
+    store_path = _store_path(data_dir)
+    store = _read_store(store_path)
+    projects = store.setdefault("projects", {})
+    removed = projects.pop(project_key, None)
+    if removed is None:
+        return 0
+
+    store_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_store(store_path, store)
+    return len(removed) if isinstance(removed, list) else 0
+
+
 def normalize_filter_params(params: dict[str, object]) -> dict[str, object]:
     normalized: dict[str, object] = {}
 
