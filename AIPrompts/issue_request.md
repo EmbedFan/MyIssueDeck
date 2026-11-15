@@ -2,7 +2,7 @@
 
 ## IS-0002: Hungarian Localisation of Status Names
 
-**Status:** Implemented, not yet committed (tracked as IS-0002 in MyIssueDesk).
+**Status:** Implemented in commit 9aee50b (tracked as IS-0002 in MyIssueDesk).
 
 **Related feature:** FEA-0005 (Hungarian localisation)
 
@@ -31,6 +31,8 @@
 ---
 
 ## IS-0001: Default Estimated Time and Improved Chart Contrast
+
+**Status:** Implemented in commit 8d7356a (tracked as IS-0001 in MyIssueDesk).
 
 **Summary:** Assign a default estimated time to items that have none, and increase the colour contrast of the time overview diagram.
 
