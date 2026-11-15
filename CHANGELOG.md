@@ -7,6 +7,12 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Changed
+
+- The distribution is now named `myissuedeck`, so the wheel is
+  `myissuedeck-0.9.0-py3-none-any.whl`. The import package and the `issuedeck`
+  command keep their names (TASK-0002).
+
 ## [0.9.0] - 2026-11-15
 
 ### Fixed
