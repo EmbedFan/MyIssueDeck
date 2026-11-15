@@ -47,6 +47,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "bulk.tag_remove": "Remove",
         "bulk.tag_replace": "Replace",
         "chart.count": "Count",
+        "chart.estimated_time": "Estimated time (h)",
+        "chart.time_spent": "Time spent (h)",
         "common.add": "Add",
         "common.back": "Back",
         "common.back_to_list": "Back to list",
@@ -122,6 +124,11 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "home.no_items": "No items yet",
         "home.recent_activity": "Recent activity",
         "home.status_distribution": "Status distribution",
+        "home.time_overview": "Estimated vs spent time by status",
+        "home.time_overview_empty": (
+            "No time recorded yet. Set Estimated time or Time spent on items "
+            "to see this chart."
+        ),
         "home.work_sessions_empty": "No active agent work sessions",
         "home.work_sessions_title": "Active agent sessions",
         "language.en": "EN",
@@ -448,6 +455,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "bulk.tag_remove": "移除",
         "bulk.tag_replace": "替换",
         "chart.count": "数量",
+        "chart.estimated_time": "预计用时（小时）",
+        "chart.time_spent": "已用时间（小时）",
         "common.add": "添加",
         "common.back": "返回",
         "common.back_to_list": "返回列表",
@@ -523,6 +532,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "home.no_items": "暂无事项",
         "home.recent_activity": "最近活动",
         "home.status_distribution": "状态分布",
+        "home.time_overview": "各状态的预计与已用时间",
+        "home.time_overview_empty": "尚未记录时间。为条目设置预计用时或已用时间后即可查看此图表。",
         "home.work_sessions_empty": "暂无活跃 Agent 工作会话",
         "home.work_sessions_title": "活跃 Agent 会话",
         "language.en": "EN",

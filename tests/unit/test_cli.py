@@ -522,7 +522,7 @@ def test_create_item_cli_creates_local_item_with_metadata(tmp_path, capsys):
     assert payload["title"] == "Fix CLI create"
     assert payload["tags"] == ["cli", "triage"]
     assert payload["applies_to"] == ["main"]
-    assert payload["custom_fields"] == {"priority": "high"}
+    assert payload["custom_fields"] == {"estimated_time": 0.5, "priority": "high"}
     assert payload["external_links"][0]["label"] == "Spec"
     assert payload["external_links"][0]["url"] == "https://example.com/spec"
 
@@ -616,7 +616,7 @@ def test_update_item_cli_updates_local_item_with_metadata(tmp_path, capsys):
     assert payload["title"] == "Updated from CLI"
     assert payload["status"] == "in_progress"
     assert payload["tags"] == ["cli", "updated"]
-    assert payload["custom_fields"] == {"priority": "high"}
+    assert payload["custom_fields"] == {"estimated_time": 0.5, "priority": "high"}
     assert payload["external_links"][0]["url"] == "https://example.com/update"
     with sqlite3.connect(tmp_path / "data" / "tracker.db") as conn:
         body = conn.execute(
@@ -740,8 +740,8 @@ def test_bulk_update_items_cli_updates_multiple_items(tmp_path, capsys):
         ["triaged"],
     ]
     assert [item["custom_fields"] for item in payload["items"]] == [
-        {"priority": "high"},
-        {"priority": "high"},
+        {"estimated_time": 0.5, "priority": "high"},
+        {"estimated_time": 0.5, "priority": "high"},
     ]
 
 

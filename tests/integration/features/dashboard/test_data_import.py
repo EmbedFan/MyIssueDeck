@@ -253,6 +253,7 @@ async def test_data_import_csv_maps_custom_fields(dashboard_client):
     assert item is not None
     assert json.loads(item.custom_fields_json) == {
         "estimate": 3,
+        "estimated_time": 0.5,
         "priority": "high",
     }
 

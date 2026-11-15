@@ -21,6 +21,17 @@ versioning once public releases begin.
   to every project; a project that defines the same key keeps its own
   definition. Added total estimated and spent time to the dashboard Overview
   page and to `GET /api/v1/projects/{key}/time-summary`.
+- Added a dashboard Overview chart comparing estimated and spent time per
+  status, with an empty state until time is recorded.
+- Added an optional `default` for custom fields, applied when an item is
+  created without a value. The built-in `estimated_time` field defaults to 0.5
+  hours (30 minutes), and migration `0007` backfills that value on existing
+  items that have none.
+
+### Changed
+
+- The Overview time chart now uses amber for estimated time and blue for time
+  spent to make the two series easier to tell apart.
 
 ## [0.8.0] - 2026-05-02
 

@@ -127,8 +127,8 @@ async def test_dashboard_bulk_update_preserves_current_list_url(dashboard_client
         (item.kind, item.status, item.tags, item.applies_to, item.custom_fields)
         for item in [one, two]
     ] == [
-        ("bug", "in_progress", ["triaged"], ["next"], {"priority": "high"}),
-        ("bug", "in_progress", ["triaged"], ["next"], {"priority": "high"}),
+        ("bug", "in_progress", ["triaged"], ["next"], {"estimated_time": 0.5, "priority": "high"}),
+        ("bug", "in_progress", ["triaged"], ["next"], {"estimated_time": 0.5, "priority": "high"}),
     ]
 
 

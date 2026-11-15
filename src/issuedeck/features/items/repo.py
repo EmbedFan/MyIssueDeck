@@ -329,7 +329,25 @@ class ItemRepo:
             Item.project_key == project_key,
             Item.deleted_at.is_(None),
         )
-        return float((await self._s.execute(stmt)).scalar() or 0.0)
+        return round(float((await self._s.execute(stmt)).scalar() or 0.0), 6)
+
+    async def sum_custom_number_by(
+        self, project_key: str, field_key: str, group_by: str,
+    ) -> dict[str, float]:
+        """Sum a numeric custom field per `status` or `kind` (non-deleted items)."""
+        if group_by not in {"status", "kind"}:
+            raise ValueError("group_by must be 'status' or 'kind'")
+        group_col = getattr(Item, group_by)
+        value = func.json_extract(Item.custom_fields_json, _json_path(field_key))
+        stmt = (
+            select(group_col, func.coalesce(func.sum(func.cast(value, Float)), 0.0))
+            .where(Item.project_key == project_key, Item.deleted_at.is_(None))
+            .group_by(group_col)
+        )
+        return {
+            row[0]: round(float(row[1]), 6)
+            for row in (await self._s.execute(stmt)).all()
+        }
 
 
 def _iso_now() -> str:

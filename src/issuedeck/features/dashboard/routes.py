@@ -1114,6 +1114,12 @@ async def project_overview(project_key: str, request: Request):
         item_repo = ItemRepo(session)
         estimated_total = await item_repo.sum_custom_number(project_key, "estimated_time")
         spent_total = await item_repo.sum_custom_number(project_key, "time_spent")
+        estimated_by_status = await item_repo.sum_custom_number_by(
+            project_key, "estimated_time", "status",
+        )
+        spent_by_status = await item_repo.sum_custom_number_by(
+            project_key, "time_spent", "status",
+        )
     finally:
         await session.close()
 
@@ -1147,10 +1153,18 @@ async def project_overview(project_key: str, request: Request):
         "colors": [_chart_color(k, "kind") for k in project.kinds],
     }
 
+    time_chart = {
+        "labels": [status_label(s, project) for s in project.statuses],
+        "estimated": [estimated_by_status.get(s, 0.0) for s in project.statuses],
+        "spent": [spent_by_status.get(s, 0.0) for s in project.statuses],
+    }
+
     return render(
         "pages/home.html", request,
         **_ctx(request, project_key),
         total=total,
+        time_chart_json=json.dumps(time_chart),
+        has_time_data=bool(estimated_total or spent_total),
         estimated_total=f"{estimated_total:g}",
         spent_total=f"{spent_total:g}",
         status_counts=status_counts,

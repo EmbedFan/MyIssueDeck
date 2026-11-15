@@ -251,6 +251,8 @@ class CustomFieldConfig(BaseModel):
     type: CustomFieldType = "text"
     required: bool = False
     options: list[str] = Field(default_factory=list)
+    #: Value stored on newly created items that have no value for this field.
+    default: str | int | float | bool | None = None
 
     @model_validator(mode="after")
     def _validate_options(self) -> CustomFieldConfig:
@@ -262,11 +264,30 @@ class CustomFieldConfig(BaseModel):
             raise ValueError("custom field options must be unique")
         return self
 
+    @model_validator(mode="after")
+    def _validate_default(self) -> CustomFieldConfig:
+        value = self.default
+        if value is None:
+            return self
+        if self.type == "number":
+            valid = isinstance(value, int | float) and not isinstance(value, bool)
+        elif self.type == "checkbox":
+            valid = isinstance(value, bool)
+        elif self.type == "select":
+            valid = value in self.options
+        else:
+            valid = isinstance(value, str)
+        if not valid:
+            raise ValueError(f"default does not match custom field type '{self.type}'")
+        return self
+
 
 #: Built-in custom fields added to every project unless the project defines the
 #: same key itself. Values are hours.
 DEFAULT_CUSTOM_FIELDS: dict[str, CustomFieldConfig] = {
-    "estimated_time": CustomFieldConfig(label="Estimated time (h)", type="number"),
+    "estimated_time": CustomFieldConfig(
+        label="Estimated time (h)", type="number", default=0.5,
+    ),
     "time_spent": CustomFieldConfig(label="Time spent (h)", type="number"),
 }
 

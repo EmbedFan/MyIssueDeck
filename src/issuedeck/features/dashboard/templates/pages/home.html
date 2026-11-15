@@ -171,6 +171,18 @@
 
   </div>
 
+  {# ── Time overview — estimated vs spent per status (FEA-0002) ──── #}
+  <div class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-5">
+    <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">{{ t("home.time_overview") }}</h2>
+    {% if has_time_data %}
+      <div class="relative" style="max-height: 320px;">
+        <canvas id="timeChart"></canvas>
+      </div>
+    {% else %}
+      <p class="py-6 text-center text-sm text-gray-400 dark:text-gray-500">{{ t("home.time_overview_empty") }}</p>
+    {% endif %}
+  </div>
+
   {# ── Recent activity ───────────────────────────────────────────── #}
   <div class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine">
     <div class="px-5 py-4 border-b border-ledger-line dark:border-ledger-darkLine bg-ledger-surfaceAlt dark:bg-ledger-darkPanelAlt">
@@ -351,6 +363,61 @@ document.addEventListener('DOMContentLoaded', function () {
       },
     },
   });
+
+  /* ── Time overview: estimated vs spent per status ──────── */
+  const timeCanvas = document.getElementById('timeChart');
+  if (timeCanvas) {
+    const timeData = {{ time_chart_json | safe }};
+
+    new Chart(timeCanvas, {
+      type: 'bar',
+      data: {
+        labels: timeData.labels,
+        datasets: [
+          {
+            label: {{ t("chart.estimated_time") | tojson }},
+            data: timeData.estimated,
+            backgroundColor: '#f59e0b',
+            borderRadius: 4,
+          },
+          {
+            label: {{ t("chart.time_spent") | tojson }},
+            data: timeData.spent,
+            backgroundColor: '#2563eb',
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, usePointStyle: true, font: { size: 12 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                return ctx.dataset.label + ': ' + ctx.raw;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: textColor, font: { size: 12 } },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: textColor, font: { size: 12 } },
+            grid: { color: gridColor },
+          },
+        },
+      },
+    });
+  }
 });
 </script>
 {% endif %}

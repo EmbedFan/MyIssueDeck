@@ -161,7 +161,7 @@ async def test_audit_bundle_writes_project_snapshot(tmp_path, session_and_regist
         items = json.loads(bundle.read("items.json"))
         first = next(item for item in items if item["local_id"] == "FEAT-0001")
         assert first["tags"] == ["hot"]
-        assert first["custom_fields"] == {"priority": "high"}
+        assert first["custom_fields"] == {"estimated_time": 0.5, "priority": "high"}
         assert first["external_links"][0]["link_type"] == "github_issue"
         assert first["events"][0]["event_type"] == "created"
 

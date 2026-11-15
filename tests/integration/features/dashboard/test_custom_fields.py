@@ -95,6 +95,7 @@ async def test_dashboard_item_form_renders_and_saves_custom_fields(dashboard_cli
         "priority": "high",
         "estimate": 8,
         "customer_impact": True,
+        "estimated_time": 0.5,
     }
 
 

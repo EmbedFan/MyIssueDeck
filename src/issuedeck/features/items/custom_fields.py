@@ -62,7 +62,7 @@ def normalize_custom_fields(
     }
     for key, cfg in fields.items():
         if key not in incoming:
-            if existing is None and cfg.type == "checkbox":
+            if existing is None and cfg.type == "checkbox" and cfg.default is None:
                 result[key] = False
             continue
         value = normalize_custom_field_value(project_cfg.key, key, cfg, incoming[key])
@@ -70,6 +70,13 @@ def normalize_custom_fields(
             result.pop(key, None)
         else:
             result[key] = value
+
+    if existing is None:
+        # Defaults apply only when an item is created, so an existing item's
+        # value can still be cleared later.
+        for key, cfg in fields.items():
+            if cfg.default is not None and key not in result:
+                result[key] = cfg.default
 
     missing = [
         key

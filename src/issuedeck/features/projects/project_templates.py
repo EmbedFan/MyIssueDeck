@@ -702,6 +702,8 @@ def render_project_toml(
             lines.append("required = true")
         if cfg.options:
             lines.append(f"options = {_toml_array(tuple(cfg.options))}")
+        if cfg.default is not None:
+            lines.append(f"default = {json.dumps(cfg.default, ensure_ascii=False)}")
         lines.append("")
 
     return "\n".join(lines)
@@ -737,6 +739,8 @@ def render_project_template_pack_toml(
             lines.append("required = true")
         if cfg.options:
             lines.append(f"options = {_toml_array(tuple(cfg.options))}")
+        if cfg.default is not None:
+            lines.append(f"default = {json.dumps(cfg.default, ensure_ascii=False)}")
         lines.append("")
 
     for kind_key, cfg in project.kinds.items():
