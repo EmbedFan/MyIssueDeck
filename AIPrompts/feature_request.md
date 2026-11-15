@@ -1,5 +1,12 @@
 # Requested features
 
+## FEA-0006
+
+	On the Kanban table at top also required the widget "Active agent sessions"
+	It shall be implement as optional item,  add this settings to the Config page.
+
+---
+
 ## FEA-0005: Hungarian Localisation
 
 **Status:** Implemented in commit 9aee50b (tracked as FEAT-0004 in MyIssueDesk).
