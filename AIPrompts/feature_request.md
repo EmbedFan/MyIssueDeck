@@ -2,7 +2,7 @@
 
 ## FEA-0005: Hungarian Localisation
 
-**Status:** Implemented, not yet committed (tracked as FEAT-0004 in MyIssueDesk).
+**Status:** Implemented in commit 9aee50b (tracked as FEAT-0004 in MyIssueDesk).
 
 	Localise the software to Hungarian too.
 	
@@ -29,7 +29,7 @@ Changes take effect without restarting the server where possible, and each chang
 
 ## FEA-0003: Safe Project Deletion
 
-**Status:** Implemented, not yet committed (tracked as FEAT-0003 in MyIssueDesk).
+**Status:** Implemented in commit e97ea99 (tracked as FEAT-0003 in MyIssueDesk).
 
 **Summary:** Provide a safe way to delete a project.
 
