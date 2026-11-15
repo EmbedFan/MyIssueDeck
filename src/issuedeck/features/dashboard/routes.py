@@ -7,6 +7,7 @@ import json
 import re
 import secrets
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -196,7 +197,7 @@ def _ctx(request: Request, project_key: str | None = None, **extra):
         "kind_color": kind_color,
         "status_color": status_color,
         "kind_label": kind_label,
-        "status_label": status_label,
+        "status_label": partial(status_label, lang=lang),
         "relation_labels": {
             "blocks": t("relationship.blocks"),
             "blocked_by": t("relationship.blocked_by"),
@@ -1214,8 +1215,9 @@ async def project_overview(project_key: str, request: Request):
     project = registry.project(project_key)
 
     # Build chart data
+    lang = language_from_request(request)
     status_chart = {
-        "labels": [status_label(s, project) for s in project.statuses],
+        "labels": [status_label(s, project, lang=lang) for s in project.statuses],
         "data": [status_counts.get(s, 0) for s in project.statuses],
         "colors": [_chart_color(s, "status") for s in project.statuses],
     }
@@ -1226,7 +1228,7 @@ async def project_overview(project_key: str, request: Request):
     }
 
     time_chart = {
-        "labels": [status_label(s, project) for s in project.statuses],
+        "labels": [status_label(s, project, lang=lang) for s in project.statuses],
         "estimated": [estimated_by_status.get(s, 0.0) for s in project.statuses],
         "spent": [spent_by_status.get(s, 0.0) for s in project.statuses],
     }

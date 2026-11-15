@@ -28,6 +28,13 @@ versioning once public releases begin.
   hours (30 minutes), and migration `0007` backfills that value on existing
   items that have none.
 
+- Hungarian status names (IS-0002): with Hungarian selected, the Kanban headers,
+  the Overview charts and the status selectors show the standard status names in
+  Hungarian. Custom statuses keep their project label. English and Chinese are
+  unchanged.
+- Added Hungarian (`hu`) to the dashboard language switcher and login page.
+  All dashboard messages have a Hungarian translation in `dashboard/i18n_hu.py`;
+  API, MCP and CLI messages stay in English.
 - Added safe project deletion in the dashboard (`/dashboard/{key}/delete`,
   linked from the project Overview). The user must type the exact project key,
   deletion is blocked while work sessions are active or paused, an audit-bundle

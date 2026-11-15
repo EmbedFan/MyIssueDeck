@@ -285,7 +285,7 @@
               {% if status_key != 'done' %}
                 <option value="{{ status_key }}"
                         {% if item and item.status == status_key %}selected{% endif %}>
-                  {{ status_cfg.label | default(status_key) }}
+                  {{ status_label(status_key, project) }}
                 </option>
               {% endif %}
             {% endfor %}

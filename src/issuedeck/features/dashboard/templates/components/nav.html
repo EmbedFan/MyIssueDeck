@@ -270,6 +270,17 @@
                      {% endif %}">
         {{ t("language.zh") }}
       </button>
+      <button type="submit"
+              name="lang"
+              value="hu"
+              class="h-7 px-2 rounded text-xs font-semibold transition-colors
+                     {% if lang == 'hu' %}
+                       bg-primary-600 text-white
+                     {% else %}
+                       text-gray-500 dark:text-gray-400 hover:bg-primary-50 dark:hover:bg-primary-950
+                     {% endif %}">
+        {{ t("language.hu") }}
+      </button>
     </form>
   </div>
 </header>

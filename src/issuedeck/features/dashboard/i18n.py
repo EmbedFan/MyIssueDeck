@@ -6,8 +6,10 @@ from collections.abc import Callable
 
 from starlette.requests import Request
 
+from issuedeck.features.dashboard.i18n_hu import MESSAGES_HU
+
 DASHBOARD_LANG_COOKIE = "issuedeck_lang"
-SUPPORTED_LANGS = {"en", "zh-CN"}
+SUPPORTED_LANGS = {"en", "zh-CN", "hu"}
 DEFAULT_LANG = "en"
 
 _MESSAGES: dict[str, dict[str, str]] = {
@@ -132,6 +134,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "home.work_sessions_empty": "No active agent work sessions",
         "home.work_sessions_title": "Active agent sessions",
         "language.en": "EN",
+        "language.hu": "Magyar",
         "language.label": "Language",
         "language.zh": "中文",
         "data_import.batch_tag": "Batch tag",
@@ -568,6 +571,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "home.work_sessions_empty": "暂无活跃 Agent 工作会话",
         "home.work_sessions_title": "活跃 Agent 会话",
         "language.en": "EN",
+        "language.hu": "Magyar",
         "language.label": "语言",
         "language.zh": "中文",
         "data_import.batch_tag": "批次标签",
@@ -847,6 +851,7 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "work_session.title": "Agent 工作会话",
         "work_session.updates_suffix": "条更新",
     },
+    "hu": MESSAGES_HU,
 }
 
 

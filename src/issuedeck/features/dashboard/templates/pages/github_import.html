@@ -78,7 +78,7 @@
             {% for status_key, status_cfg in project.statuses.items() %}
               <option value="{{ status_key }}"
                       {% if values.get('default_status') == status_key %}selected{% endif %}>
-                {{ status_cfg.label | default(status_key) }}
+                {{ status_label(status_key, project) }}
               </option>
             {% endfor %}
           </select>

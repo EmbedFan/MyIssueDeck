@@ -11,6 +11,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from issuedeck.core.config import ProjectConfig
+from issuedeck.features.dashboard.i18n_hu import STATUS_LABELS_HU
 from issuedeck.features.items.models import Item
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -173,7 +174,16 @@ def kind_label(kind: str, project: ProjectConfig | None = None) -> str:
     return KIND_LABELS.get(kind, kind)
 
 
-def status_label(status: str, project: ProjectConfig | None = None) -> str:
+def status_label(
+    status: str, project: ProjectConfig | None = None, lang: str = "en",
+) -> str:
+    """Display name of a status.
+
+    Hungarian (IS-0002) uses the translated names of the standard statuses.
+    Every other case, and every custom status, uses the project's label.
+    """
+    if lang == "hu" and status in STATUS_LABELS_HU:
+        return STATUS_LABELS_HU[status]
     if project and status in project.statuses:
         return project.statuses[status].label
     return STATUS_LABELS.get(status, status)
