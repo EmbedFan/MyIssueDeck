@@ -11,7 +11,7 @@
 
 ## FEA-0004: Settings Page with Theme Colours and Token Management
 
-**Status:** Not implemented.
+**Status:** Implemented in commit c41fa00 (tracked as FEAT-0005 in MyIssueDesk). Management of the `server.toml` tokens and the presentation of the page were added by IS-0003 in the same commit. Not done: editing the default values of custom fields other than the estimated time, the display time unit, and an event history in items (changes are written to a separate settings audit log).
 
 **Summary:** Provide a settings page where colours can be set by hand for light and dark mode, with a reset to the default palette, and where access tokens can be changed, added and regenerated.
 
