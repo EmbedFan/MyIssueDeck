@@ -72,62 +72,17 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const columns = document.querySelectorAll('.kanban-column');
+(function () {
   const projectKey = '{{ project_key }}';
 
-  columns.forEach(function(col) {
-    new Sortable(col, {
-      group: 'kanban',
-      animation: 150,
-      ghostClass: 'opacity-40',
-      dragClass: 'shadow-lg',
-      handle: '.kanban-card',
-      draggable: '.kanban-card',
-      onEnd: function(evt) {
-        const itemEl = evt.item;
-        const itemId = itemEl.getAttribute('data-item-id');
-        const newStatus = evt.to.getAttribute('data-status');
-        const oldStatus = evt.from.getAttribute('data-status');
-
-        if (newStatus === oldStatus) return;
-
-        const url = '/dashboard/' + projectKey + '/items/' + itemId + '/status';
-
-        fetch(url, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus }),
-        })
-        .then(function(response) {
-          if (!response.ok) {
-            // Revert: move the element back
-            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
-            window.dispatchEvent(new CustomEvent('toast', {
-              detail: { message: {{ t("toast.status_update_failed") | tojson }}, type: 'error' }
-            }));
-          } else {
-            window.dispatchEvent(new CustomEvent('toast', {
-              detail: { message: {{ t("toast.status_updated") | tojson }}, type: 'success' }
-            }));
-            // Update column counts
-            updateColumnCounts();
-          }
-        })
-        .catch(function() {
-          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
-          window.dispatchEvent(new CustomEvent('toast', {
-            detail: { message: {{ t("toast.network_error") | tojson }}, type: 'error' }
-          }));
-        });
-      },
-    });
-  });
+  // The board is a live region: a live update replaces its content, columns included. So the
+  // columns are always looked up when needed, never remembered from the page load.
+  function columnsNow() {
+    return document.querySelectorAll('.kanban-column');
+  }
 
   function updateColumnCounts() {
-    columns.forEach(function(col) {
+    columnsNow().forEach(function (col) {
       const count = col.querySelectorAll('.kanban-card').length;
       const header = col.closest('.flex-shrink-0');
       if (header) {
@@ -136,6 +91,84 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-});
+
+  // Put the card back where it was, unless the board has been replaced in the meantime
+  // (then the refresh that replaced it already shows the real state).
+  function putBack(evt) {
+    if (!evt.item.isConnected || !evt.from.isConnected) return;
+    evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] || null);
+  }
+
+  // A move is over (saved, refused or failed): updates held back during the drag can be applied.
+  function moveEnded() {
+    document.dispatchEvent(new CustomEvent('live:idle'));
+  }
+
+  function moveCard(evt) {
+    const itemId = evt.item.getAttribute('data-item-id');
+    const newStatus = evt.to.getAttribute('data-status');
+    const oldStatus = evt.from.getAttribute('data-status');
+
+    if (newStatus === oldStatus) {
+      moveEnded();
+      return;
+    }
+
+    const url = '/dashboard/' + projectKey + '/items/' + itemId + '/status';
+
+    fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    .then(function(response) {
+      if (!response.ok) {
+        putBack(evt);
+        window.dispatchEvent(new CustomEvent('toast', {
+          detail: { message: {{ t("toast.status_update_failed") | tojson }}, type: 'error' }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent('toast', {
+          detail: { message: {{ t("toast.status_updated") | tojson }}, type: 'success' }
+        }));
+        // Update column counts
+        updateColumnCounts();
+      }
+    })
+    .catch(function() {
+      putBack(evt);
+      window.dispatchEvent(new CustomEvent('toast', {
+        detail: { message: {{ t("toast.network_error") | tojson }}, type: 'error' }
+      }));
+    })
+    .then(moveEnded);
+  }
+
+  // Attach drag and drop to the columns that exist now. A column that already has it is
+  // skipped, so a column never gets two handlers (one move = one status change).
+  function prepareBoard() {
+    columnsNow().forEach(function (col) {
+      if (Sortable.get(col)) return;
+      new Sortable(col, {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'opacity-40',
+        dragClass: 'shadow-lg',
+        handle: '.kanban-card',
+        draggable: '.kanban-card',
+        onEnd: moveCard,
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', prepareBoard);
+  // After a live update has replaced the board, prepare the new columns again.
+  document.addEventListener('live:applied', function (event) {
+    const regions = (event.detail && event.detail.regions) || [];
+    if (regions.indexOf('board') !== -1) prepareBoard();
+  });
+})();
 </script>
 {% endblock %}

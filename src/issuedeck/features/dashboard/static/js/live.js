@@ -180,6 +180,14 @@
     setTimeout(function () { refresh(false); }, 250);
   });
 
+  // A drag ended (the page announces it with "live:idle" once the move is saved or refused):
+  // apply what was held back while the card was being dragged. A drop ends the interaction,
+  // so this applies in both editing modes.
+  document.addEventListener('live:idle', function () {
+    if (!Object.keys(blocked).length) return;
+    setTimeout(function () { refresh(false); }, 250);
+  });
+
   // ---- refreshing --------------------------------------------------------------------
 
   function refresh(onlyWidget) {

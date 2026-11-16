@@ -21,6 +21,14 @@ versioning once public releases begin.
   `myissuedeck-0.9.0-py3-none-any.whl`. The import package and the `issuedeck`
   command keep their names (TASK-0002).
 
+### Fixed
+
+- Kanban board (IS-0006): drag and drop kept working only for the first move. A live update
+  replaces the board's columns, and the drag handlers were attached only once, at page load.
+  They are now attached to the new columns after every replacement (never twice to one column),
+  the column counters follow the current columns, a card is put back only while it is still on
+  the page, and an update held back during a drag is applied when the move is over.
+
 ## [0.9.0] - 2026-11-15
 
 ### Fixed
