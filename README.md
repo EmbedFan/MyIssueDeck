@@ -104,7 +104,9 @@ Project snapshots are covered in
 - Ship records with version + commits, queryable by shipped branch.
 - Markdown export (one file per item) and changelog rendering.
 - Project-level audit bundles for ZIP snapshots of config, items,
-  relationships, work sessions, and import history.
+  relationships, work sessions, and import history. A snapshot can be imported
+  again to create a project or to update an existing one, with a preview first
+  (dashboard or `issuedeck import-audit-bundle`).
 - Frontmatter migration from existing Markdown trackers.
 - Server-rendered dashboard with list, kanban, detail, search, and create/edit flows.
 - Keyboard-friendly dashboard triage for search, filters, create, and item focus.

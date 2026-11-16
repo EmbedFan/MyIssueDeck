@@ -40,6 +40,20 @@ class TokenNotFound(IssueDeckError):
     http_status = 404
 
 
+class SnapshotInvalid(IssueDeckError):
+    """The uploaded or given snapshot cannot be imported (FEA-0007)."""
+
+    code = "snapshot_invalid"
+    http_status = 422
+
+
+class SnapshotConflict(IssueDeckError):
+    """The snapshot clashes with existing data (project already exists, ...)."""
+
+    code = "snapshot_conflict"
+    http_status = 409
+
+
 class ProjectDeletionNotConfirmed(IssueDeckError):
     code = "project_deletion_not_confirmed"
     http_status = 422

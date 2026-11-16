@@ -531,6 +531,60 @@ MESSAGES_HU: dict[str, str] = {
     "settings.display_help": (
         "Az a nyelv és téma, amelyet a rendszer akkor használ, ha a felhasználó nem választott."
     ),
+    "snapshot.title": "Projekt importálása pillanatképből",
+    "snapshot.help": (
+        "Projekt helyreállítása vagy másolása a Pillanatkép exportálása paranccsal készült "
+        "ZIP-fájlból. Írás előtt pontosan látja, mi változna."
+    ),
+    "snapshot.file": "Pillanatkép-fájl (.zip)",
+    "snapshot.file_help": (
+        "A Pillanatkép exportálása vagy a projekttörlés biztonsági mentése által írt ZIP-fájl."
+    ),
+    "snapshot.mode": "Mit tegyünk",
+    "snapshot.mode_create": "Új projekt létrehozása",
+    "snapshot.mode_create_help": (
+        "Felépít egy projektet az elemeivel, kapcsolataival, munkameneteivel és "
+        "importelőzményeivel. A kulcs nem lehet foglalt."
+    ),
+    "snapshot.mode_update": "Meglévő projekt frissítése",
+    "snapshot.mode_update_help": (
+        "Hozzáadja, ami a projektből hiányzik. A projektből semmi nem törlődik."
+    ),
+    "snapshot.new_key": "Új projekt kulcsa (létrehozás)",
+    "snapshot.new_key_placeholder": "Üresen: a pillanatkép kulcsa",
+    "snapshot.target": "Frissítendő projekt (frissítés)",
+    "snapshot.target_default": "A pillanatképben szereplő kulcsú projekt",
+    "snapshot.conflict": "Mindkét helyen meglévő elemek (frissítés)",
+    "snapshot.conflict_keep": "A projekt változata marad (alapértelmezett)",
+    "snapshot.conflict_newer": "A pillanatkép változata, ha újabb",
+    "snapshot.conflict_overwrite": "Mindig a pillanatkép változata",
+    "snapshot.conflict_help": (
+        "A hiányzó tevékenységi bejegyzések, kapcsolatok, munkamenetek és importcsomagok mindig "
+        "hozzáadódnak."
+    ),
+    "snapshot.preview": "Pillanatkép ellenőrzése",
+    "snapshot.preview_title": "Előnézet: még semmi sem íródott",
+    "snapshot.preview_help": (
+        "A(z) {source} pillanatképe ezekkel a változásokkal kerülne a(z) {project} projektbe."
+    ),
+    "snapshot.apply": "Importálás most",
+    "snapshot.applied_title": "A pillanatkép importálva",
+    "snapshot.applied_help": "A(z) {project} projekt naprakész a pillanatképpel.",
+    "snapshot.open_project": "A projekt megnyitása",
+    "snapshot.another": "Újabb pillanatkép importálása",
+    "snapshot.items_created": "Létrehozott elemek",
+    "snapshot.items_updated": "Frissített elemek",
+    "snapshot.items_unchanged": "Változatlanul hagyott elemek",
+    "snapshot.events_added": "Hozzáadott tevékenységi bejegyzések",
+    "snapshot.relationships_added": "Hozzáadott kapcsolatok",
+    "snapshot.work_sessions_added": "Hozzáadott munkamenetek",
+    "snapshot.import_batches_added": "Hozzáadott importcsomagok",
+    "snapshot.error.options": "A beállítások érvénytelenek.",
+    "snapshot.error.no_file": "Először válasszon pillanatkép-fájlt.",
+    "snapshot.error.too_large": "A fájl nagyobb, mint 64 MB.",
+    "snapshot.error.expired": "Az ellenőrzött pillanatkép már nem érhető el; ellenőrizze újra.",
+    "snapshot.link.import": "Pillanatkép importálása",
+    "snapshot.link.from_new": "Importálás pillanatképből",
     "search.placeholder": "Elemek keresése...",
     "search.empty": "Kezdjen el gépelni a kereséshez...",
     "search.all": "Összes találat megtekintése",

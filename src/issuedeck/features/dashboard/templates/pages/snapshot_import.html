@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t("snapshot.title") }} — IssueDeck{% endblock %}
+
+{% block content %}
+{% set input_cls = "w-full px-3 py-2 rounded-md text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" %}
+{% set btn_primary = "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700" %}
+{% set btn_quiet = "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800" %}
+{% set card = "bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-5" %}
+{% set label_cls = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5" %}
+<div class="max-w-3xl space-y-6" data-snapshot-import>
+  <div>
+    <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100">{{ t("snapshot.title") }}</h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t("snapshot.help") }}</p>
+  </div>
+
+  {% if error %}
+    <div role="alert" class="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">{{ error }}</div>
+  {% endif %}
+
+  {% if report %}
+    <section class="{{ card }}" aria-labelledby="snapshot-result">
+      <h2 id="snapshot-result" class="text-base font-semibold text-gray-900 dark:text-gray-100">
+        {% if applied %}{{ t("snapshot.applied_title") }}{% else %}{{ t("snapshot.preview_title") }}{% endif %}
+      </h2>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        {% if applied %}
+          {{ t("snapshot.applied_help", project=report.project_key) }}
+        {% else %}
+          {{ t("snapshot.preview_help", source=report.source_project_key, project=report.project_key) }}
+        {% endif %}
+      </p>
+      <dl class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3" data-snapshot-counts>
+        {% for label, value in [
+          (t("snapshot.items_created"), report.items_created),
+          (t("snapshot.items_updated"), report.items_updated),
+          (t("snapshot.items_unchanged"), report.items_unchanged),
+          (t("snapshot.events_added"), report.events_added),
+          (t("snapshot.relationships_added"), report.relationships_added),
+          (t("snapshot.work_sessions_added"), report.work_sessions_added),
+          (t("snapshot.import_batches_added"), report.import_batches_added),
+        ] %}
+          <div class="rounded-md border border-ledger-line dark:border-ledger-darkLine px-3 py-2">
+            <dt class="text-xs text-gray-500 dark:text-gray-400">{{ label }}</dt>
+            <dd class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ value }}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+      {% if report.warnings %}
+        <ul class="mt-4 list-disc pl-5 text-sm text-amber-700 dark:text-amber-300">
+          {% for warning in report.warnings %}<li>{{ warning }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <div class="mt-5 flex flex-wrap items-center gap-2">
+        {% if applied %}
+          <a href="/dashboard/{{ report.project_key }}" class="{{ btn_primary }}">{{ t("snapshot.open_project") }}</a>
+          <a href="/dashboard/import-snapshot" class="{{ btn_quiet }}">{{ t("snapshot.another") }}</a>
+        {% else %}
+          <form method="post" action="/dashboard/import-snapshot/apply">
+            <input type="hidden" name="token" value="{{ token }}">
+            <input type="hidden" name="mode" value="{{ form.mode }}">
+            <input type="hidden" name="new_key" value="{{ form.new_key }}">
+            <input type="hidden" name="target" value="{{ form.target }}">
+            <input type="hidden" name="conflict" value="{{ form.conflict }}">
+            <button type="submit" class="{{ btn_primary }}">{{ t("snapshot.apply") }}</button>
+          </form>
+          <a href="/dashboard/import-snapshot" class="{{ btn_quiet }}">{{ t("common.cancel") }}</a>
+        {% endif %}
+      </div>
+    </section>
+  {% else %}
+    <section class="{{ card }}">
+      <form method="post" action="/dashboard/import-snapshot/preview" enctype="multipart/form-data" class="space-y-5">
+        <div>
+          <label for="snapshot-file" class="{{ label_cls }}">{{ t("snapshot.file") }}</label>
+          <input id="snapshot-file" name="snapshot_file" type="file" accept=".zip,application/zip" required class="{{ input_cls }}">
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ t("snapshot.file_help") }}</p>
+        </div>
+
+        <fieldset>
+          <legend class="{{ label_cls }}">{{ t("snapshot.mode") }}</legend>
+          <div class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+            <label class="flex items-start gap-2">
+              <input type="radio" name="mode" value="create" class="mt-1" {% if form.mode != "update" %}checked{% endif %}>
+              <span><span class="font-semibold">{{ t("snapshot.mode_create") }}</span><br>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ t("snapshot.mode_create_help") }}</span></span>
+            </label>
+            <label class="flex items-start gap-2">
+              <input type="radio" name="mode" value="update" class="mt-1" {% if form.mode == "update" %}checked{% endif %}>
+              <span><span class="font-semibold">{{ t("snapshot.mode_update") }}</span><br>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ t("snapshot.mode_update_help") }}</span></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
+          <div>
+            <label for="snapshot-new-key" class="{{ label_cls }}">{{ t("snapshot.new_key") }}</label>
+            <input id="snapshot-new-key" name="new_key" value="{{ form.new_key }}" autocomplete="off" placeholder="{{ t('snapshot.new_key_placeholder') }}" class="{{ input_cls }}">
+          </div>
+          <div>
+            <label for="snapshot-target" class="{{ label_cls }}">{{ t("snapshot.target") }}</label>
+            <select id="snapshot-target" name="target" class="{{ input_cls }}">
+              <option value="">{{ t("snapshot.target_default") }}</option>
+              {% for key, name in targets %}
+                <option value="{{ key }}" {% if form.target == key %}selected{% endif %}>{{ name }} ({{ key }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="snapshot-conflict" class="{{ label_cls }}">{{ t("snapshot.conflict") }}</label>
+          <select id="snapshot-conflict" name="conflict" class="{{ input_cls }}">
+            {% for policy in conflict_policies %}
+              <option value="{{ policy }}" {% if form.conflict == policy %}selected{% endif %}>{{ t("snapshot.conflict_" ~ policy) }}</option>
+            {% endfor %}
+          </select>
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ t("snapshot.conflict_help") }}</p>
+        </div>
+
+        <div>
+          <button type="submit" class="{{ btn_primary }}">{{ t("snapshot.preview") }}</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

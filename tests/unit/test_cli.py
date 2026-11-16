@@ -17,6 +17,7 @@ from issuedeck.cli import (
     _cmd_export_audit_bundle,
     _cmd_export_project_template,
     _cmd_get_item,
+    _cmd_import_audit_bundle,
     _cmd_import_csv,
     _cmd_import_github_issues,
     _cmd_import_github_url,
@@ -50,6 +51,7 @@ def test_issuedeck_help_lists_subcommands():
         "migrate",
         "export",
         "export-audit-bundle",
+        "import-audit-bundle",
         "seed-demo",
         "list-project-templates",
         "validate-project-templates",
@@ -188,6 +190,90 @@ def test_seed_demo_runs_migrations_for_empty_database(tmp_path):
         ).fetchone()
     assert item_count == 8
     assert external_link_table == ("item_external_links",)
+
+
+def _demo_snapshot(tmp_path):
+    """A demo project exported as a snapshot; returns the bundle path."""
+    source = tmp_path / "source"
+    source.mkdir()
+    cfg_path = source / "server.toml"
+    _ensure_demo_config(cfg_path)
+    _ensure_demo_project_config(load_server_config(cfg_path).projects_dir, "example")
+    assert asyncio.run(_cmd_seed_demo(cfg_path, "example", force_reset=False)) == 0
+    bundle = tmp_path / "example.zip"
+    assert asyncio.run(_cmd_export_audit_bundle(cfg_path, "example", bundle)) == 0
+    return bundle
+
+
+def _item_count(config_dir, project_key):
+    with sqlite3.connect(config_dir / "data" / "tracker.db") as conn:
+        return conn.execute(
+            "select count(*) from items where project_key = ?", (project_key,),
+        ).fetchone()[0]
+
+
+def test_import_audit_bundle_creates_a_project_from_a_snapshot(tmp_path, capsys):
+    bundle = _demo_snapshot(tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    cfg_path = target / "server.toml"
+    _ensure_demo_config(cfg_path)
+
+    dry = asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bundle, "create", "restored", "keep", dry_run=True,
+    ))
+    assert dry == 0
+    assert "would import" in capsys.readouterr().err
+    assert not (target / "projects" / "restored.toml").exists()
+    assert _item_count(target, "restored") == 0
+
+    rc = asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bundle, "create", "restored", "keep", dry_run=False,
+    ))
+    assert rc == 0
+    assert (target / "projects" / "restored.toml").exists()
+    assert _item_count(target, "restored") == 8
+    assert "restart a running server" in capsys.readouterr().err
+
+    again = asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bundle, "create", "restored", "keep", dry_run=False,
+    ))
+    assert again == 2  # the project exists now
+    assert "snapshot_conflict" in capsys.readouterr().err
+
+
+def test_import_audit_bundle_update_adds_nothing_twice(tmp_path, capsys):
+    bundle = _demo_snapshot(tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    cfg_path = target / "server.toml"
+    _ensure_demo_config(cfg_path)
+    assert asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bundle, "create", "restored", "keep", dry_run=False,
+    )) == 0
+    capsys.readouterr()
+
+    rc = asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bundle, "update", "restored", "keep", dry_run=False,
+    ))
+    err = capsys.readouterr().err
+    assert rc == 0
+    assert "created=0" in err and "unchanged=8" in err
+    assert _item_count(target, "restored") == 8
+
+
+def test_import_audit_bundle_reports_a_bad_file(tmp_path, capsys):
+    bad = tmp_path / "bad.zip"
+    bad.write_text("not a zip", encoding="utf-8")
+    cfg_path = tmp_path / "server.toml"
+    _ensure_demo_config(cfg_path)
+
+    rc = asyncio.run(_cmd_import_audit_bundle(
+        cfg_path, bad, "create", None, "keep", dry_run=False,
+    ))
+
+    assert rc == 2
+    assert "snapshot_invalid" in capsys.readouterr().err
 
 
 def test_list_project_templates_cli_outputs_json(tmp_path, capsys):

@@ -128,6 +128,35 @@ def main(argv: list[str] | None = None) -> int:
         help="Output .zip path, or a directory for <project>-audit-bundle.zip",
     )
 
+    p_import_bundle = sub.add_parser(
+        "import-audit-bundle",
+        help="Import a project snapshot (audit bundle ZIP) as a new or an existing project",
+    )
+    p_import_bundle.add_argument("bundle", help="Snapshot .zip written by export-audit-bundle")
+    p_import_bundle.add_argument("--config", default="server.toml")
+    p_import_bundle.add_argument(
+        "--mode",
+        required=True,
+        choices=["create", "update"],
+        help="create: build a new project; update: bring an existing project up to the snapshot",
+    )
+    p_import_bundle.add_argument(
+        "--project-key",
+        help="Target project key (default: the key in the snapshot)",
+    )
+    p_import_bundle.add_argument(
+        "--conflict",
+        choices=["keep", "newer", "overwrite"],
+        default="keep",
+        help="update mode, items present in both: keep the project's (default), "
+        "take the snapshot's only when it is newer, or always take the snapshot's",
+    )
+    p_import_bundle.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Check the snapshot and show what would change, without writing anything",
+    )
+
     p_seed = sub.add_parser("seed-demo", help="Seed fake demo data for docs/screenshots")
     p_seed.add_argument("--config", default="server.toml")
     p_seed.add_argument("--project-key", default="example")
@@ -758,6 +787,11 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_cmd_export_audit_bundle(
             Path(args.config), args.project_key, Path(args.out),
         ))
+    if args.cmd == "import-audit-bundle":
+        return asyncio.run(_cmd_import_audit_bundle(
+            Path(args.config), Path(args.bundle), args.mode, args.project_key,
+            args.conflict, args.dry_run,
+        ))
     if args.cmd == "seed-demo":
         return asyncio.run(_cmd_seed_demo(
             Path(args.config), args.project_key, args.force_reset,
@@ -1347,6 +1381,61 @@ async def _cmd_export_audit_bundle(
             )
     finally:
         await engine.dispose()
+    return 0
+
+
+async def _cmd_import_audit_bundle(
+    config_path: Path,
+    bundle_path: Path,
+    mode: str,
+    project_key: str | None,
+    conflict: str,
+    dry_run: bool,
+) -> int:
+    from issuedeck.core.db import make_engine, make_session_factory
+    from issuedeck.core.errors import IssueDeckError
+    from issuedeck.features.export.snapshot_import import import_snapshot
+
+    _upgrade_database(config_path)
+    registry = _build_registry(config_path)
+    db_path = registry.server.data_dir / "tracker.db"
+    engine = make_engine(f"sqlite+aiosqlite:///{db_path}")
+    session_factory = make_session_factory(engine)
+    try:
+        async with session_factory() as session:
+            report = await import_snapshot(
+                session=session,
+                registry=registry,
+                bundle_path=bundle_path,
+                mode=mode,
+                project_key=project_key,
+                conflict=conflict,
+                apply=not dry_run,
+            )
+    except IssueDeckError as exc:
+        print(f"{exc.code}: {exc.message}", file=sys.stderr)
+        return 2
+    finally:
+        await engine.dispose()
+
+    verb = "imported" if report.applied else "would import (dry run)"
+    print(
+        f"[ok] {verb} snapshot of '{report.source_project_key}' into "
+        f"'{report.project_key}' ({report.mode}): "
+        f"items created={report.items_created}, updated={report.items_updated}, "
+        f"unchanged={report.items_unchanged}; events={report.events_added}, "
+        f"relationships={report.relationships_added}, "
+        f"work_sessions={report.work_sessions_added}, "
+        f"import_batches={report.import_batches_added}",
+        file=sys.stderr,
+    )
+    for warning in report.warnings:
+        print(f"[warn] {warning}", file=sys.stderr)
+    if report.applied and mode == "create":
+        print(
+            "[note] restart a running server so that it loads the new project",
+            file=sys.stderr,
+        )
     return 0
 
 

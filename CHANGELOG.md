@@ -7,6 +7,14 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Added importing of project snapshots (audit bundles) to create a new project or to update an
+  existing one (FEA-0007): `issuedeck import-audit-bundle` with `--mode create|update`,
+  `--conflict keep|newer|overwrite` and `--dry-run`, and an *Import snapshot* dashboard page
+  with an exact preview before anything is written. Items keep their ids; the import is all or
+  nothing, never extracts the ZIP, and never deletes data from an existing project.
+
 ### Changed
 
 - The distribution is now named `myissuedeck`, so the wheel is

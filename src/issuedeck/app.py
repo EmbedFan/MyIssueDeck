@@ -31,6 +31,7 @@ from issuedeck.features.dashboard.settings_routes import (
     apply_tracking_defaults,
 )
 from issuedeck.features.dashboard.settings_routes import router as settings_router
+from issuedeck.features.dashboard.snapshot_routes import router as snapshot_router
 from issuedeck.features.items.models import Item
 from issuedeck.features.items.routes import router as items_router
 from issuedeck.features.projects.routes import router as projects_router
@@ -164,6 +165,7 @@ def create_app(server_toml: Path | str) -> FastAPI:
     # The settings router must come before the dashboard router: its fixed path
     # /dashboard/settings would otherwise match the project route /dashboard/{key}.
     app.include_router(settings_router)
+    app.include_router(snapshot_router)
     app.include_router(live_router)
     app.include_router(dashboard_router)
 

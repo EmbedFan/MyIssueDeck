@@ -28,4 +28,45 @@ exact file.
 - `work_sessions.json`: agent work sessions and progress updates.
 - `import_batches.json`: dashboard and CLI import history metadata.
 
-The bundle is read-only and does not mutate project data.
+Exporting is read-only and does not mutate project data.
+
+## Importing a Snapshot
+
+A snapshot can be imported to **create a new project** or to **update an existing
+one**. Nothing is written until you apply: a preview shows exactly what would change.
+
+From the dashboard, open **Import snapshot** on a project overview (to update that project) or
+the link on the *New project* page (to create one). Choose the ZIP, check it, then import.
+
+From the command line:
+
+```bash
+# preview, then create a project from a snapshot (optionally under another key)
+uv run issuedeck import-audit-bundle snapshots/example-audit-bundle.zip   --mode create --project-key example-copy --dry-run
+uv run issuedeck import-audit-bundle snapshots/example-audit-bundle.zip   --mode create --project-key example-copy
+
+# bring an existing project up to a snapshot
+uv run issuedeck import-audit-bundle snapshots/example-audit-bundle.zip   --mode update --project-key example --conflict newer
+```
+
+Rules:
+
+- **Create** writes `projects/<key>.toml` from the snapshot's `project.toml` (the key is
+  rewritten when you give another one), then adds the items with their ids, timestamps,
+  events, ship records, relationships, agent work sessions and import history. It refuses a key
+  that is already in use. A command-line import needs a server restart before a running server
+  shows the new project; the dashboard import does not.
+- **Update** matches items by their id (`FEAT-0001`). Items the project lacks are created.
+  For items present in both, `--conflict` decides: `keep` (default) leaves the project's
+  version, `newer` takes the snapshot's when its `updated_at` is later, `overwrite` always
+  takes the snapshot's. Activity entries, relationships, work sessions and import batches that
+  are missing are always added. Nothing is deleted from the project, so importing the same
+  snapshot twice changes nothing the second time.
+- Every item's kind, status and branch must exist in the target project's configuration;
+  otherwise the import stops before anything is written and lists the problems.
+- The import is all or nothing (one database transaction). The ZIP is never extracted: only the
+  known file names are read, with a size limit.
+- A snapshot made when a project was deleted (`data/deleted-projects/`) can be used to
+  restore that project.
+- Not restored: tokens and server settings, and the numeric ids of events and work sessions
+  (new ones are assigned).
