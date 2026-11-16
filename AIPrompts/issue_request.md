@@ -1,5 +1,42 @@
 # Requested issues
 
+## IS-0007:
+	
+	
+---
+
+## IS-0006: Drag and Drop on the Kanban Board Stops Working After the First Move
+
+**Status:** Implemented in commit e62849a (tracked as IS-0006 in MyIssueDesk). The cause was confirmed: after the first live update the replaced columns had no drag handlers. Verified with the real page and scripts in jsdom (handlers present after repeated updates, counters right, a refused move puts the card back, an update held during a drag is applied after the drop); a real mouse or touch drag was not tried in a browser.
+
+**Related features:** FEA-0006 (live updates replace the board; the agent sessions widget is shown on the same board)
+
+**Summary:** On the Kanban board a card can be moved by drag and drop only once. After the first move, no card can be dragged any more until the page is changed or reloaded.
+
+**Observed behaviour:** After one card has been dragged to another column, further dragging, of the same card or of any other card, has no effect. Navigating to another page and back (or reloading) makes dragging work again, for one move.
+
+**Probable cause** (to be confirmed by reproducing the defect): moving a card changes its status, the server announces the change, and the open board is replaced with the new content (live updates). The drag and drop handlers are attached only once, when the page loads, so the replaced columns have none. Unlike the Overview and the item page, the Kanban page does not prepare itself again after a replacement.
+
+**Circumstances the fix shall cover:**
+1. Any number of successive moves, of the same card and of different cards, between any columns, without leaving the page.
+2. A move within one column (no status change) and a move to another column.
+3. A move whose status change the server rejects or that fails because of the network: the card returns to its place, an error is shown, and dragging keeps working.
+4. Changes made by someone else while the board is open (an AI agent, the command line, another browser tab): the board is updated in place, and every card on it, including new and moved ones, can then be dragged.
+5. An update that arrives while a card is being dragged: the drag is not interrupted, the update is applied after the drop, and dragging keeps working afterwards.
+6. Live updates switched on, switched off in the Settings page, and the automatic fallback refresh when the event channel is unavailable.
+7. The agent sessions widget on the board and the column counters stay correct after every move and every replacement.
+8. Mouse and touch input, light and dark theme, and every supported language.
+9. A board with empty columns, and with a long column that needs scrolling.
+
+**Requirements:**
+- Dragging cards shall work after every replacement of the board content, without a page change.
+- Handlers shall not be attached twice to the same column, so one move produces one status change and one notification.
+- Column counters, the highlight of changed cards and the saved status shall agree with what the board shows after each move.
+- Automated tests shall fail when the board is replaced and dragging is not prepared again, and shall cover the circumstances 1 to 6 where a test can reproduce them.
+- The change shall be recorded in the CHANGELOG and linked to the related items in MyIssueDesk.
+
+---
+
 ## IS-0005: Layout Defects on the Settings Page
 
 **Status:** Open.
