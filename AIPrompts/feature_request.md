@@ -1,5 +1,26 @@
 # Requested features
 
+## FEA-0007: Project Import from a Snapshot
+
+**Status:** Requested.
+
+**Summary:** Allow a project snapshot exported from MyIssueDesk to be imported again, either to create a new project or to update an existing one.
+
+**Description:** A project can already be exported as a snapshot (an audit bundle in a ZIP file), from the project overview with *Export snapshot* or with `issuedeck export-audit-bundle`. A snapshot cannot yet be read back, so it serves as an archive and not as a backup. The software shall be able to import such a snapshot in two ways:
+
+- **Create a project from a snapshot:** the import creates a new project from the contents of the snapshot (configuration, items, relationships, agent work sessions and import history).
+- **Update a project from a snapshot:** the import brings an existing project up to the contents of the snapshot.
+
+**Points to settle when the feature is planned:**
+- How items of the snapshot are matched with the items of an existing project, and how conflicts are resolved when both have changed.
+- Whether the import is checked first and shown as a preview before anything is written, and whether it is applied completely or not at all.
+- Whether item identifiers, ship records and the activity timeline are kept exactly as in the snapshot.
+- How the import is started (the dashboard, the command line, or both).
+
+**Related items:** FEA-0003 (Safe project deletion: the snapshot kept when a project is deleted could be used to restore it); FEA-0002 and FEA-0001 (the time fields of the items are part of a snapshot).
+
+---
+
 ## FEA-0006: Agent Sessions Widget on the Kanban Board and Live View Updates
 
 **Status:** Implemented, not yet committed (tracked as FEAT-0006 in MyIssueDesk). Task 1 and Task 2 are complete with the settings listed below. Two notes: changes written by other processes (the CLI) are noticed by a watcher in the server and shown within a few seconds; the events are not filtered by project on the server, because every dashboard user is an administrator and the events contain identifiers only.
