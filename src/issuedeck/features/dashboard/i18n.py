@@ -586,6 +586,80 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "snapshot.error.expired": "The checked snapshot is no longer available; check it again.",
         "snapshot.link.import": "Import snapshot",
         "snapshot.link.from_new": "Import a snapshot instead",
+        "settings.github.title": "GitHub exports",
+        "settings.github.help": (
+            "Projects can be exported to a GitHub repository as plain text files and imported from "
+            "it. The token is read from an environment variable of the server and is never stored "
+            "or shown here."
+        ),
+        "settings.github.repository": "Repository (owner/name or URL)",
+        "settings.github.branch": "Branch",
+        "settings.github.folder": "Folder in the repository (empty: top level)",
+        "settings.github.token_env": "Name of the token environment variable",
+        "settings.github.allow_public": (
+            "Allow a public repository (items can hold confidential text)"
+        ),
+        "settings.github.author_name": "Name of the commit author",
+        "settings.github.author_email": "E-mail address of the commit author",
+        "settings.github.test": "Test connection",
+        "settings.github.test_title": "Connection check (nothing was written)",
+        "settings.github.open_page": "Export or import projects",
+        "github.title": "GitHub: export and import projects",
+        "github.help": (
+            "Keep projects in a GitHub repository: every export is one commit of plain text files, "
+            "and a project can be restored from the repository."
+        ),
+        "github.link": "GitHub export",
+        "github.repository_title": "Repository",
+        "github.change_settings": "Change these settings",
+        "github.token_set": "the variable is set on this server",
+        "github.token_missing": "the variable is not set on this server",
+        "github.export_title": "Export a project",
+        "github.export_help": (
+            "Writes the project's files to its own folder of the repository as one commit. Check "
+            "first to see which files would change; nothing is written then."
+        ),
+        "github.project": "Project",
+        "github.check": "Check what would change",
+        "github.export": "Export now",
+        "github.up_to_date": "{project}: the repository is up to date, nothing was exported.",
+        "github.exported": "{project}: exported ({items} items).",
+        "github.would_export": (
+            "{project}: {items} items would be exported (nothing was written)."
+        ),
+        "github.commit": "Commit",
+        "github.files_changed": "Files that change:",
+        "github.import_title": "Import a project",
+        "github.import_help": (
+            "Load the projects found in the repository, choose one, and check it before anything "
+            "is written."
+        ),
+        "github.revision": "Revision (branch, tag or commit; empty: the branch)",
+        "github.load": "Load projects from the repository",
+        "github.source": "Project in the repository",
+        "github.remote_detail": "{items} items, exported {when}",
+        "github.no_projects": "No exported projects were found in the repository.",
+        "github.error.options": "The options are not valid.",
+        "github.status.working": "Working with GitHub…",
+        "github.status.done": "Finished in {seconds} s",
+        "github.status.failed": "Stopped after {seconds} s",
+        "github.status.lost": (
+            "The connection to the dashboard was lost. The action may still be running; "
+            "reload the page to see its result."
+        ),
+        "github.step.connecting": "Connecting to GitHub and checking the repository",
+        "github.step.reading_repo": "Reading the files of the repository",
+        "github.step.building": "Building the files of project {project}",
+        "github.step.comparing": "Comparing {count} files with the repository",
+        "github.step.uploading": "Uploading file {i} of {n} ({file})",
+        "github.step.committing": "Creating the commit",
+        "github.step.publishing": "Updating the branch",
+        "github.step.reading_manifests": "Reading project {i} of {n} ({project})",
+        "github.step.downloading": "Downloading file {i} of {n} ({file})",
+        "github.step.checking": "Checking the content",
+        "github.step.importing": "Writing the project",
+        "github.error.busy": "This action is already running. Wait until it has finished.",
+        "github.error.job_unknown": "The server no longer knows this action; reload the page.",
         "search.placeholder": "Search items...",
         "search.empty": "Type to search...",
         "search.all": "View all results",

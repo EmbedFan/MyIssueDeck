@@ -585,6 +585,80 @@ MESSAGES_HU: dict[str, str] = {
     "snapshot.error.expired": "Az ellenőrzött pillanatkép már nem érhető el; ellenőrizze újra.",
     "snapshot.link.import": "Pillanatkép importálása",
     "snapshot.link.from_new": "Importálás pillanatképből",
+    "settings.github.title": "GitHub-exportok",
+    "settings.github.help": (
+        "A projektek egyszerű szövegfájlokként exportálhatók egy GitHub-tárolóba, és onnan "
+        "importálhatók. A tokent a kiszolgáló egy környezeti változójából olvassa, itt soha nem "
+        "tárolja és nem mutatja meg."
+    ),
+    "settings.github.repository": "Tároló (tulajdonos/név vagy URL)",
+    "settings.github.branch": "Ág",
+    "settings.github.folder": "Mappa a tárolóban (üresen: legfelső szint)",
+    "settings.github.token_env": "A token környezeti változójának neve",
+    "settings.github.allow_public": (
+        "Nyilvános tároló engedélyezése (az elemek bizalmas szöveget tartalmazhatnak)"
+    ),
+    "settings.github.author_name": "A commit szerzőjének neve",
+    "settings.github.author_email": "A commit szerzőjének e-mail-címe",
+    "settings.github.test": "Kapcsolat tesztelése",
+    "settings.github.test_title": "Kapcsolatellenőrzés (semmi sem íródott)",
+    "settings.github.open_page": "Projektek exportálása és importálása",
+    "github.title": "GitHub: projektek exportálása és importálása",
+    "github.help": (
+        "Tartsa a projekteket egy GitHub-tárolóban: minden export egy commit egyszerű "
+        "szövegfájlokkal, és a projekt a tárolóból visszaállítható."
+    ),
+    "github.link": "Exportálás GitHubra",
+    "github.repository_title": "Tároló",
+    "github.change_settings": "Beállítások módosítása",
+    "github.token_set": "a változó be van állítva ezen a kiszolgálón",
+    "github.token_missing": "a változó nincs beállítva ezen a kiszolgálón",
+    "github.export_title": "Projekt exportálása",
+    "github.export_help": (
+        "A projekt fájljait a tároló saját mappájába írja egyetlen commitként. Előbb ellenőrizze, "
+        "mely fájlok változnának; ilyenkor semmi sem íródik."
+    ),
+    "github.project": "Projekt",
+    "github.check": "Mi változna?",
+    "github.export": "Exportálás most",
+    "github.up_to_date": "{project}: a tároló naprakész, nem történt export.",
+    "github.exported": "{project}: exportálva ({items} elem).",
+    "github.would_export": "{project}: {items} elem lenne exportálva (semmi sem íródott).",
+    "github.commit": "Commit",
+    "github.files_changed": "A változó fájlok:",
+    "github.import_title": "Projekt importálása",
+    "github.import_help": (
+        "Töltse be a tárolóban található projekteket, válasszon egyet, és ellenőrizze, mielőtt "
+        "bármi íródna."
+    ),
+    "github.revision": "Változat (ág, címke vagy commit; üresen: az ág)",
+    "github.load": "Projektek betöltése a tárolóból",
+    "github.source": "Projekt a tárolóban",
+    "github.remote_detail": "{items} elem, exportálva: {when}",
+    "github.no_projects": "A tárolóban nem található exportált projekt.",
+    "github.error.options": "A beállítások érvénytelenek.",
+    "github.status.working": "Dolgozunk a GitHubbal…",
+    "github.status.done": "Kész: {seconds} mp",
+    "github.status.failed": "Megállt {seconds} mp után",
+    "github.status.lost": (
+        "Megszakadt a kapcsolat az irányítópulttal. A művelet még futhat; "
+        "töltse újra az oldalt az eredményhez."
+    ),
+    "github.step.connecting": "Kapcsolódás a GitHubhoz és a tároló ellenőrzése",
+    "github.step.reading_repo": "A tároló fájlainak beolvasása",
+    "github.step.building": "A(z) {project} projekt fájlainak összeállítása",
+    "github.step.comparing": "{count} fájl összehasonlítása a tárolóval",
+    "github.step.uploading": "{i}. fájl feltöltése ({n} közül): {file}",
+    "github.step.committing": "Commit létrehozása",
+    "github.step.publishing": "Az ág frissítése",
+    "github.step.reading_manifests": "{i}. projekt beolvasása ({n} közül): {project}",
+    "github.step.downloading": "{i}. fájl letöltése ({n} közül): {file}",
+    "github.step.checking": "A tartalom ellenőrzése",
+    "github.step.importing": "A projekt írása",
+    "github.error.busy": "Ez a művelet már fut. Várja meg, amíg befejeződik.",
+    "github.error.job_unknown": (
+        "A kiszolgáló már nem ismeri ezt a műveletet; töltse újra az oldalt."
+    ),
     "search.placeholder": "Elemek keresése...",
     "search.empty": "Kezdjen el gépelni a kereséshez...",
     "search.all": "Összes találat megtekintése",

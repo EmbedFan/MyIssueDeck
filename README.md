@@ -107,6 +107,9 @@ Project snapshots are covered in
   relationships, work sessions, and import history. A snapshot can be imported
   again to create a project or to update an existing one, with a preview first
   (dashboard or `issuedeck import-audit-bundle`).
+- Export of a project to a GitHub repository as plain text files (one commit per
+  export, through the REST API, no local clone) and import from it, with
+  settings, a connection test and a preview; see [GitHub Exports](docs/github-exports.md).
 - Frontmatter migration from existing Markdown trackers.
 - Server-rendered dashboard with list, kanban, detail, search, and create/edit flows.
 - Keyboard-friendly dashboard triage for search, filters, create, and item focus.

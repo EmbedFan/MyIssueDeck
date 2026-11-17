@@ -1,0 +1,55 @@
+{# Preview or result of a snapshot import (FEA-0007). Used by the snapshot page and, in place,
+   by the GitHub page (FEA-0008), where live_actions makes the buttons work without a reload. #}
+{% set btn_primary = "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 disabled:cursor-wait" %}
+{% set btn_quiet = "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800" %}
+{% set card = "bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-5" %}
+<section class="{{ card }}" aria-labelledby="snapshot-result">
+  <h2 id="snapshot-result" class="text-base font-semibold text-gray-900 dark:text-gray-100">
+    {% if applied %}{{ t("snapshot.applied_title") }}{% else %}{{ t("snapshot.preview_title") }}{% endif %}
+  </h2>
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+    {% if applied %}
+      {{ t("snapshot.applied_help", project=report.project_key) }}
+    {% else %}
+      {{ t("snapshot.preview_help", source=report.source_project_key, project=report.project_key) }}
+    {% endif %}
+  </p>
+  <dl class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3" data-snapshot-counts>
+    {% for label, value in [
+      (t("snapshot.items_created"), report.items_created),
+      (t("snapshot.items_updated"), report.items_updated),
+      (t("snapshot.items_unchanged"), report.items_unchanged),
+      (t("snapshot.events_added"), report.events_added),
+      (t("snapshot.relationships_added"), report.relationships_added),
+      (t("snapshot.work_sessions_added"), report.work_sessions_added),
+      (t("snapshot.import_batches_added"), report.import_batches_added),
+    ] %}
+      <div class="rounded-md border border-ledger-line dark:border-ledger-darkLine px-3 py-2">
+        <dt class="text-xs text-gray-500 dark:text-gray-400">{{ label }}</dt>
+        <dd class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ value }}</dd>
+      </div>
+    {% endfor %}
+  </dl>
+  {% if report.warnings %}
+    <ul class="mt-4 list-disc pl-5 text-sm text-amber-700 dark:text-amber-300">
+      {% for warning in report.warnings %}<li>{{ warning }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  <div class="mt-5 flex flex-wrap items-center gap-2">
+    {% if applied %}
+      <a href="/dashboard/{{ report.project_key }}" class="{{ btn_primary }}">{{ t("snapshot.open_project") }}</a>
+      <a href="{{ cancel_url | default('/dashboard/import-snapshot') }}" class="{{ btn_quiet }}"{% if live_actions %} data-github-clear="#github-import-result"{% endif %}>{{ t("snapshot.another") }}</a>
+    {% else %}
+      <form method="post" action="{{ apply_action | default('/dashboard/import-snapshot/apply') }}"{% if live_actions %} data-github-job data-github-target="#github-import-result"{% endif %}>
+        <input type="hidden" name="token" value="{{ token }}">
+        <input type="hidden" name="mode" value="{{ form.mode }}">
+        <input type="hidden" name="new_key" value="{{ form.new_key }}">
+        <input type="hidden" name="target" value="{{ form.target }}">
+        <input type="hidden" name="conflict" value="{{ form.conflict }}">
+        {% for name, value in (extra_fields or {}).items() %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+        <button type="submit" class="{{ btn_primary }}">{{ t("snapshot.apply") }}</button>
+      </form>
+      <a href="{{ cancel_url | default('/dashboard/import-snapshot') }}" class="{{ btn_quiet }}"{% if live_actions %} data-github-clear="#github-import-result"{% endif %}>{{ t("common.cancel") }}</a>
+    {% endif %}
+  </div>
+</section>

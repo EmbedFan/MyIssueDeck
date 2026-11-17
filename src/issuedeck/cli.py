@@ -157,6 +157,51 @@ def main(argv: list[str] | None = None) -> int:
         help="Check the snapshot and show what would change, without writing anything",
     )
 
+    p_gh_test = sub.add_parser(
+        "github-test",
+        help="Check the GitHub export settings: token, repository, branch, access, privacy",
+    )
+    p_gh_test.add_argument("--config", default="server.toml")
+
+    p_gh_list = sub.add_parser(
+        "github-list", help="List the projects exported to the GitHub repository",
+    )
+    p_gh_list.add_argument("--config", default="server.toml")
+    p_gh_list.add_argument("--revision", help="Branch, tag or commit (default: the branch)")
+
+    p_gh_export = sub.add_parser(
+        "github-export", help="Export a project to the GitHub repository as one commit",
+    )
+    p_gh_export.add_argument("--config", default="server.toml")
+    p_gh_export.add_argument("--project-key", required=True)
+    p_gh_export.add_argument(
+        "--dry-run", action="store_true",
+        help="Show which files would change, without writing anything",
+    )
+
+    p_gh_import = sub.add_parser(
+        "github-import",
+        help="Import a project from the GitHub repository (create or update)",
+    )
+    p_gh_import.add_argument("--config", default="server.toml")
+    p_gh_import.add_argument(
+        "--project-key", required=True, help="The project's folder in the repository",
+    )
+    p_gh_import.add_argument("--mode", required=True, choices=["create", "update"])
+    p_gh_import.add_argument(
+        "--target-key", help="Key of the project to create or update (default: the same key)",
+    )
+    p_gh_import.add_argument("--revision", help="Branch, tag or commit (default: the branch)")
+    p_gh_import.add_argument(
+        "--conflict", choices=["keep", "newer", "overwrite"], default="keep",
+        help="update mode, items present in both: keep the project's (default), take the "
+        "snapshot's only when newer, or always take the snapshot's",
+    )
+    p_gh_import.add_argument(
+        "--dry-run", action="store_true",
+        help="Check the content and show what would change, without writing anything",
+    )
+
     p_seed = sub.add_parser("seed-demo", help="Seed fake demo data for docs/screenshots")
     p_seed.add_argument("--config", default="server.toml")
     p_seed.add_argument("--project-key", default="example")
@@ -791,6 +836,19 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_cmd_import_audit_bundle(
             Path(args.config), Path(args.bundle), args.mode, args.project_key,
             args.conflict, args.dry_run,
+        ))
+    if args.cmd == "github-test":
+        return asyncio.run(_cmd_github_test(Path(args.config)))
+    if args.cmd == "github-list":
+        return asyncio.run(_cmd_github_list(Path(args.config), args.revision))
+    if args.cmd == "github-export":
+        return asyncio.run(_cmd_github_export(
+            Path(args.config), args.project_key, args.dry_run,
+        ))
+    if args.cmd == "github-import":
+        return asyncio.run(_cmd_github_import(
+            Path(args.config), args.project_key, args.mode, args.target_key,
+            args.revision, args.conflict, args.dry_run,
         ))
     if args.cmd == "seed-demo":
         return asyncio.run(_cmd_seed_demo(
@@ -1436,6 +1494,141 @@ async def _cmd_import_audit_bundle(
             "[note] restart a running server so that it loads the new project",
             file=sys.stderr,
         )
+    return 0
+
+
+def _github_transport():
+    """None in production; tests replace this to talk to a local test double."""
+    return None
+
+
+def _github_setup(config_path: Path):
+    """The registry, the runtime settings and the GitHub settings for a command."""
+    from issuedeck.core.runtime_settings import RuntimeSettings
+    from issuedeck.features.github_sync.service import GitHubSettings
+
+    registry = _build_registry(config_path)
+    runtime = RuntimeSettings(registry.server.data_dir)
+    return registry, runtime, GitHubSettings.from_group(runtime.settings()["github"])
+
+
+async def _cmd_github_test(config_path: Path) -> int:
+    from issuedeck.core.errors import IssueDeckError
+    from issuedeck.features.github_sync.service import check_connection
+
+    try:
+        _, _, settings = _github_setup(config_path)
+        result = await check_connection(settings, transport=_github_transport())
+    except IssueDeckError as exc:
+        print(f"{exc.code}: {exc.message}", file=sys.stderr)
+        return 2
+    print(f"GitHub repository {settings.repository}, branch {settings.branch}")
+    for name, ok, detail in result.checks:
+        print(f"  [{'ok' if ok else 'FAIL'}] {name}: {detail}")
+    return 0 if result.ok else 2
+
+
+async def _cmd_github_list(config_path: Path, revision: str | None) -> int:
+    from issuedeck.core.errors import IssueDeckError
+    from issuedeck.features.github_sync.service import list_projects
+
+    try:
+        _, _, settings = _github_setup(config_path)
+        projects = await list_projects(
+            settings, revision=revision, transport=_github_transport(),
+        )
+    except IssueDeckError as exc:
+        print(f"{exc.code}: {exc.message}", file=sys.stderr)
+        return 2
+    if not projects:
+        print(f"no exported projects in {settings.repository} ({settings.branch})")
+        return 0
+    for project in projects:
+        detail = project.problem or f"{project.items} items, exported {project.generated_at}"
+        print(f"{project.key}\t{detail}")
+    return 0
+
+
+async def _cmd_github_export(config_path: Path, project_key: str, dry_run: bool) -> int:
+    from issuedeck.core.db import make_engine, make_session_factory
+    from issuedeck.core.errors import IssueDeckError
+    from issuedeck.features.github_sync.service import export_project
+
+    engine = None
+    try:
+        registry, runtime, settings = _github_setup(config_path)
+        engine = make_engine(f"sqlite+aiosqlite:///{registry.server.data_dir / 'tracker.db'}")
+        async with make_session_factory(engine)() as session:
+            report = await export_project(
+                session=session, registry=registry, project_key=project_key,
+                settings=settings, transport=_github_transport(), dry_run=dry_run,
+                runtime=runtime, actor="cli",
+            )
+    except IssueDeckError as exc:
+        print(f"{exc.code}: {exc.message}", file=sys.stderr)
+        return 2
+    finally:
+        if engine is not None:
+            await engine.dispose()
+    where = f"{report.repository} ({report.branch})"
+    if report.up_to_date:
+        print(f"[ok] {where} is up to date for '{project_key}'; nothing to export",
+              file=sys.stderr)
+    elif dry_run:
+        print(f"[ok] would export '{project_key}' ({report.items} items) to {where}; "
+              f"files to change: {', '.join(report.files_changed)} (dry run)", file=sys.stderr)
+    else:
+        print(f"[ok] exported '{project_key}' ({report.items} items) to {where} "
+              f"as commit {report.commit_sha}; {len(report.files_changed)} files changed",
+              file=sys.stderr)
+    return 0
+
+
+async def _cmd_github_import(
+    config_path: Path,
+    project_key: str,
+    mode: str,
+    target_key: str | None,
+    revision: str | None,
+    conflict: str,
+    dry_run: bool,
+) -> int:
+    from issuedeck.core.db import make_engine, make_session_factory
+    from issuedeck.core.errors import IssueDeckError
+    from issuedeck.features.github_sync.service import import_project
+
+    engine = None
+    try:
+        _upgrade_database(config_path)
+        registry, runtime, settings = _github_setup(config_path)
+        engine = make_engine(f"sqlite+aiosqlite:///{registry.server.data_dir / 'tracker.db'}")
+        async with make_session_factory(engine)() as session:
+            report, commit = await import_project(
+                session=session, registry=registry, project_key=project_key,
+                settings=settings, mode=mode, target_key=target_key, revision=revision,
+                conflict=conflict, apply=not dry_run, transport=_github_transport(),
+                runtime=runtime, actor="cli",
+            )
+    except IssueDeckError as exc:
+        print(f"{exc.code}: {exc.message}", file=sys.stderr)
+        return 2
+    finally:
+        if engine is not None:
+            await engine.dispose()
+    verb = "imported" if report.applied else "would import (dry run)"
+    print(
+        f"[ok] {verb} '{project_key}' from {settings.repository} at {commit[:12]} into "
+        f"'{report.project_key}' ({report.mode}): items created={report.items_created}, "
+        f"updated={report.items_updated}, unchanged={report.items_unchanged}; "
+        f"events={report.events_added}, relationships={report.relationships_added}, "
+        f"work_sessions={report.work_sessions_added}",
+        file=sys.stderr,
+    )
+    for warning in report.warnings:
+        print(f"[warn] {warning}", file=sys.stderr)
+    if report.applied and mode == "create":
+        print("[note] restart a running server so that it loads the new project",
+              file=sys.stderr)
     return 0
 
 

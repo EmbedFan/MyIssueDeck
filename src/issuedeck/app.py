@@ -25,6 +25,7 @@ from issuedeck.core.live_watch import ChangeWatcher
 from issuedeck.core.logging import configure_logging
 from issuedeck.core.runtime_settings import RuntimeSettings
 from issuedeck.core.webhooks import WebhookDispatcher
+from issuedeck.features.dashboard.github_routes import router as github_router
 from issuedeck.features.dashboard.live_routes import router as live_router
 from issuedeck.features.dashboard.routes import router as dashboard_router
 from issuedeck.features.dashboard.settings_routes import (
@@ -166,6 +167,7 @@ def create_app(server_toml: Path | str) -> FastAPI:
     # /dashboard/settings would otherwise match the project route /dashboard/{key}.
     app.include_router(settings_router)
     app.include_router(snapshot_router)
+    app.include_router(github_router)
     app.include_router(live_router)
     app.include_router(dashboard_router)
 

@@ -44,6 +44,10 @@
          class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
         {{ t("snapshot.link.import") }}
       </a>
+      <a href="/dashboard/github?project={{ project_key }}"
+         class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        {{ t("github.link") }}
+      </a>
       <a href="/dashboard/{{ project_key }}/delete"
          class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950 transition-colors">
         {{ t("project_delete.link") }}

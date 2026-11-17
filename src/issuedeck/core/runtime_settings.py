@@ -24,6 +24,11 @@ from typing import Any
 
 from issuedeck.core.auth import BearerTokenCredential, sha256_hex
 from issuedeck.core.errors import InvalidSetting, TokenNotFound
+from issuedeck.core.github_settings import (
+    DEFAULT_REPOSITORY,
+    DEFAULT_TOKEN_ENV,
+    validate_github,
+)
 
 SETTINGS_FILE = "settings.json"
 TOKENS_FILE = "tokens.json"
@@ -66,10 +71,20 @@ DEFAULT_SETTINGS: dict[str, Any] = {
         "events": {"items": True, "sessions": True, "activity": True},
         "indicator": True,
     },
+    # FEA-0008: export of projects to a GitHub repository and import from it.
+    "github": {
+        "repository": DEFAULT_REPOSITORY,
+        "branch": "main",
+        "folder": "",
+        "token_env": DEFAULT_TOKEN_ENV,
+        "allow_public": False,
+        "author_name": "MyIssueDesk",
+        "author_email": "issuedeck@users.noreply.github.com",
+    },
 }
 
 #: Settings groups that can be reset to their defaults as a unit.
-RESETTABLE_GROUPS = ("theme", "agent_widget", "live")
+RESETTABLE_GROUPS = ("theme", "agent_widget", "live", "github")
 
 WIDGET_STATUSES = ("active", "paused")
 WIDGET_SCOPES = ("project", "all")
@@ -184,7 +199,15 @@ def validate_live(group: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-_GROUP_VALIDATORS = {"agent_widget": validate_agent_widget, "live": validate_live}
+def _validate_github(group: dict[str, Any]) -> dict[str, Any]:
+    return validate_github(group, bool_check=_bool)
+
+
+_GROUP_VALIDATORS = {
+    "agent_widget": validate_agent_widget,
+    "live": validate_live,
+    "github": _validate_github,
+}
 
 
 def theme_style(settings: dict[str, Any]) -> str:

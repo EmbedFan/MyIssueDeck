@@ -1,0 +1,50 @@
+{# The projects found in the repository and the form to import one (FEA-0008). #}
+{% set input_cls = "w-full px-3 py-2 rounded-md text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" %}
+{% set btn_primary = "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 disabled:cursor-wait" %}
+{% set label_cls = "block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5" %}
+{% if remote is not none %}
+  {% if remote %}
+    <form method="post" action="/dashboard/github/import/preview" class="mt-5 space-y-4" data-github-import-form
+          data-github-job data-github-target="#github-import-result">
+      <input type="hidden" name="revision" value="{{ revision }}">
+      <div>
+        <label for="github-source" class="{{ label_cls }}">{{ t("github.source") }}</label>
+        <select id="github-source" name="source" class="{{ input_cls }}" required>
+          {% for p in remote %}
+            <option value="{{ p.key }}" {% if p.problem %}disabled{% endif %}>{{ p.key }} —
+              {% if p.problem %}{{ p.problem }}{% else %}{{ t("github.remote_detail", items=p.items, when=p.generated_at or "?") }}{% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <fieldset>
+        <legend class="{{ label_cls }}">{{ t("snapshot.mode") }}</legend>
+        <div class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+          <label class="flex items-center gap-2"><input type="radio" name="mode" value="create" checked> {{ t("snapshot.mode_create") }}</label>
+          <label class="flex items-center gap-2"><input type="radio" name="mode" value="update"> {{ t("snapshot.mode_update") }}</label>
+        </div>
+      </fieldset>
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
+        <div>
+          <label for="github-new-key" class="{{ label_cls }}">{{ t("snapshot.new_key") }}</label>
+          <input id="github-new-key" name="new_key" autocomplete="off" placeholder="{{ t('snapshot.new_key_placeholder') }}" class="{{ input_cls }}">
+        </div>
+        <div>
+          <label for="github-target" class="{{ label_cls }}">{{ t("snapshot.target") }}</label>
+          <select id="github-target" name="target" class="{{ input_cls }}">
+            <option value="">{{ t("snapshot.target_default") }}</option>
+            {% for key, name in targets %}<option value="{{ key }}">{{ name }} ({{ key }})</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div>
+        <label for="github-conflict" class="{{ label_cls }}">{{ t("snapshot.conflict") }}</label>
+        <select id="github-conflict" name="conflict" class="{{ input_cls }}">
+          {% for policy in conflict_policies %}<option value="{{ policy }}">{{ t("snapshot.conflict_" ~ policy) }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><button type="submit" class="{{ btn_primary }}">{{ t("snapshot.preview") }}</button></div>
+    </form>
+  {% else %}
+    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400" data-github-empty>{{ t("github.no_projects") }}</p>
+  {% endif %}
+{% endif %}

@@ -1,0 +1,18 @@
+{# Progress panel of the GitHub page (FEA-0008). github.js fills it while a job runs. #}
+<div data-github-status hidden role="status" aria-live="polite"
+     data-text-working="{{ t('github.status.working') }}"
+     data-text-done="{{ t('github.status.done') }}"
+     data-text-failed="{{ t('github.status.failed') }}"
+     data-text-lost="{{ t('github.status.lost') }}"
+     class="mt-4 rounded-md border border-ledger-line dark:border-ledger-darkLine px-4 py-3 text-sm">
+  <div class="flex items-center gap-2">
+    <svg data-github-spinner class="h-4 w-4 animate-spin text-primary-600 dark:text-primary-300" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+    <span data-github-headline class="font-semibold text-gray-900 dark:text-gray-100"></span>
+    <span data-github-elapsed class="ml-auto text-xs text-gray-500 dark:text-gray-400"></span>
+  </div>
+  <ol data-github-steps class="mt-2 list-none space-y-0.5 text-xs text-gray-600 dark:text-gray-300"></ol>
+  <p data-github-error role="alert" hidden class="mt-2 text-sm text-red-700 dark:text-red-300"></p>
+</div>

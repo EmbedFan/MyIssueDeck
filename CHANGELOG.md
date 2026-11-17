@@ -9,6 +9,21 @@ versioning once public releases begin.
 
 ### Added
 
+- Added export of a project to a GitHub repository and import from it (FEA-0008): files of
+  the snapshot are stored unpacked in `<folder>/<project-key>/`, one export is one commit
+  created through the GitHub REST API (no local clone), nothing is committed when nothing
+  changed, the branch is never forced, other folders are never touched, and a public repository
+  is refused unless allowed. The token comes from a configurable environment variable (default
+  `GITHUB_PAT`) and is never stored, shown or logged. Certificates are verified against the
+  operating system's certificate store (a network that re-signs TLS traffic with a trusted
+  certificate works); verification is never switched off. Settings section *GitHub exports* with a
+  connection test, dashboard page *GitHub* and the commands `github-test`, `github-list`,
+  `github-export` and `github-import`; the import reuses the snapshot import rules and preview.
+  Exports and imports are recorded in the settings audit log. The dashboard page does not reload:
+  every action runs as a background job and shows its steps (connecting, reading the repository,
+  uploading file 2 of 7, creating the commit, ...), the elapsed time and the result or the error
+  in place; buttons are disabled while it runs, and the same export cannot run twice at once.
+  See `docs/github-exports.md`.
 - Added importing of project snapshots (audit bundles) to create a new project or to update an
   existing one (FEA-0007): `issuedeck import-audit-bundle` with `--mode create|update`,
   `--conflict keep|newer|overwrite` and `--dry-run`, and an *Import snapshot* dashboard page

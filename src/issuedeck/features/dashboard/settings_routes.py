@@ -52,6 +52,11 @@ from issuedeck.core.runtime_settings import (
 )
 from issuedeck.features.dashboard.helpers import render
 from issuedeck.features.dashboard.routes import _ctx
+from issuedeck.features.github_sync.service import (
+    ConnectionCheck,
+    GitHubSettings,
+    check_connection,
+)
 
 router = APIRouter(prefix="/dashboard/settings", tags=["dashboard"])
 
@@ -95,6 +100,7 @@ async def _render_settings(
     error: str | None = None,
     notice: str | None = None,
     new_token: dict | None = None,
+    github_check: ConnectionCheck | None = None,
     status_code: int = 200,
 ):
     registry: ConfigRegistry = request.app.state.registry
@@ -105,6 +111,13 @@ async def _render_settings(
         selected = next((p for p in projects if p.key == project_key), projects[0])
     server_cfg = registry.server
     env_admin = bool(os.environ.get("ISSUEDECK_API_TOKEN"))
+    github_environ = getattr(request.app.state, "github_environ", None)
+    github_token_env = runtime.settings()["github"]["token_env"]
+    github_token_present = bool(
+        (github_environ if github_environ is not None else os.environ).get(
+            github_token_env, "",
+        )
+    )
     return render(
         "pages/settings.html", request,
         # Render in the context of the selected project so the page has the same
@@ -142,6 +155,8 @@ async def _render_settings(
         error=error,
         notice=notice,
         new_token=new_token,
+        github_check=github_check,
+        github_token_present=github_token_present,
         status_code=status_code,
     )
 
@@ -286,6 +301,49 @@ async def save_live(
 async def reset_live(request: Request):
     _runtime(request).reset_group("live", actor=ACTOR)
     return _redirect()
+
+
+# --- GitHub exports (FEA-0008) -------------------------------------------------
+
+@router.post("/github")
+async def save_github(
+    request: Request,
+    repository: str = Form(""),
+    branch: str = Form(""),
+    folder: str = Form(""),
+    token_env: str = Form(""),
+    allow_public: str | None = Form(None),
+    author_name: str = Form(""),
+    author_email: str = Form(""),
+):
+    group = {
+        "repository": repository, "branch": branch, "folder": folder,
+        "token_env": token_env, "allow_public": _on(allow_public),
+        "author_name": author_name, "author_email": author_email,
+    }
+    try:
+        _runtime(request).update_settings({"github": group}, actor=ACTOR)
+    except InvalidSetting as exc:
+        return await _render_settings(request, error=exc.message, status_code=422)
+    return _redirect()
+
+
+@router.post("/github/reset")
+async def reset_github(request: Request):
+    _runtime(request).reset_group("github", actor=ACTOR)
+    return _redirect()
+
+
+@router.post("/github/test")
+async def test_github(request: Request):
+    """Check token, repository, branch, write access and privacy; writes nothing."""
+    settings = GitHubSettings.from_group(_runtime(request).settings()["github"])
+    result = await check_connection(
+        settings,
+        environ=getattr(request.app.state, "github_environ", None),
+        transport=getattr(request.app.state, "github_transport", None),
+    )
+    return await _render_settings(request, github_check=result)
 
 
 def _whole(raw: str, field: str) -> int:

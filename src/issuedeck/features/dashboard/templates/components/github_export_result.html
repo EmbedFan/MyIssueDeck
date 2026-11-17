@@ -1,0 +1,17 @@
+{# Result of an export or of its check (FEA-0008). Used by the page and by the in-place update. #}
+{% if export_report %}
+  <div class="mt-4 rounded-md border border-ledger-line dark:border-ledger-darkLine px-4 py-3 text-sm" data-github-export-result>
+    {% if export_report.up_to_date %}
+      <p class="font-semibold text-green-700 dark:text-green-300">{{ t("github.up_to_date", project=export_report.project_key) }}</p>
+    {% elif export_report.commit_sha %}
+      <p class="font-semibold text-green-700 dark:text-green-300">{{ t("github.exported", project=export_report.project_key, items=export_report.items) }}</p>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ t("github.commit") }}: <code>{{ export_report.commit_sha }}</code></p>
+    {% else %}
+      <p class="font-semibold text-gray-900 dark:text-gray-100">{{ t("github.would_export", project=export_report.project_key, items=export_report.items) }}</p>
+    {% endif %}
+    {% if export_report.files_changed %}
+      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ t("github.files_changed") }}</p>
+      <ul class="mt-1 list-disc pl-5 text-sm">{% for name in export_report.files_changed %}<li><code>{{ name }}</code></li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+{% endif %}

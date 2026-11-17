@@ -40,6 +40,25 @@ class TokenNotFound(IssueDeckError):
     http_status = 404
 
 
+class GitHubConfigError(IssueDeckError):
+    """The GitHub export cannot start: no token, bad settings, public repository (FEA-0008)."""
+
+    code = "github_config_error"
+    http_status = 422
+
+
+class GitHubError(IssueDeckError):
+    """A GitHub request failed. ``details["kind"]`` tells why (auth, permission, not_found,
+    rate_limit, network, conflict, too_large, invalid)."""
+
+    code = "github_error"
+    http_status = 502
+
+    @property
+    def kind(self) -> str:
+        return str(self.details.get("kind", "invalid"))
+
+
 class SnapshotInvalid(IssueDeckError):
     """The uploaded or given snapshot cannot be imported (FEA-0007)."""
 

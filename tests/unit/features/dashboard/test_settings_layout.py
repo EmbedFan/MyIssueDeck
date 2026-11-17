@@ -12,7 +12,8 @@ TEMPLATE = (
 
 def test_field_rows_align_inputs_to_a_common_line():
     rows = re.findall(r'<div class="([^"]*)" data-settings-row>', TEMPLATE)
-    assert len(rows) == 2
+    # the widget and live-update sections, and the GitHub section (FEA-0008), have such rows
+    assert len(rows) >= 2
     for classes in rows:
         assert "items-end" in classes.split()
 

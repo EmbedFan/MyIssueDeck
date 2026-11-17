@@ -249,6 +249,75 @@
     </form>
   </section>
 
+  {# ── GitHub exports (FEA-0008) ─────────────────────────────── #}
+  <section class="{{ card }}" aria-labelledby="settings-github">
+    <h2 id="settings-github" class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t("settings.github.title") }}</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t("settings.github.help") }}</p>
+    {% set gh = settings.github %}
+    <form method="post" action="/dashboard/settings/github" class="mt-4 space-y-5">
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
+        <div>
+          <label for="github-repository" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.repository") }}</label>
+          <input id="github-repository" name="repository" value="{{ gh.repository }}" autocomplete="off" class="{{ input_cls }}">
+        </div>
+        <div>
+          <label for="github-branch" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.branch") }}</label>
+          <input id="github-branch" name="branch" value="{{ gh.branch }}" autocomplete="off" class="{{ input_cls }}">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
+        <div>
+          <label for="github-folder" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.folder") }}</label>
+          <input id="github-folder" name="folder" value="{{ gh.folder }}" autocomplete="off" class="{{ input_cls }}">
+        </div>
+        <div>
+          <label for="github-token-env" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.token_env") }}</label>
+          <input id="github-token-env" name="token_env" value="{{ gh.token_env }}" autocomplete="off" class="{{ input_cls }}">
+          <p class="mt-1 text-xs {% if github_token_present %}text-green-700 dark:text-green-300{% else %}text-amber-700 dark:text-amber-300{% endif %}" data-github-token-state>
+            {% if github_token_present %}{{ t("github.token_set") }}{% else %}{{ t("github.token_missing") }}{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
+        <div>
+          <label for="github-author-name" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.author_name") }}</label>
+          <input id="github-author-name" name="author_name" value="{{ gh.author_name }}" autocomplete="off" class="{{ input_cls }}">
+        </div>
+        <div>
+          <label for="github-author-email" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">{{ t("settings.github.author_email") }}</label>
+          <input id="github-author-email" name="author_email" value="{{ gh.author_email }}" autocomplete="off" class="{{ input_cls }}">
+        </div>
+      </div>
+      <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <input type="checkbox" name="allow_public" value="1" {% if gh.allow_public %}checked{% endif %}>
+        {{ t("settings.github.allow_public") }}
+      </label>
+      <div><button type="submit" class="{{ btn_primary }}">{{ t("common.save") }}</button></div>
+    </form>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <form method="post" action="/dashboard/settings/github/test">
+        <button type="submit" class="{{ btn_quiet }}">{{ t("settings.github.test") }}</button>
+      </form>
+      <form method="post" action="/dashboard/settings/github/reset"
+            onsubmit="return confirm({{ t('settings.reset_group_confirm') | tojson }})">
+        <button type="submit" class="{{ btn_quiet }}">{{ t("settings.reset_group") }}</button>
+      </form>
+      <a href="/dashboard/github" class="{{ btn_quiet }}">{{ t("settings.github.open_page") }}</a>
+    </div>
+
+    {% if github_check %}
+      <div class="mt-4 rounded-md border border-ledger-line dark:border-ledger-darkLine px-4 py-3 text-sm" data-github-check role="status">
+        <p class="font-semibold text-gray-900 dark:text-gray-100">{{ t("settings.github.test_title") }}</p>
+        <ul class="mt-2 space-y-1">
+          {% for name, ok, detail in github_check.checks %}
+            <li class="{% if ok %}text-green-700 dark:text-green-300{% else %}text-red-700 dark:text-red-300{% endif %}"><span class="font-semibold">{{ name }}</span>: {{ detail }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </section>
+
   {# ── Project name and description ───────────────────────────── #}
   <section class="{{ card }}" aria-labelledby="settings-project">
     <h2 id="settings-project" class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t("settings.project") }}</h2>
