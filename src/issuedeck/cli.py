@@ -128,6 +128,18 @@ def main(argv: list[str] | None = None) -> int:
         help="Output .zip path, or a directory for <project>-audit-bundle.zip",
     )
 
+    p_db_upgrade = sub.add_parser(
+        "db-upgrade",
+        help="Apply the pending database migrations (or list them with --check)",
+    )
+    p_db_upgrade.add_argument("--config", default="server.toml")
+    p_db_upgrade.add_argument(
+        "--check",
+        action="store_true",
+        help="Only report the current and the newest revision and the pending migrations; "
+        "change nothing and do not create the database",
+    )
+
     p_import_bundle = sub.add_parser(
         "import-audit-bundle",
         help="Import a project snapshot (audit bundle ZIP) as a new or an existing project",
@@ -832,6 +844,8 @@ def main(argv: list[str] | None = None) -> int:
         return asyncio.run(_cmd_export_audit_bundle(
             Path(args.config), args.project_key, Path(args.out),
         ))
+    if args.cmd == "db-upgrade":
+        return _cmd_db_upgrade(Path(args.config), args.check)
     if args.cmd == "import-audit-bundle":
         return asyncio.run(_cmd_import_audit_bundle(
             Path(args.config), Path(args.bundle), args.mode, args.project_key,
@@ -1218,6 +1232,71 @@ def _upgrade_database(config_path: Path) -> Path:
     )
     command.upgrade(alembic_cfg, "head")
     return db_path
+
+
+def _migration_state(db_path: Path) -> tuple[str | None, list[str], str]:
+    """The revision stored in the database, the pending revisions (oldest first) and the head.
+
+    Reads the database read-only and never creates it.
+    """
+    import sqlite3
+
+    from alembic.config import Config as AlembicConfig
+    from alembic.script import ScriptDirectory
+
+    migrations_dir = Path(__file__).resolve().parent / "migrations"
+    alembic_cfg = AlembicConfig()
+    alembic_cfg.set_main_option("script_location", migrations_dir.as_posix())
+    script = ScriptDirectory.from_config(alembic_cfg)
+    head = script.get_current_head()
+
+    current: str | None = None
+    if db_path.exists():
+        conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+        try:
+            row = conn.execute("select version_num from alembic_version").fetchone()
+            current = row[0] if row else None
+        except sqlite3.OperationalError:  # no alembic_version table: not migrated yet
+            current = None
+        finally:
+            conn.close()
+
+    pending = [
+        rev.revision for rev in script.iterate_revisions(head, current or "base")
+    ]
+    if current is not None and current == head:
+        pending = []
+    pending.reverse()
+    return current, pending, head
+
+
+def _cmd_db_upgrade(config_path: Path, check: bool) -> int:
+    from issuedeck.core.config import load_server_config
+    from issuedeck.core.errors import ConfigError
+
+    try:
+        server_cfg = load_server_config(config_path)
+    except ConfigError as exc:
+        print(f"[error] {exc}", file=sys.stderr)
+        return 2
+    db_path = server_cfg.data_dir / "tracker.db"
+    current, pending, head = _migration_state(db_path)
+
+    print(f"database: {db_path}")
+    print(f"current revision: {current or 'none (no database or not migrated yet)'}")
+    print(f"head revision: {head}")
+    print(f"pending migrations: {len(pending)}" + (f" ({', '.join(pending)})" if pending else ""))
+    if check:
+        return 0
+    if not pending:
+        print("The database is up to date.")
+        return 0
+    server_cfg.data_dir.mkdir(parents=True, exist_ok=True)
+    _upgrade_database(config_path)
+    after, _, _ = _migration_state(db_path)
+    print(f"revision now: {after}")
+    print(f"[ok] applied {len(pending)} migration(s)")
+    return 0
 
 
 def _dashboard_url(

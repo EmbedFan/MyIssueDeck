@@ -117,6 +117,10 @@ Every tagged release builds Python wheels and source distributions, then uploads
 them with `SHA256SUMS.txt` to the GitHub Release. Use the checksum file to verify
 downloaded artifacts before mirroring them into an offline environment.
 
+The release also carries `myissuedeck-installer-<version>-win64.zip`, a standalone Windows
+installer that installs, or updates an installed copy, without a source checkout and without a
+network connection; see [Standalone Installer and Updates](docs/installer.md).
+
 ## Backup and Restore
 
 Run the bundled backup helper from the deployment directory. It uses SQLite's

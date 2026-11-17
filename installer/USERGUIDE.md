@@ -58,10 +58,13 @@ Token scopes:
   `dist\myissuedeck-<version>-py3-none-any.whl`. Install it into a clean virtual environment with
   `python -m pip install <wheel>` (or `uv pip install --system-certs --python <venv python> <wheel>`
   on a PC where pip fails on TLS).
-- **Installer:** `installer\install-myissuedesk.cmd` installs the wheel into
-  `C:\Utility\MyIssueDesk` with its own `.venv`, copies the data and settings, and adds
-  `start-myissuedesk.vbs` and `stop-myissuedesk.vbs`. Read the script before running it: it copies
-  `server.toml`, the database and the projects from the source folder.
+- **Standalone installer:** unzip `myissuedeck-installer-<version>-win64.zip` and run
+  `install.cmd`. It installs into `C:\Utility\MyIssueDesk` (or `--target`) with its own `.venv`,
+  writes `server.toml` with a new administrator token (shown once), and adds
+  `start-myissuedesk.vbs` and `stop-myissuedesk.vbs`. Running it again with a newer installer
+  **updates** the installation: it backs up the data, keeps the database, `server.toml`, settings
+  and projects, applies the migrations and restores the old version if anything fails. Use
+  `install.cmd --check` to see what it would do. Details: `docs\installer.md`.
 - Python 3.11 or newer is required.
 
 Check that the MCP module is available in the Python you plan to use:

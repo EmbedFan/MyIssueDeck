@@ -40,6 +40,21 @@ jobs:
           uv sync --frozen
           uv build
 
+      - name: Build the standalone Windows installer
+        # Uses the wheel built above; the libraries are the ones locked in uv.lock and are
+        # checked against its hashes. The ZIP and its .sha256 end up in dist/ and are uploaded
+        # with the other assets; the version in the ZIP name is checked against the tag.
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          uv run python scripts/build_installer.py
+          version="${RELEASE_TAG#v}"
+          test -f "dist/myissuedeck-installer-${version}-win64.zip" || {
+            echo "The installer version does not match the tag $RELEASE_TAG" >&2
+            ls dist >&2
+            exit 1
+          }
+
       - name: Generate checksums
         run: |
           cd dist

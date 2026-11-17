@@ -46,5 +46,10 @@ jobs:
       - name: Build package
         run: uv build
 
+      - name: Build the installer (without bundled libraries)
+        # The full installer downloads about 100 MB and is built by the release workflow.
+        # Here the generator itself is checked: versions, content, secrets scan, manifest.
+        run: uv run python scripts/build_installer.py --no-wheelhouse
+
       - name: Build Docker image
         run: docker build -t issuedeck:ci .

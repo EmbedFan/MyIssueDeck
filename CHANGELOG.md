@@ -7,6 +7,30 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Added a **standalone installer** (FEA-0009): `scripts/build_installer.py` builds
+  `myissuedeck-installer-<version>-win64.zip` with the wheel, the dependency wheels for Python
+  3.11, 3.12 and 3.13 (the files and hashes recorded in `uv.lock`, so no network is needed to
+  install), a checksum manifest and the start and stop scripts. `install.cmd` installs into
+  `C:\Utility\MyIssueDesk` (or `--target`) without a source checkout and without administrator
+  rights, with a new random administrator token in `server.toml` that is shown once and never
+  logged. Run on an installed copy it **updates** it: it stops only that installation's server, backs up
+  the database and configuration, builds the new environment beside the old one, applies the
+  migrations and restarts the server; any failing step restores the old version and the database.
+  The database, `server.toml`, settings and projects are never replaced. `--check` shows what would
+  be done; `--repair`, `--allow-downgrade`, `--online`, `--import-data`, `--keep-backups` and
+  `--silent` are available. The release workflow attaches the ZIP and its checksum; the release
+  checklist covers it. See `docs/installer.md`.
+- Added the command `issuedeck db-upgrade [--check]`, which applies the pending database
+  migrations (or lists them) without starting the server.
+
+### Changed
+
+- The installer files moved: `installer\payload\` holds the start and stop scripts, and
+  `installer\install-myissuedesk.cmd`, which copied the database of the source folder over the
+  installed one, is removed.
+
 ## [0.10.0] - 2026-11-17
 
 ### Added

@@ -123,6 +123,9 @@ Project snapshots are covered in
 - Built-in help in every supported language (button at the bottom of the left panel), a language
   combo box, optional import entries in the left panel, and an application icon for the web
   pages; see [Dashboard Help, Icons and Navigation Settings](docs/dashboard-help-and-icons.md).
+- A standalone Windows installer, built with the release, installs MyIssueDesk without a source
+  checkout and updates an installed copy while keeping its data (backup first, restore on
+  failure); see [Standalone Installer and Updates](docs/installer.md).
 - Item content is rendered as formatted Markdown (headings, lists, tables, code,
   block quotes, links, images); raw HTML is shown as text, not executed.
 - Dashboard interface in English, Hungarian, and Simplified Chinese; status
