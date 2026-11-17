@@ -1,0 +1,123 @@
+<nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="Tartalom" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tartalom</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">Első lépések</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">Projektek</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">Elemek, fajták és állapotok</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">Kanban tábla</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">Lista, keresés és szűrők</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">Áttekintés, idő és diagramok</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">MI-ügynökök, munkamenetek és élő frissítések</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">Beállítások</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">Importálás és exportálás</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">Billentyűparancsok</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">MI-ügynök csatlakoztatása</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">Hibaelhárítás</a></li></ul></nav>
+<div class="md-content help-body">
+<p>A MyIssueDesk egy helyi hibakövető emberek és MI-alapú programozó ügynökök számára. Ez az oldal az irányítópultot mutatja be. A tartalomjegyzékből egy témára ugorhat; a böngésző keresője (Ctrl+F) ezen az oldalon szavakat keres.</p>
+<h2 id="start">Első lépések</h2>
+<ul>
+<li><strong>Jelentkezzen be</strong> hozzáférési tokennel a bejelentkezési oldalon. A tokeneket a Beállítások oldalon hozhatja létre (lásd: <a href="#settings">Beállítások</a>).</li>
+<li>A <strong>bal oldali panel</strong> az aktuális projekt nézeteit (Áttekintés, Kanban, Lista, Keresés), az <em>Új elem</em> gombot, a Beállításokat, a projektek listáját és legalul ezt a Súgót tartalmazza.</li>
+<li>A <strong>felső sávban</strong> van a keresőmező (nyomja meg a <code>/</code> billentyűt), az élő frissítések kapcsolatjelzője, a <strong>nyelvlista</strong> és a Beállítások hivatkozás.</li>
+<li>Az alapértelmezett nyelvet és a világos vagy sötét témát a Beállítások oldalon adhatja meg; a nyelvet bárki bármikor átállíthatja a nyelvlistával.</li>
+</ul>
+<h2 id="projects">Projektek</h2>
+<ul>
+<li>A projekt önálló nyilvántartás saját fajtákkal, állapotokkal, ágakkal és kiegészítő mezőkkel. Projektet a bal oldali panel alján lévő <em>Projektek</em> listában válthat.</li>
+<li>Az <strong>Új projekt</strong> sablonból hoz létre projektet (alap, ügynök-munkafolyamat, szoftvercsapat). Projekt pillanatképből is létrehozható (lásd: <a href="#import-export">Importálás és exportálás</a>).</li>
+<li>Az Áttekintésen a <strong>Pillanatkép exportálása</strong> az egész projektet ZIP-fájlként tölti le. A <strong>Projekt törlése</strong> a projekt kulcsának begépelését kéri; előbb biztonsági pillanatkép készül, és a törlést megtagadja, amíg ügynöki munkamenet aktív.</li>
+</ul>
+<h2 id="items">Elemek, fajták és állapotok</h2>
+<ul>
+<li>Az elemnek azonosítója (például <code>FEAT-0001</code>), fajtája (funkció, hiba, feladat, probléma ... a projekt szerint), állapota, címe, <strong>Markdown</strong> formátumú tartalma, címkéi, kiegészítő mezői, hivatkozásai, kapcsolatai és tevékenységi naplója van.</li>
+<li>Elemet az <em>Új elem</em> gombbal (billentyű: <code>n</code>) hozhat létre. Az űrlap előnézetet mutat a Markdownról. Az elemet megnyitva szerkesztheti, megjegyzést fűzhet hozzá, és láthatja a munkameneteit.</li>
+<li>Az <strong>állapotok</strong> az ötlettől a kész elemig viszik az elemet (például Javasolt, Folyamatban, Blokkolva, Kiadásra kész, Kész). A kiadást igénylő állapotot, általában a <em>Kész</em>-et az elem <strong>kiadásával</strong> éri el: rögzítik az ágat és a verziót (például egy commitot). Az ügynökök ezt az API-n vagy az MCP-n (<code>ship_item</code>) keresztül teszik.</li>
+<li><strong>Idő:</strong> a <em>Becsült idő</em> és az <em>Eltöltött idő</em> órában van megadva, és az Áttekintésen összegződik.</li>
+<li>A <strong>kapcsolatok</strong> elemeket kötnek össze: <em>blokkolja</em> / <em>blokkolja őt</em>, és <em>kapcsolódik</em>.</li>
+<li>A törölt elem csak el van rejtve, és visszaállítható.</li>
+</ul>
+<h2 id="board">Kanban tábla</h2>
+<ul>
+<li>Minden oszlop egy állapot. <strong>Húzzon egy kártyát</strong> másik oszlopba az állapot módosításához. Üzenet erősíti meg a módosítást; ha elutasítják, a kártya visszakerül.</li>
+<li>A tábla újratöltés nélkül követi mások és az MI-ügynökök módosításait. A húzás alatt álló kártyát soha nem cseréli le.</li>
+<li>A tábla fölötti, választható <em>Aktív ügynöki munkamenetek</em> kisalkalmazást a Beállításokban kapcsolhatja be.</li>
+</ul>
+<h2 id="list-search">Lista, keresés és szűrők</h2>
+<ul>
+<li>A <strong>Lista</strong> táblázatban mutatja az elemeket. A szűrőkhöz nyomja meg az <code>f</code> billentyűt (állapot, fajta, címke, kiegészítő mezők). A szűrők projektenként menthetők.</li>
+<li>A <strong>Keresés</strong> szavakat keres a címekben és a tartalomban. A <code>/</code> billentyű a keresőmezőre ugrik.</li>
+<li>A listán több elemet kijelölve egy lépésben módosíthatja az állapotukat, címkéiket vagy ágaikat, illetve törölheti vagy visszaállíthatja őket.</li>
+</ul>
+<h2 id="overview">Áttekintés, idő és diagramok</h2>
+<ul>
+<li>Az Áttekintés állapotonkénti számlálókat, az összes becsült és eltöltött időt, állapotdiagramot, a becsült és eltöltött időt összehasonlító diagramot, a legutóbbi elemeket, és ha be van kapcsolva, az aktív ügynöki munkameneteket mutatja.</li>
+</ul>
+<h2 id="agents">MI-ügynökök, munkamenetek és élő frissítések</h2>
+<ul>
+<li>Az ügynök egy elemen <strong>munkamenetet</strong> indít céllal, haladási megjegyzéseket fűz hozzá, és összegzéssel lezárja. A munkamenetek az Áttekintésen, az elemen és a tábla kisalkalmazásában láthatók.</li>
+<li><strong>Élő frissítések:</strong> a megnyitott oldalak követik a máshol végzett módosításokat. A felső sávi jelző mutatja, hogy az oldal naprakész-e. A szerkesztés alatt álló űrlapot soha nem írja felül; helyette értesítés kínálja a módosítást. A működést a Beállításokban adhatja meg.</li>
+</ul>
+<h2 id="settings">Beállítások</h2>
+<ul>
+<li><strong>Megjelenés:</strong> színek a világos és a sötét témához, alapszínekre való visszaállítással.</li>
+<li><strong>Megjelenítés</strong> és <strong>Követési alapértékek:</strong> az alapértelmezett nyelv és téma, valamint az új elemek alapértelmezett becsült ideje.</li>
+<li><strong>Ügynöki munkamenetek kisalkalmazás</strong> és <strong>Élő frissítések:</strong> mi látszik, és hogyan követik az oldalak a módosításokat.</li>
+<li><strong>Navigáció:</strong> mely importeszközök (<em>GitHub-import</em>, <em>Importtörténet</em>, <em>Fájlimport</em>) jelenjenek meg a bal oldali panelen. Alapértelmezés szerint ki vannak kapcsolva; az oldalak továbbra is elérhetők a címükön.</li>
+<li><strong>GitHub-exportok:</strong> a tároló, az ág, a mappa és a tokent tartalmazó környezeti változó neve (lásd: <a href="#import-export">Importálás és exportálás</a>).</li>
+<li><strong>Projekt:</strong> a projekt neve és leírása.</li>
+<li><strong>Hozzáférési tokenek:</strong> tokenek létrehozása, átnevezése, hatókörük (<code>read</code>, <code>agent</code>, <code>admin</code>) módosítása, újragenerálása és törlése; a kiszolgáló konfigurációjának tokenjei is megjeleníthetők és újragenerálhatók. Token újragenerálása után frissítse az azt használó összes klienst.</li>
+<li><strong>Naplózás:</strong> a beállítások minden módosítása, titkos értékek nélkül.</li>
+</ul>
+<h2 id="import-export">Importálás és exportálás</h2>
+<ul>
+<li>A <strong>Fájlimport</strong> CSV, JSON és Markdown feladatlistákat olvas be. A <strong>GitHub-import</strong> egy GitHub-tároló hibáit importálja. Az <strong>Importtörténet</strong> a korábbi importokat sorolja fel. Ez a három menüpont akkor látszik a bal oldali panelen, ha a Beállításokban be van kapcsolva.</li>
+<li><strong>Pillanatképek:</strong> a <em>Pillanatkép exportálása</em> ZIP-fájlt ír. A <em>Pillanatkép importálása</em> pontos előnézet után projektet hoz létre pillanatképből, vagy frissít egyet; a mindkét helyen meglévő elemeknél kiválaszthatja, hogy a projekt változata marad, a pillanatképé lép életbe ha újabb, vagy mindig a pillanatképé. A projektből soha nem törlődik semmi.</li>
+<li><strong>GitHub-tároló:</strong> a <em>GitHub</em> oldal egy projektet egyszerű fájlokként exportál egy tárolóba, exportonként egy committal, és onnan vissza is importál. Előbb hozzon létre egy privát tárolót, és a tartalmához olvasási és írási joggal rendelkező tokent tegyen a Beállításokban megadott környezeti változóba (alapértelmezés: <code>GITHUB_PAT</code>). Az oldal munka közben minden lépést megmutat, és nem töltődik újra.</li>
+<li>Ugyanezek a funkciók a parancssorban is megvannak: <code>issuedeck export-audit-bundle</code>, <code>import-audit-bundle</code>, <code>github-test</code>, <code>github-list</code>, <code>github-export</code>, <code>github-import</code>.</li>
+</ul>
+<h2 id="shortcuts">Billentyűparancsok</h2>
+<p>A billentyűparancsok akkor működnek, ha a fókusz nem szövegmezőben van.</p>
+<table>
+<thead>
+<tr>
+<th>Billentyű</th>
+<th>Művelet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>A keresőre ugrik</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>Új elem az aktuális projektben</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>A lista szűrőinek megjelenítése vagy elrejtése</td>
+</tr>
+<tr>
+<td><code>j</code> / <code>k</code></td>
+<td>Következő / előző elem</td>
+</tr>
+<tr>
+<td><code>g</code>, majd <code>h</code></td>
+<td>Az áttekintésre ugrik</td>
+</tr>
+<tr>
+<td><code>g</code>, majd <code>l</code></td>
+<td>A listára ugrik</td>
+</tr>
+<tr>
+<td><code>g</code>, majd <code>k</code></td>
+<td>A Kanban táblára ugrik</td>
+</tr>
+<tr>
+<td><code>g</code>, majd <code>s</code></td>
+<td>A keresőoldalra ugrik</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcp">MI-ügynök csatlakoztatása</h2>
+<ul>
+<li>Az MI-ügynök a MyIssueDesk-kel az <strong>MCP-kiszolgálón</strong> keresztül dolgozik: <code>python -m issuedeck.mcp</code> az <code>ISSUEDECK_BASE_URL</code> (például <code>http://127.0.0.1:8766</code>) és az <code>ISSUEDECK_TOKEN</code> (<code>agent</code> hatókörű token) környezeti változókkal.</li>
+<li>Vegye fel az ügynök konfigurációjába (például <code>.mcp.json</code>) <code>issuedeck</code> nevű stdio-kiszolgálóként, indítsa újra az ügynököt, és ellenőrizze, hogy megjelennek-e az eszközök.</li>
+<li>Jó rutin: keresse meg a projektet, hozza létre vagy keresse meg az elemet, indítson munkamenetet, rögzítse a haladást és az eltöltött időt, és adja ki az elemet, ha kész.</li>
+<li>A kiszolgálónak futnia kell. A részleteket a <code>docs</code> mappa tartalmazza (MCP Client Setup, Agent Work Sessions).</li>
+</ul>
+<h2 id="troubleshooting">Hibaelhárítás</h2>
+<ul>
+<li><strong>Nem tud bejelentkezni:</strong> használjon <code>admin</code> hatókörű tokent; a tokent egy működő munkamenet Beállítások oldalán vagy a kiszolgáló konfigurációjában ellenőrizheti.</li>
+<li><strong>Egy oldal nem frissül magától:</strong> nézze meg a kapcsolatjelzőt; az élő frissítések a Beállításokban kikapcsolhatók.</li>
+<li><strong>A GitHub-export sikertelen:</strong> az üzenet megnevezi az okot (nincs beállítva a tokenváltozó, a tokennek nincs írási joga, nyilvános tároló, közben megváltozott az ág, korlát). Használja a Beállítások <em>Kapcsolat tesztelése</em> gombját.</li>
+<li><strong>További dokumentáció:</strong> a szoftver <code>docs</code> mappája, valamint a <code>README</code>.</li>
+</ul>
+</div>

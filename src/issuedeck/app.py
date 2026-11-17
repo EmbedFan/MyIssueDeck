@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
@@ -26,6 +26,7 @@ from issuedeck.core.logging import configure_logging
 from issuedeck.core.runtime_settings import RuntimeSettings
 from issuedeck.core.webhooks import WebhookDispatcher
 from issuedeck.features.dashboard.github_routes import router as github_router
+from issuedeck.features.dashboard.help_routes import router as help_router
 from issuedeck.features.dashboard.live_routes import router as live_router
 from issuedeck.features.dashboard.routes import router as dashboard_router
 from issuedeck.features.dashboard.settings_routes import (
@@ -168,6 +169,7 @@ def create_app(server_toml: Path | str) -> FastAPI:
     app.include_router(settings_router)
     app.include_router(snapshot_router)
     app.include_router(github_router)
+    app.include_router(help_router)
     app.include_router(live_router)
     app.include_router(dashboard_router)
 
@@ -177,6 +179,14 @@ def create_app(server_toml: Path | str) -> FastAPI:
         StaticFiles(directory=str(static_dir)),
         name="dashboard-static",
     )
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        # browsers ask for this address by default, even when a page declares its icons
+        return FileResponse(
+            static_dir / "img" / "favicon.ico", media_type="image/x-icon",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
 
     @app.get("/", include_in_schema=False)
     async def root():

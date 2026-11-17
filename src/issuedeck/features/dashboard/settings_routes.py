@@ -303,6 +303,33 @@ async def reset_live(request: Request):
     return _redirect()
 
 
+# --- optional menu entries (IS-0007) ---------------------------------------------
+
+@router.post("/navigation")
+async def save_navigation(
+    request: Request,
+    import_github: str | None = Form(None),
+    import_history: str | None = Form(None),
+    import_files: str | None = Form(None),
+):
+    group = {
+        "import_github": _on(import_github),
+        "import_history": _on(import_history),
+        "import_files": _on(import_files),
+    }
+    try:
+        _runtime(request).update_settings({"navigation": group}, actor=ACTOR)
+    except InvalidSetting as exc:
+        return await _render_settings(request, error=exc.message, status_code=422)
+    return _redirect()
+
+
+@router.post("/navigation/reset")
+async def reset_navigation(request: Request):
+    _runtime(request).reset_group("navigation", actor=ACTOR)
+    return _redirect()
+
+
 # --- GitHub exports (FEA-0008) -------------------------------------------------
 
 @router.post("/github")

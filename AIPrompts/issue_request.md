@@ -1,8 +1,65 @@
 # Requested issues
 
-## IS-0007:
-	
-	
+## IS-0007: Language Combo Box, Optional Import Menu Entries, Application Icon and Built-in Help
+
+**Status:** Implemented, not yet committed (tracked as IS-0007 in MyIssueDesk). All four parts are done; see `docs/dashboard-help-and-icons.md`. Decisions taken at planning: the combo box lists each language by its own name; hiding an import entry removes only the menu entry (the *GitHub* page of FEA-0008 is not part of that setting); the icon sizes are 32, 48, 180, 192 and 512 pixels plus a multi-size `favicon.ico`, generated from the master picture, which stays in the sources; the help sources are Markdown, with the same section anchors in every language, and the Hungarian and Chinese texts still need a review by a native speaker. The check in a real browser (headless Edge) also showed that the left panel was as high as the whole page, so the Help button would have been at the end of the page; the panel now keeps the window height.
+
+**Related items:** FEA-0004 (Settings page: the place of the new settings and of the audit log); FEA-0005 (Hungarian localisation: the supported languages, and the translation of the help); IS-0003 (navigation and presentation of the Settings page); FEA-0007 and FEA-0008 (the import and export pages, which the help describes).
+
+**Summary:** Four improvements of the dashboard shell of this fork: a language combo box instead of the language buttons; the three import entries of the left panel made optional; the supplied picture used as the icon of the web pages; and a Help button at the bottom of the left panel that opens a help in every supported language.
+
+### Part 1: Language selection
+
+**Current state:** The languages are offered as a group of buttons in the top bar. On a narrow window the buttons are crowded or end up under each other, and every new language would make the group wider.
+
+**Requirements:**
+- The language is chosen with a **combo box** (a drop-down list). It shows the current language and lists the supported languages, each by its own name (English, Magyar, 中文), whatever the current language is.
+- Choosing a language applies it at once and keeps the user on the same page, with the same address and query, exactly as the buttons do now. The choice is remembered as it is today.
+- The combo box is operated with the keyboard, has an accessible name, and takes little room on a narrow window. Adding a language to the software adds it to the list without any change of the layout.
+- Without JavaScript the combo box still works (it comes with a small button that applies the choice).
+
+### Part 2: Optional import entries in the left panel
+
+**Current state:** The left panel always shows *Import GitHub*, *Import History* and *Import Files*.
+
+**Requirements:**
+- Each of the three entries can be switched on or off in the **Settings page**, in a section *Navigation*. The setting takes effect without restarting the server, can be reset to its default, and every change is recorded in the settings audit log.
+- The default of every entry is **off** in this fork. An installation that wants the entries switches them on.
+- Switching an entry off only removes the menu entry. The page itself stays reachable by its address and from the links on the related pages, so nothing becomes unavailable, and the entry of the page that is open is still highlighted correctly.
+- The title of a page that is open while its entry is off is still shown correctly in the top bar.
+
+| Setting | Allowed values | Default |
+|---|---|---|
+| Show *Import GitHub* in the left panel | on / off | off |
+| Show *Import History* in the left panel | on / off | off |
+| Show *Import Files* in the left panel | on / off | off |
+
+### Part 3: Application icon
+
+**Current state:** The picture `src\resources\favicon_my_issuedeck.png` has been supplied (1254 × 1254 pixels, about 950 KB). It lies outside the package folder, so it is neither served by the dashboard nor included in the installable package, and no page declares an icon at all, so browsers ask for `/favicon.ico` and get nothing.
+
+**Requirements:**
+- The picture is used as the **icon of every page** of the dashboard, including the sign-in page, in light and dark browser themes.
+- The icon is part of the installable package and is served by the dashboard from a fixed address. The server also answers `/favicon.ico`, because browsers ask for it by default.
+- A browser shall not have to download the 950 KB original on every page. Smaller versions are made from it (for the browser tab, for a bookmark and for a phone's home screen: for example 32, 48, 180, 192 and 512 pixels), and the pages declare them. The original stays in the sources as the master.
+- The icon is cached by the browser, and a changed icon is picked up without clearing the cache by hand.
+- The page title, the icon and the other pages (for example the printed or exported pages) stay consistent.
+
+### Part 4: Built-in help
+
+**Requirements:**
+- A **Help button** is placed at the bottom of the left panel. It is always visible, also when the list of entries is long or the window is low, uses the same style and active-state highlighting as the other entries, and carries an icon and a label.
+- The button opens a **help in HTML** inside the dashboard, in the language the user has chosen. A help exists for **every supported language** (English, Hungarian and Simplified Chinese). When a part is missing in a language, the English text is shown, and the missing part is marked.
+- The help covers, at least: signing in; projects and how to create, export and delete them; items, kinds and statuses; the Kanban board with drag and drop; the list, search and filters; the time fields and the overview charts; agent work sessions and live updates; the Settings page, colours and tokens; the import and export of files, GitHub issues, snapshots and GitHub repositories; the keyboard shortcuts; and how an AI agent is connected through MCP.
+- The help has a table of contents, anchors that can be linked to, and a search or an index; it follows the light and dark theme, can be printed, and shows the version of the software.
+- The help pages are **generated** from one source text per language by a script in the repository (so the languages stay in step and a page is regenerated when its source changes), and the generated pages are part of the installable package. A test fails when a supported language has no help, or when a page of one language has no counterpart in another.
+
+**Points to settle when the issue is planned:**
+- Whether the language list in the combo box shows names only or also a flag-free short code (for example *EN*).
+- Whether hiding the import entries should also hide the *GitHub* page of FEA-0008, or whether that page gets a setting of its own.
+- The exact set of icon sizes, and whether the master picture should be reduced in the sources.
+- The format of the help sources (Markdown is proposed) and who reviews the Hungarian and Chinese texts, which would otherwise be drafts.
+- Whether the help opens in the dashboard layout or in a separate tab, and whether it is also reachable from the sign-in page.
 ---
 
 ## IS-0006: Drag and Drop on the Kanban Board Stops Working After the First Move

@@ -44,6 +44,7 @@ from issuedeck.features.dashboard.helpers import (
 )
 from issuedeck.features.dashboard.i18n import (
     DASHBOARD_LANG_COOKIE,
+    LANGUAGE_NAMES,
     SUPPORTED_LANGS,
     language_from_request,
     make_translator,
@@ -277,6 +278,10 @@ def _ctx(request: Request, project_key: str | None = None, **extra):
         "project_key": project_key,
         "lang": lang,
         "supported_langs": sorted(SUPPORTED_LANGS),
+        "language_options": [
+            (code, LANGUAGE_NAMES.get(code, code)) for code in sorted(SUPPORTED_LANGS)
+        ],
+        "nav_settings": appearance.get("navigation", DEFAULT_SETTINGS["navigation"]),
         "t": t,
         "kind_color": kind_color,
         "status_color": status_color,

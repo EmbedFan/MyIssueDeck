@@ -10,6 +10,9 @@ from issuedeck.features.dashboard.i18n_hu import MESSAGES_HU
 
 DASHBOARD_LANG_COOKIE = "issuedeck_lang"
 SUPPORTED_LANGS = {"en", "zh-CN", "hu"}
+
+#: Each language is listed by its own name, whatever the interface language is.
+LANGUAGE_NAMES = {"en": "English", "hu": "Magyar", "zh-CN": "中文"}
 DEFAULT_LANG = "en"
 
 _MESSAGES: dict[str, dict[str, str]] = {
@@ -136,6 +139,20 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "language.en": "EN",
         "language.hu": "Magyar",
         "language.label": "Language",
+        "settings.navigation.title": "Navigation",
+        "settings.navigation.help": (
+            "Choose which import tools appear in the left panel. "
+            "The pages stay reachable by their address."
+        ),
+        "settings.navigation.show": "Show in the left panel:",
+        "language.apply": "Apply",
+        "nav.help": "Help",
+        "help.title": "Help",
+        "help.print": "Print",
+        "help.version": "Version {version}",
+        "help.fallback": (
+            "This help is not available in your language yet; the English text is shown."
+        ),
         "language.zh": "中文",
         "data_import.batch_tag": "Batch tag",
         "data_import.checked_tasks": "Checked",
@@ -875,6 +892,12 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "language.en": "EN",
         "language.hu": "Magyar",
         "language.label": "语言",
+        "language.apply": "应用",
+        "nav.help": "帮助",
+        "help.title": "帮助",
+        "help.print": "打印",
+        "help.version": "版本 {version}",
+        "help.fallback": "本帮助暂无您所用语言的版本，显示的是英文内容。",
         "language.zh": "中文",
         "data_import.batch_tag": "批次标签",
         "data_import.checked_tasks": "已勾选",

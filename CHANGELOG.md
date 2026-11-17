@@ -9,6 +9,17 @@ versioning once public releases begin.
 
 ### Added
 
+- Added a built-in **help** (IS-0007): a Help button at the bottom of the left panel opens an HTML
+  help in the chosen language (English, Hungarian, Simplified Chinese), generated from one
+  Markdown source per language by `scripts/build_help.py` with a table of contents and anchors
+  that are the same in every language; tests fail when a language lacks a page or a section.
+- Added the **application icon** (IS-0007): the supplied picture is used as the icon of every
+  page; `scripts/make_icons.py` makes small versions (32, 48, 180, 192, 512 px and a multi-size
+  `favicon.ico`) inside the package, pages declare them with a hash in the address, a web
+  manifest is served, and `/favicon.ico` is answered without signing in.
+- Added a **Navigation** section to the Settings page (IS-0007): *Import GitHub*, *Import
+  History* and *Import Files* in the left panel can be switched on or off; they are off by
+  default in this fork.
 - Added export of a project to a GitHub repository and import from it (FEA-0008): files of
   the snapshot are stored unpacked in `<folder>/<project-key>/`, one export is one commit
   created through the GitHub REST API (no local clone), nothing is committed when nothing
@@ -32,6 +43,10 @@ versioning once public releases begin.
 
 ### Changed
 
+- The language is chosen with a combo box that lists each language by its own name, instead of a
+  group of buttons (IS-0007).
+- The left panel is as high as the window and stays in place while the page scrolls, so the
+  project list and the Help button are always visible (IS-0007).
 - The distribution is now named `myissuedeck`, so the wheel is
   `myissuedeck-0.9.0-py3-none-any.whl`. The import package and the `issuedeck`
   command keep their names (TASK-0002).

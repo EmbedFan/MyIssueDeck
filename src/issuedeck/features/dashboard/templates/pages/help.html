@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t("help.title") }} — IssueDeck{% endblock %}
+
+{% block content %}
+<style>
+  @media print {
+    aside, header, [data-help-print] { display: none !important; }
+  }
+</style>
+<div class="max-w-4xl space-y-4" data-help-page lang="{{ lang }}">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100">{{ t("help.title") }}</h1>
+    <button type="button" onclick="window.print()" data-help-print
+            class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("help.print") }}</button>
+  </div>
+  {% if help_fallback %}
+    <div role="status" class="rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-sm text-amber-800 dark:text-amber-200" data-help-fallback>{{ t("help.fallback") }}</div>
+  {% endif %}
+  <article class="bg-white dark:bg-ledger-darkPanel rounded-md border border-ledger-line dark:border-ledger-darkLine p-5">
+    {{ help_html | safe }}
+  </article>
+  <p class="text-xs text-gray-500 dark:text-gray-400" data-help-version>{{ t("help.version", version=version) }}</p>
+</div>
+{% endblock %}

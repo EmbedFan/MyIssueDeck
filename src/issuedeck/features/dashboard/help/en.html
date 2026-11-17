@@ -1,0 +1,123 @@
+<nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="Contents" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Contents</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">Getting started</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">Projects</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">Items, kinds and statuses</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">Kanban board</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">List, search and filters</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">Overview, time and charts</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">AI agents, work sessions and live updates</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">Settings</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">Importing and exporting</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">Keyboard shortcuts</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">Connecting an AI agent</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">Troubleshooting</a></li></ul></nav>
+<div class="md-content help-body">
+<p>MyIssueDesk is a local issue tracker for people and AI coding agents. This page explains the dashboard. Use the contents to jump to a topic; the search of your browser (Ctrl+F) finds words on this page.</p>
+<h2 id="start">Getting started</h2>
+<ul>
+<li><strong>Sign in</strong> with an access token on the login page. Tokens are created on the Settings page (see <a href="#settings">Settings</a>).</li>
+<li>The <strong>left panel</strong> has the views of the current project (Overview, Kanban, List, Search), the <em>New item</em> button, Settings, the list of projects and, at the very bottom, this Help.</li>
+<li>The <strong>top bar</strong> has the search box (press <code>/</code>), a connection indicator for live updates, the <strong>language</strong> list and the Settings link.</li>
+<li>The default language and the light or dark theme are set on the Settings page; each person can change the language at any time with the language list.</li>
+</ul>
+<h2 id="projects">Projects</h2>
+<ul>
+<li>A project is a separate tracker with its own kinds, statuses, branches and extra fields. Switch projects in the <em>Projects</em> list at the bottom of the left panel.</li>
+<li><strong>New project</strong> creates a project from a template (basic, agent workflow, software team). A project can also be created from a snapshot (see <a href="#import-export">Importing and exporting</a>).</li>
+<li><strong>Export snapshot</strong> on the Overview downloads the whole project as a ZIP. <strong>Delete project</strong> asks you to type the project key; a backup snapshot is saved first, and deleting is refused while an agent work session is active.</li>
+</ul>
+<h2 id="items">Items, kinds and statuses</h2>
+<ul>
+<li>An item has an identifier such as <code>FEAT-0001</code>, a kind (feature, bug, task, issue, ... as the project defines them), a status, a title, content written in <strong>Markdown</strong>, tags, extra fields, links, relationships and an activity timeline.</li>
+<li>Create an item with <em>New item</em> (shortcut <code>n</code>). The form shows a preview of the Markdown. Open an item to edit it, comment on it, and see its work sessions.</li>
+<li><strong>Statuses</strong> move an item from idea to finished (for example Proposed, In Progress, Blocked, Ready to Ship, Done). A status that requires shipping, usually <em>Done</em>, is reached by <strong>shipping</strong> the item: a branch and a version (for example a commit) are recorded. Agents do this through the API or MCP (<code>ship_item</code>).</li>
+<li><strong>Time:</strong> <em>Estimated time</em> and <em>Time spent</em> are in hours and are summed on the Overview.</li>
+<li><strong>Relationships</strong> link items: <em>blocks</em> / <em>blocked by</em>, and <em>related to</em>.</li>
+<li>A deleted item is only hidden and can be restored.</li>
+</ul>
+<h2 id="board">Kanban board</h2>
+<ul>
+<li>Each column is a status. <strong>Drag a card</strong> to another column to change its status. A message confirms the change; if it is refused, the card goes back.</li>
+<li>The board follows changes made by other people and by AI agents without a reload. A card you are dragging is never replaced.</li>
+<li>The optional <em>Active agent sessions</em> widget above the board is switched on in Settings.</li>
+</ul>
+<h2 id="list-search">List, search and filters</h2>
+<ul>
+<li>The <strong>List</strong> shows items in a table. Press <code>f</code> for the filters (status, kind, tag, extra fields). Filters can be saved per project.</li>
+<li><strong>Search</strong> finds words in titles and contents. Press <code>/</code> to jump to the search box.</li>
+<li>Select several items in the list to change their status, tags or branches, or to delete or restore them in one step.</li>
+</ul>
+<h2 id="overview">Overview, time and charts</h2>
+<ul>
+<li>The Overview shows counters per status, the total estimated and spent time, a status chart, a chart that compares estimated and spent time, recent items and, if enabled, the active agent sessions.</li>
+</ul>
+<h2 id="agents">AI agents, work sessions and live updates</h2>
+<ul>
+<li>An agent starts a <strong>work session</strong> on an item with a goal, adds progress notes and finishes it with a summary. Sessions are shown on the Overview, on the item and in the board widget.</li>
+<li><strong>Live updates:</strong> open pages follow changes made elsewhere. The indicator in the top bar shows whether the page is up to date. A form you are editing is never overwritten; a notice offers the change instead. The behaviour is set in Settings.</li>
+</ul>
+<h2 id="settings">Settings</h2>
+<ul>
+<li><strong>Appearance:</strong> colours for the light and the dark theme, with a reset to the default colours.</li>
+<li><strong>Display</strong> and <strong>Tracking defaults:</strong> the default language and theme, and the default estimated time of new items.</li>
+<li><strong>Agent sessions widget</strong> and <strong>Live updates:</strong> what is shown and how pages follow changes.</li>
+<li><strong>Navigation:</strong> which import tools (<em>Import GitHub</em>, <em>Import History</em>, <em>Import Files</em>) appear in the left panel. They are off by default; the pages stay reachable by their address.</li>
+<li><strong>GitHub exports:</strong> the repository, branch, folder and the name of the environment variable that holds the token (see <a href="#import-export">Importing and exporting</a>).</li>
+<li><strong>Project:</strong> name and description of a project.</li>
+<li><strong>Access tokens:</strong> create, rename, change the scopes (<code>read</code>, <code>agent</code>, <code>admin</code>), regenerate and delete tokens; the tokens of the server configuration can be shown and regenerated too. After a token is regenerated, update every client that uses it.</li>
+<li><strong>Audit log:</strong> every change of the settings, without any secret value.</li>
+</ul>
+<h2 id="import-export">Importing and exporting</h2>
+<ul>
+<li><strong>Import Files</strong> reads CSV, JSON and Markdown task lists. <strong>Import GitHub</strong> imports the issues of a GitHub repository. <strong>Import History</strong> lists earlier imports. These three entries are shown in the left panel when they are switched on in Settings.</li>
+<li><strong>Snapshots:</strong> <em>Export snapshot</em> writes a ZIP. <em>Import snapshot</em> creates a project from a snapshot or updates one, after an exact preview; for items present in both you choose to keep the project's version, take the snapshot's when it is newer, or always take the snapshot's. Nothing is ever deleted from the project.</li>
+<li><strong>GitHub repository:</strong> the <em>GitHub</em> page exports a project to a repository as plain files, one commit per export, and imports a project from it again. Create a private repository first and put a token with read and write access to its contents into the environment variable named in Settings (default <code>GITHUB_PAT</code>). The page shows each step while it works and does not reload.</li>
+<li>The same functions exist on the command line: <code>issuedeck export-audit-bundle</code>, <code>import-audit-bundle</code>, <code>github-test</code>, <code>github-list</code>, <code>github-export</code>, <code>github-import</code>.</li>
+</ul>
+<h2 id="shortcuts">Keyboard shortcuts</h2>
+<p>Shortcuts work when the focus is not in a text field.</p>
+<table>
+<thead>
+<tr>
+<th>Shortcut</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>Focus the search</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>New item in the current project</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>Show or hide the filters on the list</td>
+</tr>
+<tr>
+<td><code>j</code> / <code>k</code></td>
+<td>Next / previous item</td>
+</tr>
+<tr>
+<td><code>g</code> then <code>h</code></td>
+<td>Go to the overview</td>
+</tr>
+<tr>
+<td><code>g</code> then <code>l</code></td>
+<td>Go to the list</td>
+</tr>
+<tr>
+<td><code>g</code> then <code>k</code></td>
+<td>Go to the Kanban board</td>
+</tr>
+<tr>
+<td><code>g</code> then <code>s</code></td>
+<td>Go to the search page</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcp">Connecting an AI agent</h2>
+<ul>
+<li>An AI agent works with MyIssueDesk through the <strong>MCP server</strong>: <code>python -m issuedeck.mcp</code> with the environment variables <code>ISSUEDECK_BASE_URL</code> (for example <code>http://127.0.0.1:8766</code>) and <code>ISSUEDECK_TOKEN</code> (a token with the <code>agent</code> scope).</li>
+<li>Register it in your agent's configuration (for example <code>.mcp.json</code>) as a stdio server named <code>issuedeck</code>, restart the agent, and check that the tools appear.</li>
+<li>A good routine: look up the project, create or find the item, start a work session, record progress and time spent, and ship the item when it is done.</li>
+<li>The server must be running. The <code>docs</code> folder (MCP Client Setup, Agent Work Sessions) has the details.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>Cannot sign in:</strong> use a token with the <code>admin</code> scope; check the token on the Settings page of a working session or in the server configuration.</li>
+<li><strong>A page does not update by itself:</strong> look at the connection indicator; live updates can be switched off in Settings.</li>
+<li><strong>A GitHub export fails:</strong> the message names the cause (token variable not set, token without write permission, public repository, branch changed meanwhile, rate limit). Use <em>Test connection</em> in Settings.</li>
+<li><strong>More documentation:</strong> the <code>docs</code> folder of the software, and the version and project notes in the <code>README</code>.</li>
+</ul>
+</div>

@@ -130,6 +130,18 @@ MESSAGES_HU: dict[str, str] = {
     "language.en": "EN",
     "language.hu": "Magyar",
     "language.label": "Nyelv",
+    "settings.navigation.title": "Navigáció",
+    "settings.navigation.help": (
+        "Válassza ki, mely importáló eszközök jelenjenek meg a bal oldali panelen. "
+        "Az oldalak továbbra is elérhetők a címükön."
+    ),
+    "settings.navigation.show": "Megjelenítés a bal oldali panelen:",
+    "language.apply": "Alkalmaz",
+    "nav.help": "Súgó",
+    "help.title": "Súgó",
+    "help.print": "Nyomtatás",
+    "help.version": "Verzió: {version}",
+    "help.fallback": "Ez a súgó még nem érhető el az Ön nyelvén; az angol szöveg látható.",
     "language.zh": "中文",
     "data_import.batch_tag": "Kötegcímke",
     "data_import.checked_tasks": "Kipipálva",

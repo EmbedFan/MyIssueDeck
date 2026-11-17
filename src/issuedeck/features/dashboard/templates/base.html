@@ -19,6 +19,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}IssueDeck{% endblock %}</title>
+  {% include "components/icons.html" %}
 
   <link rel="stylesheet" href="/dashboard/static/css/dashboard.css">
 
@@ -298,7 +299,8 @@
 
     <!-- Sidebar -->
     <aside :class="sidebarOpen ? 'dt-sidebar-open' : 'dt-sidebar-closed'"
-           class="fixed inset-y-0 left-0 z-40 w-64 dt-sidebar-closed sidebar-transition lg:static lg:z-auto">
+           class="fixed inset-y-0 left-0 z-40 w-64 dt-sidebar-closed sidebar-transition
+                  lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:self-start">
       {% include "components/sidebar.html" %}
     </aside>
 

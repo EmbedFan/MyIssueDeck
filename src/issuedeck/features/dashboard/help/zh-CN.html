@@ -1,0 +1,123 @@
+<nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="目录" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">目录</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">开始使用</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">项目</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">事项、类型与状态</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">看板</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">列表、搜索与筛选</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">总览、时间与图表</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">AI 代理、工作会话与实时更新</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">设置</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">导入与导出</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">键盘快捷键</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">连接 AI 代理</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">故障排除</a></li></ul></nav>
+<div class="md-content help-body">
+<p>MyIssueDesk 是一个供人和 AI 编程代理使用的本地事项跟踪工具。本页介绍控制台的使用。可通过目录跳转到某个主题；浏览器的搜索（Ctrl+F）可以在本页中查找文字。</p>
+<h2 id="start">开始使用</h2>
+<ul>
+<li>在登录页面使用访问令牌<strong>登录</strong>。令牌在“设置”页面创建（见<a href="#settings">设置</a>）。</li>
+<li><strong>左侧面板</strong>包含当前项目的视图（总览、看板、列表、搜索）、“新建事项”按钮、设置、项目列表，最底部是本帮助。</li>
+<li><strong>顶部栏</strong>有搜索框（按 <code>/</code>）、实时更新的连接指示、<strong>语言</strong>列表和设置链接。</li>
+<li>默认语言以及浅色或深色主题在“设置”页面中设定；每个人都可以随时用语言列表切换语言。</li>
+</ul>
+<h2 id="projects">项目</h2>
+<ul>
+<li>项目是一个独立的跟踪空间，有自己的类型、状态、分支和附加字段。可在左侧面板底部的“项目”列表中切换项目。</li>
+<li><strong>新建项目</strong>会根据模板创建项目（基础、代理工作流、软件团队）。也可以从快照创建项目（见<a href="#import-export">导入与导出</a>）。</li>
+<li>总览页上的<strong>导出快照</strong>会把整个项目下载为 ZIP 文件。<strong>删除项目</strong>需要输入项目标识；删除前会先保存一份备份快照，并且在有代理工作会话处于活动状态时拒绝删除。</li>
+</ul>
+<h2 id="items">事项、类型与状态</h2>
+<ul>
+<li>事项有标识（例如 <code>FEAT-0001</code>）、类型（功能、缺陷、任务、问题……由项目定义）、状态、标题、使用 <strong>Markdown</strong> 编写的内容、标签、附加字段、链接、关联和活动记录。</li>
+<li>使用“新建事项”（快捷键 <code>n</code>）创建事项。表单会显示 Markdown 预览。打开事项即可编辑、评论，并查看它的工作会话。</li>
+<li><strong>状态</strong>把事项从想法推进到完成（例如已提议、进行中、已阻塞、待发布、完成）。需要发布的状态（通常是“完成”）要通过<strong>发布</strong>事项来达到：记录分支和版本（例如一次提交）。代理通过 API 或 MCP（<code>ship_item</code>）完成这一步。</li>
+<li><strong>时间</strong>：“预估时间”和“已用时间”以小时为单位，并在总览中汇总。</li>
+<li><strong>关联</strong>把事项联系起来：<em>阻塞</em> / <em>被阻塞</em>，以及<em>相关</em>。</li>
+<li>删除的事项只是被隐藏，可以恢复。</li>
+</ul>
+<h2 id="board">看板</h2>
+<ul>
+<li>每一列是一个状态。<strong>拖动卡片</strong>到另一列即可更改状态。会有消息确认更改；如果被拒绝，卡片会回到原处。</li>
+<li>看板无需刷新即可跟随他人和 AI 代理所做的更改。正在拖动的卡片绝不会被替换。</li>
+<li>看板上方可选的“活动代理会话”小组件可在设置中开启。</li>
+</ul>
+<h2 id="list-search">列表、搜索与筛选</h2>
+<ul>
+<li><strong>列表</strong>以表格显示事项。按 <code>f</code> 打开筛选（状态、类型、标签、附加字段）。筛选可按项目保存。</li>
+<li><strong>搜索</strong>在标题和内容中查找文字。按 <code>/</code> 跳到搜索框。</li>
+<li>在列表中选择多个事项，可一次性更改它们的状态、标签或分支，或者删除、恢复它们。</li>
+</ul>
+<h2 id="overview">总览、时间与图表</h2>
+<ul>
+<li>总览显示各状态的计数、预估和已用时间的总计、状态图表、比较预估与已用时间的图表、最近的事项，以及（如已开启）活动的代理会话。</li>
+</ul>
+<h2 id="agents">AI 代理、工作会话与实时更新</h2>
+<ul>
+<li>代理在事项上带着目标启动<strong>工作会话</strong>，添加进展记录，并附总结结束会话。会话显示在总览、事项页和看板小组件中。</li>
+<li><strong>实时更新</strong>：打开的页面会跟随其他地方所做的更改。顶部栏的指示显示页面是否是最新的。正在编辑的表单绝不会被覆盖，而是通过通知提供更改。行为可在设置中调整。</li>
+</ul>
+<h2 id="settings">设置</h2>
+<ul>
+<li><strong>外观</strong>：浅色和深色主题的颜色，可恢复为默认颜色。</li>
+<li><strong>显示</strong>和<strong>跟踪默认值</strong>：默认语言和主题，以及新事项的默认预估时间。</li>
+<li><strong>代理会话小组件</strong>和<strong>实时更新</strong>：显示什么内容，以及页面如何跟随更改。</li>
+<li><strong>导航</strong>：哪些导入工具（<em>导入 GitHub</em>、<em>导入历史</em>、<em>导入文件</em>）显示在左侧面板中。默认关闭；这些页面仍可通过地址访问。</li>
+<li><strong>GitHub 导出</strong>：仓库、分支、文件夹，以及保存令牌的环境变量名称（见<a href="#import-export">导入与导出</a>）。</li>
+<li><strong>项目</strong>：项目的名称和描述。</li>
+<li><strong>访问令牌</strong>：创建、重命名、更改权限范围（<code>read</code>、<code>agent</code>、<code>admin</code>）、重新生成和删除令牌；服务器配置中的令牌也可以显示和重新生成。令牌重新生成后，请更新所有使用它的客户端。</li>
+<li><strong>审计日志</strong>：设置的每一次更改，不含任何机密值。</li>
+</ul>
+<h2 id="import-export">导入与导出</h2>
+<ul>
+<li><strong>导入文件</strong>读取 CSV、JSON 和 Markdown 任务列表。<strong>导入 GitHub</strong>导入 GitHub 仓库的问题。<strong>导入历史</strong>列出以前的导入。在设置中开启后，这三个入口才会显示在左侧面板中。</li>
+<li><strong>快照</strong>：“导出快照”写出一个 ZIP 文件。“导入快照”在精确预览之后，从快照创建项目或更新项目；对两边都有的事项，可以选择保留项目中的版本、在快照较新时采用快照的版本，或始终采用快照的版本。项目中的内容绝不会被删除。</li>
+<li><strong>GitHub 仓库</strong>：“GitHub”页面把项目导出为仓库中的普通文件，每次导出一个提交，也可以从仓库再导入。请先创建私有仓库，并把对其内容有读写权限的令牌放入设置中指定的环境变量（默认 <code>GITHUB_PAT</code>）。页面在工作时会显示每一步，并且不会刷新。</li>
+<li>命令行中也有相同的功能：<code>issuedeck export-audit-bundle</code>、<code>import-audit-bundle</code>、<code>github-test</code>、<code>github-list</code>、<code>github-export</code>、<code>github-import</code>。</li>
+</ul>
+<h2 id="shortcuts">键盘快捷键</h2>
+<p>当焦点不在文本框中时，快捷键才有效。</p>
+<table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>聚焦搜索</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>在当前项目中新建事项</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>显示或隐藏列表筛选</td>
+</tr>
+<tr>
+<td><code>j</code> / <code>k</code></td>
+<td>下一个 / 上一个事项</td>
+</tr>
+<tr>
+<td><code>g</code> 然后 <code>h</code></td>
+<td>前往总览</td>
+</tr>
+<tr>
+<td><code>g</code> 然后 <code>l</code></td>
+<td>前往列表</td>
+</tr>
+<tr>
+<td><code>g</code> 然后 <code>k</code></td>
+<td>前往看板</td>
+</tr>
+<tr>
+<td><code>g</code> 然后 <code>s</code></td>
+<td>前往搜索页</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcp">连接 AI 代理</h2>
+<ul>
+<li>AI 代理通过 <strong>MCP 服务器</strong>使用 MyIssueDesk：运行 <code>python -m issuedeck.mcp</code>，并设置环境变量 <code>ISSUEDECK_BASE_URL</code>（例如 <code>http://127.0.0.1:8766</code>）和 <code>ISSUEDECK_TOKEN</code>（具有 <code>agent</code> 权限范围的令牌）。</li>
+<li>在代理的配置（例如 <code>.mcp.json</code>）中把它注册为名为 <code>issuedeck</code> 的 stdio 服务器，重启代理，并检查工具是否出现。</li>
+<li>推荐流程：查看项目，创建或查找事项，启动工作会话，记录进展和已用时间，完成后发布事项。</li>
+<li>服务器必须处于运行状态。详细信息见 <code>docs</code> 文件夹（MCP Client Setup、Agent Work Sessions）。</li>
+</ul>
+<h2 id="troubleshooting">故障排除</h2>
+<ul>
+<li><strong>无法登录</strong>：请使用具有 <code>admin</code> 权限范围的令牌；可在已登录会话的设置页面或服务器配置中核对令牌。</li>
+<li><strong>页面不会自动更新</strong>：请查看连接指示；实时更新可在设置中关闭。</li>
+<li><strong>GitHub 导出失败</strong>：消息会指出原因（未设置令牌变量、令牌没有写权限、公开仓库、分支在此期间发生变化、速率限制）。请使用设置中的“测试连接”。</li>
+<li><strong>更多文档</strong>：软件的 <code>docs</code> 文件夹，以及 <code>README</code>。</li>
+</ul>
+</div>

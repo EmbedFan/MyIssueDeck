@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -15,8 +16,17 @@ from issuedeck.features.dashboard.i18n_hu import STATUS_LABELS_HU
 from issuedeck.features.items.models import Item
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
+_ICON = Path(__file__).parent / "static" / "img" / "favicon.ico"
 
 _env: Environment | None = None
+
+
+def icon_version() -> str:
+    """A short hash of the icon, put into the icon addresses (IS-0007)."""
+    try:
+        return hashlib.sha1(_ICON.read_bytes()).hexdigest()[:8]  # noqa: S324 - not security
+    except OSError:
+        return "0"
 
 
 def get_jinja_env() -> Environment:
@@ -29,6 +39,7 @@ def get_jinja_env() -> Environment:
         )
         _env.globals["kind_colors"] = KIND_COLORS
         _env.globals["status_colors"] = STATUS_COLORS
+        _env.globals["icon_version"] = icon_version()
     return _env
 
 

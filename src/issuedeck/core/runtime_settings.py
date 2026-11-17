@@ -71,6 +71,12 @@ DEFAULT_SETTINGS: dict[str, Any] = {
         "events": {"items": True, "sessions": True, "activity": True},
         "indicator": True,
     },
+    # IS-0007: which import tools appear in the left panel (off in this fork).
+    "navigation": {
+        "import_github": False,
+        "import_history": False,
+        "import_files": False,
+    },
     # FEA-0008: export of projects to a GitHub repository and import from it.
     "github": {
         "repository": DEFAULT_REPOSITORY,
@@ -84,7 +90,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
 }
 
 #: Settings groups that can be reset to their defaults as a unit.
-RESETTABLE_GROUPS = ("theme", "agent_widget", "live", "github")
+RESETTABLE_GROUPS = ("theme", "agent_widget", "live", "github", "navigation")
 
 WIDGET_STATUSES = ("active", "paused")
 WIDGET_SCOPES = ("project", "all")
@@ -93,6 +99,7 @@ WIDGET_INFO = ("agent", "item", "goal", "last_update", "updates")
 LIVE_VIEWS = ("kanban", "list", "overview", "item")
 LIVE_EVENTS = ("items", "sessions", "activity")
 LIVE_EDITING = ("notice", "after_save")
+NAV_ENTRIES = ("import_github", "import_history", "import_files")
 
 _lock = threading.Lock()
 
@@ -199,6 +206,11 @@ def validate_live(group: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def validate_navigation(group: dict[str, Any]) -> dict[str, Any]:
+    """Check a complete ``navigation`` group (one on/off flag per optional menu entry)."""
+    return _flags(group, NAV_ENTRIES, "navigation")
+
+
 def _validate_github(group: dict[str, Any]) -> dict[str, Any]:
     return validate_github(group, bool_check=_bool)
 
@@ -207,6 +219,7 @@ _GROUP_VALIDATORS = {
     "agent_widget": validate_agent_widget,
     "live": validate_live,
     "github": _validate_github,
+    "navigation": validate_navigation,
 }
 
 

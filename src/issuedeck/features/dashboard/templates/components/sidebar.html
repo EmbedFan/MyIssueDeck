@@ -112,6 +112,7 @@
     </a>
 
     <!-- GitHub import -->
+    {% if nav_settings.import_github %}
     <a href="/dashboard/{{ project_key }}/imports/github"
        class="flex items-center gap-3 px-3 py-2 text-sm rounded-md border-l-2 transition-colors
               {% if active_page == 'import_github' %}
@@ -127,8 +128,10 @@
       </svg>
       <span>{{ t("nav.import_github") }}</span>
     </a>
+    {% endif %}
 
     <!-- Import history -->
+    {% if nav_settings.import_history %}
     <a href="/dashboard/{{ project_key }}/imports"
        class="flex items-center gap-3 px-3 py-2 text-sm rounded-md border-l-2 transition-colors
               {% if active_page == 'import_history' %}
@@ -144,8 +147,10 @@
       </svg>
       <span>{{ t("nav.import_history") }}</span>
     </a>
+    {% endif %}
 
     <!-- File imports -->
+    {% if nav_settings.import_files %}
     <a href="/dashboard/{{ project_key }}/imports/files"
        class="flex items-center gap-3 px-3 py-2 text-sm rounded-md border-l-2 transition-colors
               {% if active_page == 'import_files' %}
@@ -161,6 +166,7 @@
       </svg>
       <span>{{ t("nav.import_files") }}</span>
     </a>
+    {% endif %}
 
     <!-- Settings -->
     {% include "components/sidebar_settings_link.html" %}
@@ -237,5 +243,24 @@
         <span class="truncate">{{ t("nav.new_project") }}</span>
       </a>
     </div>
+  </div>
+
+  <!-- Help (IS-0007): always the last block of the left panel -->
+  <div class="flex-shrink-0 border-t border-ledger-line dark:border-ledger-darkLine px-3 py-2" data-sidebar-help>
+    <a href="/dashboard/help{% if project_key %}?project={{ project_key }}{% endif %}"
+       {% if active_page == 'help' %}aria-current="page"{% endif %}
+       class="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold rounded-md border-l-2 transition-colors
+              {% if active_page == 'help' %}
+                bg-white dark:bg-ledger-darkPanel text-gray-900 dark:text-gray-100
+                border-l-primary-600 dark:border-l-primary-300
+              {% else %}
+                text-gray-600 dark:text-gray-400
+                border-l-transparent hover:bg-white dark:hover:bg-ledger-darkPanel hover:text-gray-900 dark:hover:text-gray-100
+              {% endif %}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+      </svg>
+      <span>{{ t("nav.help") }}</span>
+    </a>
   </div>
 </div>

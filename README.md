@@ -120,6 +120,9 @@ Project snapshots are covered in
   the API, or imports without a manual reload, through server-sent events with
   automatic fallback to periodic refresh.
 - Optional *Active agent sessions* widget on the Kanban board and Overview page.
+- Built-in help in every supported language (button at the bottom of the left panel), a language
+  combo box, optional import entries in the left panel, and an application icon for the web
+  pages; see [Dashboard Help, Icons and Navigation Settings](docs/dashboard-help-and-icons.md).
 - Item content is rendered as formatted Markdown (headings, lists, tables, code,
   block quotes, links, images); raw HTML is shown as text, not executed.
 - Dashboard interface in English, Hungarian, and Simplified Chinese; status

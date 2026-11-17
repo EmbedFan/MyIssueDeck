@@ -569,6 +569,8 @@ JSON = {"Accept": "application/json"}
 
 
 async def test_settings_menu_item_follows_import_files_and_has_a_gear_icon(env):
+    # the import entries are off by default in this fork (IS-0007); switch Import Files on
+    env["runtime"].update_settings({"navigation": {"import_files": True}})
     page = await env["client"].get("/dashboard/a")
     html = page.text
 
@@ -582,6 +584,7 @@ async def test_settings_menu_item_follows_import_files_and_has_a_gear_icon(env):
 
 
 async def test_settings_page_has_the_same_menu_as_the_main_pages(env):
+    env["runtime"].update_settings({"navigation": {"import_files": True}})
     page = await env["client"].get("/dashboard/settings")
     html = page.text
 
