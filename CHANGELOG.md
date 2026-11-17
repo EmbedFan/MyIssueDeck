@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-17
+
 ### Added
 
 - Added a built-in **help** (IS-0007): a Help button at the bottom of the left panel opens an HTML

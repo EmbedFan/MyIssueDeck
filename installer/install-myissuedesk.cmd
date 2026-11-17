@@ -12,7 +12,7 @@ rem Requires Python 3.11 or newer and internet access for the libraries.
 rem ------------------------------------------------------------------
 setlocal EnableExtensions
 
-set "VERSION=0.9.0"
+set "VERSION=0.10.0"
 set "TARGET=C:\Utility\MyIssueDesk"
 set "SRC=%~dp0.."
 for %%I in ("%SRC%") do set "SRC=%%~fI"

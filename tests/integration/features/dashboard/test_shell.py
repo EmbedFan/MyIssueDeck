@@ -13,6 +13,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+from issuedeck import __version__
 from issuedeck.app import create_app
 from issuedeck.cli import _ensure_demo_config, _ensure_demo_project_config, _upgrade_database
 from issuedeck.core.config import load_server_config
@@ -337,7 +338,7 @@ async def test_the_help_page_follows_the_chosen_language(shell):
         assert f'lang="{lang}"' in html and f">{title}</h1>" in html, lang
         assert f'<h2 id="start">{first}</h2>' in html, lang
         assert "data-help-fallback" not in html
-        assert "data-help-version" in html and "0.9.0" in html
+        assert "data-help-version" in html and __version__ in html
         assert "window.print()" in html
 
 
