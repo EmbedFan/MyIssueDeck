@@ -3,7 +3,7 @@
 
 ## FEA-0009: Standalone Installer, Built with the Software, that also Updates an Installed Copy
 
-**Status:** Proposed (not yet planned or implemented).
+**Status:** Planned, not yet implemented (tracked as FEAT-0009 in MyIssueDesk). Decisions taken at planning: one ZIP with `install.cmd`, a standard-library `installer.py`, a wheelhouse and a payload (no `.exe`, no code signing, Python required on the target, Windows only); the wheelhouse holds the dependency wheels for Python 3.11, 3.12 and 3.13 (win_amd64), with `--online` as the alternative; defaults: folder `C:\Utility\MyIssueDesk`, host 127.0.0.1, port 8765 only if it is free; the installed version is recorded in `install.json`; backups under `backups\` (last 5 kept); an update renames the old environment aside, builds the new one at the final path and renames the old one back on any failure; a new command `issuedeck db-upgrade [--check]` applies or lists migrations; the installer is attached to the GitHub release by the release workflow.
 
 **Summary:** Produce, as part of the normal build, a standalone installer that installs MyIssueDesk on a machine that has no source checkout, and that can also update an already installed copy to a newer version without losing any data.
 
