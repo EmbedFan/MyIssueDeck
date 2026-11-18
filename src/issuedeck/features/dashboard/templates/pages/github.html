@@ -18,6 +18,15 @@
     <div role="alert" class="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">{{ error }}</div>
   {% endif %}
 
+  {# IS-0008: what a first-time user needs, before anything has to be pressed (no network call) #}
+  {% if not token_present %}
+    <div role="status" data-github-hint="token" class="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+      <p class="font-semibold">{{ t("github.hint.token_title") }}</p>
+      <p class="mt-1">{{ t("github.hint.token_body", variable=gh.token_env) }}</p>
+      <p class="mt-1"><a href="/dashboard/settings#settings-github" class="font-semibold underline">{{ t("github.hint.settings") }}</a></p>
+    </div>
+  {% endif %}
+
   <section class="{{ card }}" aria-labelledby="github-settings">
     <h2 id="github-settings" class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t("github.repository_title") }}</h2>
     <dl class="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
@@ -30,12 +39,20 @@
             {% if token_present %}{{ t("github.token_set") }}{% else %}{{ t("github.token_missing") }}{% endif %}
           </span></dd></div>
     </dl>
-    <p class="mt-3 text-sm"><a href="/dashboard/settings" class="font-semibold text-primary-700 dark:text-primary-300 hover:underline">{{ t("github.change_settings") }}</a></p>
+    <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+      <a href="/dashboard/settings" class="font-semibold text-primary-700 dark:text-primary-300 hover:underline">{{ t("github.change_settings") }}</a>
+      <form method="post" action="/dashboard/settings/github/test" data-github-test>
+        <button type="submit" class="{{ btn_quiet }}">{{ t("settings.github.test") }}</button>
+      </form>
+    </div>
   </section>
 
   <section class="{{ card }}" aria-labelledby="github-export" data-github-section>
     <h2 id="github-export" class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ t("github.export_title") }}</h2>
     <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ t("github.export_help") }}</p>
+    {% if not targets %}
+    <p class="mt-4 text-sm text-gray-600 dark:text-gray-300" data-github-no-project>{{ t("github.export_no_project") }}</p>
+    {% else %}
     <form method="post" action="/dashboard/github/export" class="mt-4 space-y-4"
           data-github-job data-github-target="#github-export-result">
       <div>
@@ -53,6 +70,7 @@
     </form>
     {% include "components/github_status.html" %}
     <div id="github-export-result">{% include "components/github_export_result.html" %}</div>
+    {% endif %}
   </section>
 
   <section class="{{ card }}" aria-labelledby="github-import" data-github-section>

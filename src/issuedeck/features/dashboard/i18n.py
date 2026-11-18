@@ -315,7 +315,12 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nav.sign_out": "Sign out",
         "onboarding.no_items_body": "Create the first tracked item for this project.",
         "onboarding.no_items_title": "Start the queue",
-        "onboarding.no_projects_body": "Create a project config to start tracking work.",
+        "onboarding.no_projects_body": (
+            "Create a project, or import projects that were exported earlier to a GitHub "
+            "repository."
+        ),
+        "onboarding.import_github": "Import from GitHub",
+        "onboarding.import_source": "The import reads from {repository}.",
         "onboarding.no_projects_title": "No projects yet",
         "onboarding.setup_eyebrow": "Start here",
         "onboarding.setup_title": "Setup checklist",
@@ -631,6 +636,19 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "github.change_settings": "Change these settings",
         "github.token_set": "the variable is set on this server",
         "github.token_missing": "the variable is not set on this server",
+        "github.hint.token_title": "The GitHub token is missing",
+        "github.hint.token_body": (
+            "The variable {variable} is not set on this server. Set it to a GitHub token that "
+            "may read and write the contents of the repository, then stop and start the server "
+            "again: the server reads its environment only when it starts."
+        ),
+        "github.hint.settings": "Repository and variable name: Settings, GitHub exports",
+        "github.export_no_project": (
+            "An export needs a project. Create one, or import one from the repository below."
+        ),
+        "github.import_no_project": (
+            "There is no project yet, so the import creates a new one."
+        ),
         "github.export_title": "Export a project",
         "github.export_help": (
             "Writes the project's files to its own folder of the repository as one commit. Check "
@@ -1037,7 +1055,9 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nav.sign_out": "退出登录",
         "onboarding.no_items_body": "为这个项目创建第一条事项。",
         "onboarding.no_items_title": "启动队列",
-        "onboarding.no_projects_body": "创建项目配置后即可开始跟踪事项。",
+        "onboarding.no_projects_body": "创建项目，或导入之前导出到 GitHub 仓库的项目。",
+        "onboarding.import_github": "从 GitHub 导入",
+        "onboarding.import_source": "导入来源：{repository}。",
         "onboarding.no_projects_title": "暂无项目",
         "onboarding.setup_eyebrow": "从这里开始",
         "onboarding.setup_title": "启动清单",

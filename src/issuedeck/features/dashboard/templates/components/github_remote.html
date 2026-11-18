@@ -20,8 +20,11 @@
         <legend class="{{ label_cls }}">{{ t("snapshot.mode") }}</legend>
         <div class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
           <label class="flex items-center gap-2"><input type="radio" name="mode" value="create" checked> {{ t("snapshot.mode_create") }}</label>
-          <label class="flex items-center gap-2"><input type="radio" name="mode" value="update"> {{ t("snapshot.mode_update") }}</label>
+          <label class="flex items-center gap-2 {% if not targets %}opacity-60{% endif %}"><input type="radio" name="mode" value="update" {% if not targets %}disabled{% endif %}> {{ t("snapshot.mode_update") }}</label>
         </div>
+        {% if not targets %}
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400" data-github-no-project>{{ t("github.import_no_project") }}</p>
+        {% endif %}
       </fieldset>
       <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2" data-settings-row>
         <div>
@@ -30,7 +33,7 @@
         </div>
         <div>
           <label for="github-target" class="{{ label_cls }}">{{ t("snapshot.target") }}</label>
-          <select id="github-target" name="target" class="{{ input_cls }}">
+          <select id="github-target" name="target" class="{{ input_cls }}" {% if not targets %}disabled{% endif %}>
             <option value="">{{ t("snapshot.target_default") }}</option>
             {% for key, name in targets %}<option value="{{ key }}">{{ name }} ({{ key }})</option>{% endfor %}
           </select>

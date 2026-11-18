@@ -308,7 +308,12 @@ MESSAGES_HU: dict[str, str] = {
     "nav.sign_out": "Kijelentkezés",
     "onboarding.no_items_body": "Hozza létre a projekt első követett elemét.",
     "onboarding.no_items_title": "Indítsa el a sort",
-    "onboarding.no_projects_body": "Hozzon létre projektkonfigurációt a munka követéséhez.",
+    "onboarding.no_projects_body": (
+        "Hozzon létre egy projektet, vagy importálja a korábban GitHub-tárolóba exportált "
+        "projekteket."
+    ),
+    "onboarding.import_github": "Importálás GitHubról",
+    "onboarding.import_source": "Az import innen olvas: {repository}.",
     "onboarding.no_projects_title": "Még nincs projekt",
     "onboarding.setup_eyebrow": "Kezdje itt",
     "onboarding.setup_title": "Beállítási lista",
@@ -625,6 +630,20 @@ MESSAGES_HU: dict[str, str] = {
     "github.change_settings": "Beállítások módosítása",
     "github.token_set": "a változó be van állítva ezen a kiszolgálón",
     "github.token_missing": "a változó nincs beállítva ezen a kiszolgálón",
+    "github.hint.token_title": "Hiányzik a GitHub-token",
+    "github.hint.token_body": (
+        "A(z) {variable} változó nincs beállítva ezen a kiszolgálón. Állítsa be egy olyan "
+        "GitHub-tokenre, amely olvashatja és írhatja a tároló tartalmát, majd állítsa le és "
+        "indítsa újra a kiszolgálót: a kiszolgáló a környezetét csak indításkor olvassa be."
+    ),
+    "github.hint.settings": "A tároló és a változó neve: Beállítások, GitHub-exportok",
+    "github.export_no_project": (
+        "Az exporthoz projekt kell. Hozzon létre egyet, vagy importáljon egyet az alábbi "
+        "tárolóból."
+    ),
+    "github.import_no_project": (
+        "Még nincs projekt, ezért az import új projektet hoz létre."
+    ),
     "github.export_title": "Projekt exportálása",
     "github.export_help": (
         "A projekt fájljait a tároló saját mappájába írja egyetlen commitként. Előbb ellenőrizze, "

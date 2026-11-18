@@ -91,7 +91,9 @@ def read_token(token_env: str, environ: Mapping[str, str] | None = None) -> str:
     if not token:
         raise GitHubConfigError(
             f"the environment variable {token_env} is not set; it must hold a GitHub token "
-            "with read and write access to the repository contents",
+            "with read and write access to the repository contents (a running server reads its "
+            "environment only when it starts, so stop and start the server again after setting "
+            "the variable)",
             details={"token_env": token_env},
         )
     return token

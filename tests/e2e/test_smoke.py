@@ -181,6 +181,12 @@ async def test_dashboard_empty_install_has_onboarding(empty_app_ctx):
     assert "New project" in r.text
     assert "/dashboard/projects-new" in r.text
     assert "/dashboard/None" not in r.text
+    # IS-0008: the import from GitHub is offered next to New project, and it can be opened
+    assert "Import from GitHub" in r.text
+    assert 'href="/dashboard/github"' in r.text
+    github = await empty_app_ctx.get("/dashboard/github")
+    assert github.status_code == 200
+    assert "GitHub: export and import projects" in github.text
 
 
 async def test_dashboard_login_requires_admin_token(app_ctx):

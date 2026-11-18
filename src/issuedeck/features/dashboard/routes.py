@@ -1002,11 +1002,25 @@ async def dashboard_language(
 # Home redirect
 # ---------------------------------------------------------------------------
 
+def _github_repository(request: Request) -> str:
+    """``owner/name`` of the repository the GitHub import reads from (IS-0008)."""
+    from issuedeck.features.github_sync.service import GitHubSettings
+
+    try:
+        group = request.app.state.runtime_settings.settings()["github"]
+        return GitHubSettings.from_group(group).repository
+    except Exception:  # noqa: BLE001 - the start page must render whatever the settings hold
+        return ""
+
+
 @router.get("/")
 async def dashboard_home(request: Request):
     projects = request.app.state.registry.all_projects()
     if not projects:
-        return render("pages/home.html", request, **_ctx(request), empty=True)
+        return render(
+            "pages/home.html", request, **_ctx(request), empty=True,
+            github_repository=_github_repository(request),
+        )
     response = RedirectResponse(
         url=f"/dashboard/{projects[0].key}", status_code=302,
     )

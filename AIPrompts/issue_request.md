@@ -1,5 +1,44 @@
 # Requested issues
 
+
+## IS-0008: First Start Without Projects Offers No Way to Import from GitHub
+
+**Status:** Implemented, not yet committed (tracked as IS-0008 in MyIssueDesk). Decisions taken at planning: the second button is always shown, the *Import GitHub* menu entry stays off by default and no *Import snapshot* button is added; after an applied import the existing primary *Open project* button is the way into the new project (no automatic redirect, so the first-time user sees what was imported); nothing is sent to GitHub when the GitHub page opens; the installer's closing message, a setup checklist and the project pages (list, Kanban) are unchanged. The Hungarian and Chinese wording needs a review by a native speaker, and the GitHub page has no Chinese text yet (it falls back to English, as before).
+
+**Summary:** After a first installation, when the dashboard has no project yet, the only thing it offers is *New project*. The import of projects from the GitHub repository (FEA-0008, for example the exports in `MyIssueDeckExports`) exists, but a user who has no project cannot find it. The empty start shall offer it next to *New project*, and the import shall work, and explain what it needs, when there is no project at all.
+
+**Current state (checked in the source and on the first real installation, 2026-11-18):**
+- With no project the dashboard opens on the page *No projects yet* with the text *Create a project config to start tracking work.* and one button, *New project* (`/dashboard/projects-new`).
+- The GitHub page (`/dashboard/github`) works without a selected project: it lists the projects of the repository and imports one as a new project. But the only ways to it are (a) the *GitHub export* button in the header of a project overview, which needs a project, (b) the left-panel entry *Import GitHub*, which is **off by default** since IS-0007 (setting *Navigation*), and (c) typing the address. A first-time user has none of these.
+- The import needs two things that a first-time user may not have: the access token in the environment variable named in the settings (default `GITHUB_PAT`), which the server reads from the environment it was started in, and the repository of the settings (default `https://github.com/EmbedFan/MyIssueDeckExports.git`). Without the token the user meets an error on a page that he or she had to find first.
+- The text *Create a project config* describes the file-based way of working and says nothing of the other ways to get a project.
+
+**Requirements:**
+1. **A second button on the empty start.** Next to *New project* the page shows *Import from GitHub*, which opens the GitHub page. The button is shown whatever the *Navigation* setting is: that setting hides menu entries, not the first-run choice. The two buttons stack on a narrow window, are reachable and named for the keyboard and screen readers, follow the language and the theme, and are translated (English, Hungarian, Chinese).
+2. **The text tells the choices.** The explanation under *No projects yet* names both ways (create a project, or import projects that were exported earlier) in plain words, and shows the repository the import would read from (from the settings), so that it is clear where the projects come from.
+3. **The import works with no project.** From a start with an empty database, the GitHub page lists the projects of the repository, an import creates the chosen project (create mode of FEA-0007, with its preview before anything is written) and, when it is applied, the user lands on the overview of the new project. The new project appears in the left panel and in the project selector at once, without restarting the server.
+4. **First-run guidance on the GitHub page.** When the import cannot work yet, the page says why and what to do, before the user has to press anything: no token in the environment (the page names the variable, says that the server has to be started again after the variable is set, because it reads its environment when it starts, and where the repository is chosen: *Settings*, section *GitHub exports*), a token without permission, a repository or a branch that does not exist, no network. The token itself or part of it is never shown. The same page offers the *Test connection* action of the settings.
+5. **Existing behaviour is kept.** With at least one project the start page is unchanged, the *Navigation* setting still decides about the left-panel entries, and the import rules of FEA-0007 and FEA-0008 (preview, conflict policies, all or nothing) are not changed.
+
+**Tests:**
+- the empty start shows both buttons, in each language, with the nav entry switched on and off, and both links answer after signing in (the existing smoke test of the empty start is extended);
+- the GitHub page with zero projects renders and, against the local test double of the GitHub API, a listing, a preview and an import create the project, the response leads to the new project and the project is visible without a restart;
+- a missing token, a token without permission and an unknown repository each give their own guidance text that contains the name of the variable and never a token value;
+- the compiled dashboard CSS contains the classes of the new buttons (the existing CSS test), and the layout is looked at in a real browser at a narrow and a wide window, in the light and the dark theme.
+
+**Points to settle when the issue is planned:**
+- Whether the empty start also offers *Import snapshot* (a ZIP file, FEA-0007), which is the other way to bring in an existing project.
+- Whether the *Import GitHub* menu entry is shown while there is no project, even though its setting is off, or only the button of the empty start is added.
+- Whether the installer's closing message (FEA-0009) should mention the token variable, because that is where a first-time user is led to the GitHub page.
+- Whether the empty start becomes a short checklist (project or import; token; repository), in the style of the setup checklist that a project overview already has.
+- What the project pages (list, Kanban) show when someone opens their address while no project exists; they should end on the same empty start.
+
+**Not part of this request:** creating or administering the GitHub repository, storing the token in the software, changing the import rules, or any change to the export.
+
+**Related items:** FEA-0008 (the GitHub export and import that the button leads to); FEA-0007 (the snapshot import used by the import, and the other way to bring in a project); IS-0007 (the *Navigation* setting that hides the entry by default); FEA-0004 (Settings page, section *GitHub exports*); FEA-0009 (the installer that creates the first start); IS-0009 (found on the same first installation); IS-0003 (no secret is shown).
+
+---
+
 ## IS-0007: Language Combo Box, Optional Import Menu Entries, Application Icon and Built-in Help
 
 **Status:** Implemented in commit 04f451e (tracked as IS-0007 in MyIssueDesk). All four parts are done; see `docs/dashboard-help-and-icons.md`. Decisions taken at planning: the combo box lists each language by its own name; hiding an import entry removes only the menu entry (the *GitHub* page of FEA-0008 is not part of that setting); the icon sizes are 32, 48, 180, 192 and 512 pixels plus a multi-size `favicon.ico`, generated from the master picture, which stays in the sources; the help sources are Markdown, with the same section anchors in every language, and the Hungarian and Chinese texts still need a review by a native speaker. The check in a real browser (headless Edge) also showed that the left panel was as high as the whole page, so the Help button would have been at the end of the page; the panel now keeps the window height.

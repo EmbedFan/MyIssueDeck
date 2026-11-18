@@ -11,13 +11,23 @@
     </div>
     <h1 class="mt-4 text-lg font-display font-bold text-gray-900 dark:text-white">{{ t("onboarding.no_projects_title") }}</h1>
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t("onboarding.no_projects_body") }}</p>
-    <a href="/dashboard/projects-new"
-       class="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-      </svg>
-      {{ t("nav.new_project") }}
-    </a>
+    {% if github_repository %}
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-onboarding-source>{{ t("onboarding.import_source", repository=github_repository) }}</p>
+    {% endif %}
+    {# IS-0008: the import from GitHub is offered here whatever the Navigation setting is #}
+    <div class="mt-5 flex flex-col items-stretch justify-center gap-2 sm:flex-row sm:items-center">
+      <a href="/dashboard/projects-new" data-onboarding-new-project
+         class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        {{ t("nav.new_project") }}
+      </a>
+      <a href="/dashboard/github" data-onboarding-github
+         class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        {{ t("onboarding.import_github") }}
+      </a>
+    </div>
   </div>
 </div>
 {% else %}

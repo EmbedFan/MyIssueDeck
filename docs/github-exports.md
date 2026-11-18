@@ -72,6 +72,22 @@ cannot be started twice, and the same project cannot be exported twice at the sa
 JavaScript the forms are ordinary posts and do the same work inside the request, without the
 progress display.
 
+### The first start, with no project
+
+On a new installation the start page offers **Import from GitHub** next to *New project*, whatever
+the *Navigation* setting is (that setting only hides the menu entry), and names the repository the
+import reads from. The GitHub page works with no project: *Load projects from the repository*
+lists what was exported earlier, the import creates the chosen project (with the preview before
+anything is written), and the result offers *Open project*; the new project is served at once,
+without restarting the server. With no project the export section only says that an export needs a
+project, and the import form offers only *create*.
+
+If the token variable is not set on the server the page says so at the top, before anything is
+pressed: it names the variable, says that the server reads its environment only when it starts (so
+stop and start it again after setting the variable) and links to *Settings, GitHub exports*, where
+the repository and the variable name are chosen. *Test connection* is on the page too. Nothing is
+sent to GitHub when the page opens.
+
 ## Exporting
 
 - **Dashboard:** open **GitHub** (link on the project overview or on the Settings page), choose
@@ -125,7 +141,7 @@ Every applied import is recorded in the settings audit log.
 
 | Message | What to do |
 |---|---|
-| `the environment variable GITHUB_PAT is not set` | Set the variable in the environment of the server or command, or change the variable name in the settings. |
+| `the environment variable GITHUB_PAT is not set` | Set the variable in the environment of the server or command, or change the variable name in the settings. A running server reads its environment only when it starts: stop and start it again. |
 | `GitHub did not accept the token` | The token is wrong, expired or revoked. Create a new one. |
 | `GitHub refused this (Resource not accessible by personal access token)` | The token lacks write access. For a fine-grained token open it in GitHub (Settings, Developer settings), choose the repository and set *Repository permissions: Contents* to *Read and write*. The *Test connection* result "your account can push" only shows your own right, not the token's: GitHub reveals the token's permission only when something is written. |
 | `GitHub cannot find repository ..., or the token has no access to it` | Check the repository setting, and that the token may see that repository. GitHub answers "not found" for repositories a token cannot access. |

@@ -25,6 +25,16 @@ versioning once public releases begin.
 - Added the command `issuedeck db-upgrade [--check]`, which applies the pending database
   migrations (or lists them) without starting the server.
 
+### Fixed
+
+- A first start without projects now offers **Import from GitHub** next to *New project*
+  (IS-0008), whatever the *Navigation* setting is, with a text that names both ways and the
+  repository the import reads from. The GitHub page works with no project: it explains before
+  anything is pressed that the token variable is missing (naming the variable, saying that the
+  server reads its environment only when it starts, and linking to the settings), offers *Test
+  connection*, shows a note instead of an empty export form, and leaves only *create* in the
+  import form. The error of a missing token carries the same restart advice.
+
 ### Changed
 
 - The installer files moved: `installer\payload\` holds the start and stop scripts, and
