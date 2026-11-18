@@ -1,5 +1,50 @@
 # Requested issues
 
+## IS-0010: An Imported Project Is Reported as Changed: the Export Is Not Stable across an Import
+
+**Status:** Implemented, not yet committed (tracked as IS-0010 in MyIssueDesk). The request was written under the words *feature request*; it describes a defect of an existing function (FEA-0008), so it is kept here as an issue. Decisions taken at planning: the ids are removed from the files (they are neither kept nor ignored in the comparison), and everything is ordered by content; the format name stays `issuedeck.audit_bundle.v1` because the new files are read by 0.10.x (the ids were optional there) and the old files are read by the new importer, so no format version had to be raised; `generated_at` stays in the manifest (it alone is never a change); the audit-bundle ZIP and the backup of a deleted project share the code and lose the ids too; the one-time rewrite of projects already in a repository is documented, not announced in the app.
+
+**Summary:** After a project has been imported from the GitHub repository (for example from `MyIssueDeckExports`) and nothing has been edited, *Check what would change* on the GitHub page reports the files `manifest.json`, `items.json`, `relationships.json` and `project.toml` as changed. The export shall be stable across an import: the same project data shall give the same files, so that an unedited, freshly imported project is reported as up to date.
+
+**Reported:** Import a project from `MyIssueDeckExports`, edit nothing, press *Check what would change*: the four files above are listed.
+
+**Why it matters:** The check is meant to show whether an export would add anything (FEA-0008: *the same project data always produces the same files and a commit shows only real changes*). After an import it cannot say so, so every machine that imports a project and then exports it pushes commits without any real change, the history of the repository fills with noise, and the user cannot tell a real change from a false one.
+
+**Reproduced and explained (2026-11-18, on Windows, with the local test double of the GitHub API; a project with items, a relationship, a ship record, exported, imported as a new project, checked again):**
+- **`manifest.json`** differs on every export by design, because it carries the export time. By itself it is not counted as a change when a commit is decided, but the file is the first sign in the list.
+- **`project.toml`**: the importer writes the project configuration in text mode (`snapshot_import.py`, `config_path.write_text(...)`). On Windows each line end that the snapshot already has as CR LF becomes CR CR LF; in the test, 14 of 14 lines. The file on disk is then not the file that was exported, and the next export differs. (The project still loaded and worked.)
+- **`items.json`**: the exported files carry the numeric database ids of the activity events (and, in the other files, of relationships, work sessions, their updates, import batches and external links). These ids belong to one database. The importer cannot restore them (FEA-0007 lists this as *not restored*), so the imported project gets new ones. Even into an empty database the event ids were renumbered (`events[].id` 3 -> 2 and 2 -> 3, because the original ids interleave across items); into a database that already holds other data all of them change (`[[1],[2]]` -> `[[3],[4]]`).
+- **`relationships.json`**: the same cause. In an empty database the relationship ids happened to be the same; into a database that already holds a relationship of another project they changed (`[1, 2]` -> `[3, 4]`). This is the usual case on a real installation, which is why the file appears in the report.
+- A project that is exported twice without a change is correctly reported as up to date; the problem starts with the import.
+
+**Requirements:**
+1. **Stable round trip.** Export, import (as a new project, into an empty database and into one with other projects and relationships, or as an update of an existing project) and export again give the same files, apart from the export time in `manifest.json`. The exported files do not depend on the numeric row ids of the database in which the project happens to live (events, relationships, work sessions, session updates, import batches, external links); how that is achieved is a point to settle below.
+2. **`project.toml` is written exactly as it was exported.** The importer never changes line endings (no doubled CR on Windows); the bytes of the snapshot are the bytes of the file.
+3. **Line endings do not make a difference.** The text files of an export have one fixed line ending, so that an export made on Windows and one made on Linux are identical, and a configuration file with CR LF or with the CR CR LF that earlier imports produced does not show up as a change.
+4. **The check says what is true.** After an import with no edits, *Check what would change* reports that the repository is up to date. The export time alone is not presented as a change (it can be named separately as *export time*).
+5. **Nothing is lost.** Snapshots that were exported before the correction are still imported (the format version is raised and both are read), the content that the files carry is the same, and the audit bundle that is downloaded or written when a project is deleted, which shares the files, keeps working. The first export of a project after the correction may change its files once; this is said in the documentation and the CHANGELOG.
+6. **Projects imported earlier** (whose configuration file already has doubled CR) are handled by requirement 3 without any manual repair.
+
+**Tests:**
+- A round-trip test with a project that has items, events, relationships (also with a gap in the ids), ship records, work sessions with updates, an import batch and external links: export, import into an empty database, into a database that already holds another project with relationships, and as an update; export again; the files are equal apart from the export time.
+- The imported `project.toml` is byte-equal to the exported one, with LF and with CR LF in the snapshot (the check is on the bytes, so it does not depend on the system the test runs on).
+- A configuration file with doubled CR gives the same exported file as one with LF.
+- After an import without edits the check reports *up to date* and the export makes no commit; after a real edit it names only the files that really changed.
+- A snapshot in the old format is still imported; the audit bundle of a deleted project is still written and readable.
+- The test of the earlier behaviour that a project exported twice is up to date still passes.
+- Tried on this PC against a throwaway repository double: the round trip with the imported project of a real database copy.
+
+**Points to settle when the issue is planned:**
+- How the ids are removed from the files: replace them by a sequence number inside the item or the project (the order is already known), drop them from the files and keep them out of the comparison only, or let the importer keep the ids when they are free (this cannot work whenever another project already uses them, so it is not enough on its own).
+- Whether `generated_at` stays in `manifest.json` or moves into the commit message only, so that every file is fully deterministic.
+- How the one-time change of the files of projects that are already in a repository is announced.
+- Whether the same stability is wanted for the audit-bundle ZIP of FEA-0003 (it shares the code and the format).
+
+**Not part of this request:** changing what a snapshot contains for the user, the GitHub API handling, merging two different histories of the same project, or restoring the numeric ids.
+
+**Related items:** FEA-0008 (the export and its *Check what would change*, whose promise of stable files this restores); FEA-0007 (the snapshot import, which does not restore the ids); FEA-0003 (the audit bundle that shares the file format); IS-0008 (the first-start import from GitHub, which leads users into this).
+
+---
 
 ## IS-0008: First Start Without Projects Offers No Way to Import from GitHub
 

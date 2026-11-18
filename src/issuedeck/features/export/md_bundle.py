@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import zipfile
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -147,25 +148,36 @@ async def export_audit_bundle(
         _write_json(bundle, "manifest.json", manifest)
         _write_json(bundle, "project.json", project.model_dump(mode="json"))
         if project_toml.exists():
-            bundle.write(project_toml, "project.toml")
+            bundle.writestr("project.toml", _canonical_toml(project_toml))
         _write_json(bundle, "items.json", [_item_to_dict(item) for item in items])
         _write_json(
             bundle,
             "relationships.json",
-            [
-                _relationship_to_dict(relationship, item_pk_to_local_id)
-                for relationship in relationships
-            ],
+            sorted(
+                (
+                    _relationship_to_dict(relationship, item_pk_to_local_id)
+                    for relationship in relationships
+                ),
+                key=_relationship_key,
+            ),
         )
         _write_json(
             bundle,
             "work_sessions.json",
-            [_work_session_to_dict(session) for session in work_sessions],
+            sorted(
+                (_work_session_to_dict(session) for session in work_sessions),
+                key=_work_session_key,
+                reverse=True,
+            ),
         )
         _write_json(
             bundle,
             "import_batches.json",
-            [_import_batch_to_dict(batch) for batch in import_batches],
+            sorted(
+                (_import_batch_to_dict(batch) for batch in import_batches),
+                key=_import_batch_key,
+                reverse=True,
+            ),
         )
 
     return AuditBundleReport(
@@ -236,7 +248,58 @@ def _write_json(bundle: zipfile.ZipFile, name: str, payload: Any) -> None:
     )
 
 
+# IS-0010: the files of a snapshot never carry the numeric row ids of the database they come
+# from (events, relationships, work sessions, their updates, import batches, external links).
+# An import cannot restore them, so a project that was imported would export different files
+# than the one it came from. Everything is ordered by its content instead, so the same data
+# always gives the same files, whatever the database and the order of insertion.
+
+
+def _canonical(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def _text(value: Any) -> str:
+    return "" if value is None else str(value)
+
+
+def _event_dict(event: Any) -> dict[str, Any]:
+    return {
+        "event_type": event.event_type,
+        "actor_type": event.actor_type,
+        "actor_name": event.actor_name,
+        "body": event.body,
+        "metadata": _metadata(event.metadata_json),
+        "created_at": event.created_at,
+    }
+
+
+def _event_key(event: dict[str, Any]) -> tuple[str, ...]:
+    return (
+        _text(event["created_at"]), _text(event["event_type"]), _text(event["actor_type"]),
+        _text(event["actor_name"]), _text(event["body"]), _canonical(event["metadata"]),
+    )
+
+
 def _item_to_dict(item: Item) -> dict[str, Any]:
+    links = [
+        {
+            "link_type": link.link_type,
+            "label": link.label,
+            "url": link.url,
+            "created_at": link.created_at,
+        }
+        for link in item.external_links
+    ]
+    records = [
+        {
+            "branch_key": record.branch_key,
+            "version": record.version,
+            "shipped_at": record.shipped_at,
+            "commits": [commit.sha for commit in record.commits],
+        }
+        for record in item.ship_records
+    ]
     return {
         "local_id": item.local_id,
         "project_key": item.project_key,
@@ -247,37 +310,21 @@ def _item_to_dict(item: Item) -> dict[str, Any]:
         "tags": sorted(tag.tag for tag in item.tags),
         "applies_to": sorted(branch.branch_key for branch in item.applies_to),
         "custom_fields": _metadata(item.custom_fields_json),
-        "external_links": [
-            {
-                "id": link.id,
-                "link_type": link.link_type,
-                "label": link.label,
-                "url": link.url,
-                "created_at": link.created_at,
-            }
-            for link in item.external_links
-        ],
-        "ship_records": [
-            {
-                "branch_key": record.branch_key,
-                "version": record.version,
-                "shipped_at": record.shipped_at,
-                "commits": [commit.sha for commit in record.commits],
-            }
-            for record in item.ship_records
-        ],
-        "events": [
-            {
-                "id": event.id,
-                "event_type": event.event_type,
-                "actor_type": event.actor_type,
-                "actor_name": event.actor_name,
-                "body": event.body,
-                "metadata": _metadata(event.metadata_json),
-                "created_at": event.created_at,
-            }
-            for event in sorted(item.events, key=lambda event: (event.created_at, event.id))
-        ],
+        "external_links": sorted(
+            links,
+            key=lambda link: (
+                _text(link["created_at"]), _text(link["link_type"]),
+                _text(link["url"]), _text(link["label"]),
+            ),
+        ),
+        "ship_records": sorted(
+            records,
+            key=lambda record: (
+                _text(record["shipped_at"]), _text(record["branch_key"]),
+                _text(record["version"]),
+            ),
+        ),
+        "events": sorted((_event_dict(event) for event in item.events), key=_event_key),
         "created_at": item.created_at,
         "updated_at": item.updated_at,
         "deleted_at": item.deleted_at,
@@ -289,7 +336,6 @@ def _relationship_to_dict(
     item_pk_to_local_id: dict[int, str],
 ) -> dict[str, Any]:
     return {
-        "id": relationship.id,
         "from_local_id": item_pk_to_local_id[relationship.from_item_pk],
         "to_local_id": item_pk_to_local_id[relationship.to_item_pk],
         "relation_type": relationship.relation_type,
@@ -297,9 +343,37 @@ def _relationship_to_dict(
     }
 
 
+def _relationship_key(row: dict[str, Any]) -> tuple[str, ...]:
+    return (
+        _text(row["from_local_id"]), _text(row["to_local_id"]),
+        _text(row["relation_type"]), _text(row["created_at"]),
+    )
+
+
+def _work_session_key(row: dict[str, Any]) -> tuple[str, ...]:
+    return (
+        _text(row["updated_at"]), _text(row["started_at"]), _text(row["agent_name"]),
+        _text(row["local_id"]), _text(row["goal"]),
+    )
+
+
+def _import_batch_key(row: dict[str, Any]) -> tuple[str, ...]:
+    return (
+        _text(row["created_at"]), _text(row["batch_tag"]), _text(row["source_type"]),
+        _text(row["source_name"]),
+    )
+
+
+def _canonical_toml(path: Path) -> str:
+    """The project configuration with one fixed line ending and without a byte order mark,
+    so that an export made on Windows equals one made on Linux, and a file whose lines end in
+    CR CR LF (what earlier imports wrote on Windows) exports like one with LF."""
+    text = path.read_bytes().decode("utf-8-sig")
+    return re.sub(r"\r+\n|\r", "\n", text)
+
+
 def _work_session_to_dict(session: WorkSession) -> dict[str, Any]:
     return {
-        "id": session.id,
         "project_key": session.project_key,
         "local_id": session.item.local_id if session.item else None,
         "agent_name": session.agent_name,
@@ -311,25 +385,26 @@ def _work_session_to_dict(session: WorkSession) -> dict[str, Any]:
         "updated_at": session.updated_at,
         "ended_at": session.ended_at,
         "metadata": _metadata(session.metadata_json),
-        "updates": [
-            {
-                "id": update.id,
-                "update_type": update.update_type,
-                "message": update.message,
-                "metadata": _metadata(update.metadata_json),
-                "created_at": update.created_at,
-            }
-            for update in sorted(
-                session.updates,
-                key=lambda update: (update.created_at, update.id),
-            )
-        ],
+        "updates": sorted(
+            (
+                {
+                    "update_type": update.update_type,
+                    "message": update.message,
+                    "metadata": _metadata(update.metadata_json),
+                    "created_at": update.created_at,
+                }
+                for update in session.updates
+            ),
+            key=lambda update: (
+                _text(update["created_at"]), _text(update["update_type"]),
+                _text(update["message"]), _canonical(update["metadata"]),
+            ),
+        ),
     }
 
 
 def _import_batch_to_dict(batch: ImportBatch) -> dict[str, Any]:
     return {
-        "id": batch.id,
         "project_key": batch.project_key,
         "batch_tag": batch.batch_tag,
         "source_type": batch.source_type,

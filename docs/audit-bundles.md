@@ -68,5 +68,7 @@ Rules:
   known file names are read, with a size limit.
 - A snapshot made when a project was deleted (`data/deleted-projects/`) can be used to
   restore that project.
-- Not restored: tokens and server settings, and the numeric ids of events and work sessions
-  (new ones are assigned).
+- Not restored: tokens and server settings. The files carry no numeric database ids (of events,
+  relationships, work sessions, their updates, import batches or links) and are ordered by their
+  content, so a project that was imported exports the same files as the one it came from (older
+  snapshots that still have the ids are imported as before; new ids are assigned).

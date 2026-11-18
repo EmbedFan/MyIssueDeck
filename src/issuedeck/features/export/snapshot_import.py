@@ -261,7 +261,9 @@ async def import_snapshot(
         if mode == "create" and apply:
             assert config_text is not None
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            config_path.write_text(config_text, encoding="utf-8")
+            # the exact bytes: text mode would turn every CR LF of the snapshot into CR CR LF on
+            # Windows, and the next export of the project would differ (IS-0010)
+            config_path.write_bytes(config_text.encode("utf-8"))
             wrote_config = True
             registry.register_project(load_project_config(config_path))
         await _write_rows(session, snapshot, target, mode, conflict, report)

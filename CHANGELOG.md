@@ -7,6 +7,18 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Fixed
+
+- A project that was imported from the GitHub repository is no longer reported as changed by
+  *Check what would change* when nothing was edited (IS-0010). The files of a snapshot (also
+  the downloadable audit bundle and the backup of a deleted project) no longer carry the numeric
+  database ids of events, relationships, work sessions, their updates, import batches and
+  external links, which an import cannot restore, and everything is ordered by its content;
+  `project.toml` is exported with one fixed line ending, and the importer writes it exactly as
+  it received it (on Windows it doubled every carriage return). The export of a project that is
+  already in a repository is rewritten once, without a change of content; old files are still
+  imported. See `docs/github-exports.md`.
+
 ## [0.10.1] - 2026-11-18
 
 ### Added

@@ -60,6 +60,23 @@ These are the files of a snapshot (an audit bundle, see [Audit Bundles](audit-bu
 stored **unpacked** so that GitHub shows readable differences between two exports. The files
 are written in a stable order and format, so the same data always gives the same files.
 
+**What makes them stable (IS-0010).** The files never carry the numeric row ids of the database
+a project lives in (events, relationships, work sessions and their updates, import batches,
+external links): an import cannot restore such ids, so a project that was imported would
+otherwise export different files than the one it came from. Everything is ordered by its
+content instead (for example events by time, type, actor and text), never by id. The text of
+`project.toml` is written with one fixed line ending (LF, no byte order mark), so an export
+made on Windows equals one made on Linux, and an importer writes the configuration exactly as
+it received it. The one thing that always differs between two exports is the export time in
+`manifest.json`; it alone is never a change, so a project that was exported and then imported
+elsewhere, with nothing edited, is reported as **up to date** by *Check what would change*.
+
+**Projects that are already in a repository.** Files exported by 0.10.1 and earlier still carry
+the ids and, from a Windows machine, CR LF line ends. They are still imported. The first export
+of such a project after this change rewrites `items.json`, `relationships.json`,
+`work_sessions.json`, `import_batches.json` and `project.toml` once, without any change of
+content; after that the files stay equal until the data really changes.
+
 ## The dashboard page
 
 The GitHub page does **not reload**. Every action (*Check what would change*, *Export now*,
