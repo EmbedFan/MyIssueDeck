@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-18
+
 ### Added
 
 - Added a **standalone installer** (FEA-0009): `scripts/build_installer.py` builds
