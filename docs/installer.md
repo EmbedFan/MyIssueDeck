@@ -43,8 +43,9 @@ An installation made by the old `install-myissuedesk.cmd` is recognised and can 
    there is no silent switch to another port) and a **new random administrator token**. The token is
    shown once at the end and is stored only in `server.toml` (the file is limited to your Windows
    account). It is never written to the log or to a command line.
-4. Creates the database, copies the start and stop scripts, starts the server to prove it works
-   (`/readyz`), and stops it again (use `--start` to leave it running).
+4. Creates the database, copies the start and stop scripts (`start-myissuedeck.vbs`,
+   `stop-myissuedeck.vbs`) and the user guide `USERGUIDE.md` into the folder, starts the server to
+   prove it works (`/readyz`), and stops it again (use `--start` to leave it running).
 
 ### Update
 
@@ -59,8 +60,14 @@ An installation made by the old `install-myissuedesk.cmd` is recognised and can 
    was made, because its launchers contain its path; this is why the new one is built at the final
    place and the old one is renamed back on a failure.)
 4. Applies the database migrations (`issuedeck db-upgrade`).
-5. Replaces the start and stop scripts, writes `install.json`, starts the server again when it was
-   running, and checks that it reports the new version.
+5. Replaces the start and stop scripts and `USERGUIDE.md` (the guide belongs to the installed
+   version), writes `install.json`, starts the server again when it was running, and checks that
+   it reports the new version. **Scripts under an old name** (the first installer spelled them
+   *myissuedesk*) are replaced by the new names, so the two never exist side by side; the report
+   lists each rename and reminds you to change a shortcut or scheduled task that points to an old
+   name. Before that, the backup received a copy of the scripts and the guide as they were
+   (`backups\<time>-<version>\installed-files\`), so a script or guide you changed by hand
+   is not lost.
 6. Removes `.venv.old` (read-only files do not stop this) and reports: old and new version, the
    backup folder, the migrations applied, and options that exist in the new example configuration
    but not in your `server.toml` (**reported only, never added**).
@@ -72,7 +79,8 @@ templates and logs. The installer has no step that copies a database over an ins
 
 Every step after the first change is covered: the new environment is removed, the old one is
 renamed back, the database is restored from the backup when a migration had started, the old
-`install.json` is put back, and the old server is started again when it was running. The message
+`install.json` is put back, the scripts and the guide are restored from `installed-files` (a file
+that the update created, such as a new script name, is removed again), and the old server is started again when it was running. The message
 says what failed and where the backup is. Exit code 1. A failed *new* installation says so and can
 be repeated.
 

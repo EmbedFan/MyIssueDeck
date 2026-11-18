@@ -48,11 +48,18 @@ DEFAULT_PORT = 8765
 DEFAULT_KEEP_BACKUPS = 5
 MIN_PYTHON = (3, 11)
 SCRIPTS = (
-    "start-myissuedesk.vbs",
-    "stop-myissuedesk.vbs",
+    "start-myissuedeck.vbs",
+    "stop-myissuedeck.vbs",
     "start-server.ps1",
     "stop-server.ps1",
 )
+# the names an earlier installer used (IS-0009); an update replaces them by the new ones
+LEGACY_SCRIPT_NAMES = {
+    "start-myissuedesk.vbs": "start-myissuedeck.vbs",  # legacy name
+    "stop-myissuedesk.vbs": "stop-myissuedeck.vbs",  # legacy name
+}
+GUIDE = "USERGUIDE.md"
+INSTALLED_FILES = "installed-files"  # in a backup: the scripts and the guide as they were
 EXIT_OK, EXIT_FAILED, EXIT_STOPPED, EXIT_DAMAGED = 0, 1, 2, 3
 
 
@@ -336,6 +343,8 @@ class Report:
     target: Path | None = None
     backup: Path | None = None
     migrations: list[str] = field(default_factory=list)
+    renamed: list[str] = field(default_factory=list)
+    guide: Path | None = None
     new_options: list[str] = field(default_factory=list)
     server_running: bool = False
     url: str = ""
@@ -419,6 +428,13 @@ class Installer:
             raise InstallError(
                 f"the wheel for version {self.version} is missing from the installer", EXIT_DAMAGED)
         return found[0]
+
+    def _guide_source(self) -> Path:
+        """The user guide that is installed (in a development run it sits beside installer.py)."""
+        for candidate in (self.payload / GUIDE, self.opt.source / GUIDE):
+            if candidate.is_file():
+                return candidate
+        raise InstallError(f"{GUIDE} is missing from the installer", EXIT_DAMAGED)
 
     def _example_text(self) -> str:
         for candidate in (self.payload / "server.toml.example",
@@ -549,6 +565,7 @@ class Installer:
 
     def run(self) -> Report:
         self.verify_content()  # also for --check: a damaged installer is reported first
+        self._guide_source()  # a guide that is missing is the same damage, found before any change
         existing = self.detect()
         mode = self.decide_mode(existing)
         self.report.mode = mode
@@ -620,11 +637,24 @@ class Installer:
                 EXIT_FAILED)
 
     def _install_scripts(self) -> None:
+        """The start and stop scripts and the user guide; scripts under an old name are
+        replaced (the update has put a copy of them in its backup before)."""
+        target = self.opt.target
         for name in SCRIPTS:
             source = self.payload / name
             if not source.is_file():
                 raise InstallError(f"{name} is missing from the installer", EXIT_DAMAGED)
-            shutil.copy2(source, self.opt.target / name)
+            shutil.copy2(source, target / name)
+        shutil.copy2(self._guide_source(), target / GUIDE)  # belongs to this version: replaced
+        self.report.guide = target / GUIDE
+        for old, new in LEGACY_SCRIPT_NAMES.items():
+            if (target / old).is_file():
+                (target / old).unlink()
+                self.report.renamed.append(f"{old} to {new}")
+                self.log.write(f"Renamed {old} to {new}.")
+        if self.report.renamed:
+            self.report.warnings.append(
+                "a shortcut or scheduled task that points to an old script name must be changed")
 
     def _write_marker(self, mode: str, host: str, port: int) -> None:
         data = {
@@ -790,7 +820,23 @@ class Installer:
         for name in ("projects", "project-templates"):
             if (target / name).is_dir():
                 shutil.copytree(target / name, folder / name, dirs_exist_ok=True)
+        # the scripts (under any name) and the guide as they are now: the update replaces them
+        for name in (*SCRIPTS, *LEGACY_SCRIPT_NAMES, GUIDE):
+            if (target / name).is_file():
+                (folder / INSTALLED_FILES).mkdir(exist_ok=True)
+                shutil.copy2(target / name, folder / INSTALLED_FILES / name)
         return folder
+
+    def _restore_installed_files(self, backup: Path) -> None:
+        """Put the scripts and the guide back as the backup holds them; a file that the update
+        created and that the backup does not have (a new name, a new guide) is removed."""
+        target = self.opt.target
+        saved = backup / INSTALLED_FILES
+        for name in (*SCRIPTS, *LEGACY_SCRIPT_NAMES, GUIDE):
+            if (saved / name).is_file():
+                shutil.copy2(saved / name, target / name)
+            elif (target / name).is_file():
+                (target / name).unlink()
 
     def _prune_backups(self) -> None:
         root = self.opt.target / "backups"
@@ -820,7 +866,8 @@ class Installer:
         backup: Path | None = None
         old_venv = target / ".venv.old"
         venv = target / ".venv"
-        state = {"renamed": False, "built": False, "migrated": False, "started": False}
+        state = {"renamed": False, "built": False, "migrated": False, "started": False,
+                 "files": False}
         try:
             if not venv.exists() and old_venv.exists():
                 # an earlier run was interrupted after the old environment was moved aside
@@ -858,6 +905,7 @@ class Installer:
                 self.report.warnings.append(
                     "downgrade: the database was not changed; if the old version does not "
                     f"start, restore the backup {backup}")
+            state["files"] = True  # from here a rollback restores the scripts and the guide
             self._install_scripts()
             self._report_new_options()
             self._write_marker(mode, host, port)
@@ -918,6 +966,11 @@ class Installer:
                 shutil.copy2(backup / MARKER, target / MARKER)
         except Exception as exc:  # noqa: BLE001
             problems.append(f"restoring the data: {exc}")
+        try:
+            if state["files"] and backup is not None:
+                self._restore_installed_files(backup)
+        except Exception as exc:  # noqa: BLE001
+            problems.append(f"restoring the scripts and the guide: {exc}")
         try:
             if was_running:
                 self.control.start(target)
@@ -985,7 +1038,11 @@ def print_report(report: Report, log: Log) -> None:
             + ", ".join(report.new_options))
     out(f"  server:  {'running' if report.server_running else 'stopped'}"
         + (f" - {report.url}" if report.url else ""))
-    out(f"  start:   {report.target}\\start-myissuedesk.vbs   stop: stop-myissuedesk.vbs")
+    out(f"  start:   {report.target}\\{SCRIPTS[0]}   stop: {SCRIPTS[1]}")
+    if report.guide:
+        out(f"  guide:   {report.guide}")
+    for renamed in report.renamed:
+        out(f"  renamed: {renamed}")
     for warning in report.warnings:
         out(f"  note:    {warning}")
     if report.log_file:

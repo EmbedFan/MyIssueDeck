@@ -27,6 +27,14 @@ versioning once public releases begin.
 
 ### Fixed
 
+- The standalone installer now installs the start and stop scripts as `start-myissuedeck.vbs` and
+  `stop-myissuedeck.vbs` (the spelling of the product; they were installed as *myissuedesk*) and
+  installs the user guide `USERGUIDE.md` into the installation folder, which it left out (IS-0009).
+  An update replaces the old script names, so the two never exist side by side: a copy of the old
+  scripts and of the previous guide goes into the backup (`installed-files`), the report lists each
+  rename and reminds you to change a shortcut that points to an old name, and a failed update puts
+  the old files back. The shipped guide no longer points to a file that is not installed. A guide
+  missing from the installer stops it as damaged before anything is changed.
 - A first start without projects now offers **Import from GitHub** next to *New project*
   (IS-0008), whatever the *Navigation* setting is, with a text that names both ways and the
   repository the import reads from. The GitHub page works with no project: it explains before

@@ -25,12 +25,15 @@ By default it installs to C:\Utility\MyIssueDesk. Useful options:
 What an update does: it stops only the server of that folder, makes a backup of your data
 under backups\, builds the new software next to the old one, applies the database
 migrations and starts the server again. Your database, server.toml, settings, projects and
-tokens are never replaced. If any step fails the old version is put back.
+tokens are never replaced. If any step fails the old version is put back. Start and stop
+scripts that the first installer named with the spelling "myissuedesk" are renamed to the
+names below (a copy is kept in the backup); change a shortcut that points to an old name.
 
 A new installation writes server.toml with a new administrator token. The token is shown
 once at the end of the installation; it is stored in server.toml.
 
-Start and stop the server with start-myissuedesk.vbs and stop-myissuedesk.vbs in the
-installation folder. payload\USERGUIDE.md explains how to connect an AI assistant.
+Start and stop the server with start-myissuedeck.vbs and stop-myissuedeck.vbs in the
+installation folder. USERGUIDE.md in the installation folder explains how to connect an AI
+assistant.
 
 Check the download: the SHA-256 of the ZIP is in the .sha256 file next to it.

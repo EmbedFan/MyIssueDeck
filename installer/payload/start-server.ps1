@@ -1,4 +1,4 @@
-# Starts the MyIssueDesk server in the background. Called by start-myissuedesk.vbs.
+# Starts the MyIssueDesk server in the background. Called by start-myissuedeck.vbs.
 # Exit codes: 0 started, 2 port already in use, 3 server did not start.
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot

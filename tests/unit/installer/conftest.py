@@ -183,6 +183,7 @@ def source(tmp_path):
     for name in inst.SCRIPTS:
         _write_wheel_content(src / "payload" / name, (INSTALLER_DIR / "payload" / name).read_text(
             encoding="utf-8"))
+    _write_wheel_content(src / "payload" / inst.GUIDE, "the guide of the installer")
     _write_wheel_content(src / "payload" / "server.toml.example",
                          (ROOT / "server.toml.example").read_text(encoding="utf-8"))
     write_manifest(src)
@@ -197,6 +198,9 @@ def write_manifest(src: Path, version: str = NEW_VERSION) -> None:
     (src / inst.MANIFEST).write_text(json.dumps({
         "name": "myissuedeck-installer", "version": version, "files": files}, indent=2),
         encoding="utf-8")
+
+
+LEGACY_FILES = (*inst.LEGACY_SCRIPT_NAMES, "start-server.ps1", "stop-server.ps1")
 
 
 def make_installation(target: Path, version: str, *, marker: bool = True, rows: int = 3,
@@ -225,8 +229,8 @@ def make_installation(target: Path, version: str, *, marker: bool = True, rows: 
     (target / "server.toml").write_text(
         f'host = "127.0.0.1"\nport = {port}\napi_token = "OLD-SECRET-TOKEN-0123456789"\n'
         'data_dir = "./data"\nprojects_dir = "./projects"\n', encoding="utf-8")
-    for name in inst.SCRIPTS:
-        (target / name).write_text("old script", encoding="utf-8")
+    for name in LEGACY_FILES:  # the names the first installer used; it installed no guide
+        (target / name).write_text(f"old {name}", encoding="utf-8")
     if marker:
         (target / inst.MARKER).write_text(json.dumps({"version": version}), encoding="utf-8")
     return {

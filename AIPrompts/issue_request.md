@@ -39,6 +39,50 @@
 
 ---
 
+## IS-0009: Installer Installs Scripts under the Wrong Name and Leaves the User Guide Out
+
+**Status:** Implemented, not yet committed (tracked as IS-0009 in MyIssueDesk). The request was written as IS-0007, a number that the implemented entry below already has, so it is numbered IS-0009. Decisions taken at planning: the default installation folder stays `C:\Utility\MyIssueDesk` (changing it would make an installer run without `--target` create a second installation instead of updating the one in the old default folder) and the visible texts keep the product name, only the file names changed; only the guide is installed, not `README-INSTALL.txt` or `docs\installer.md`; no forwarding scripts under the old names; the old script files and the previous guide go into the backup of the update (`installed-files`). The installation in `C:\Utility\MyIssueDeck` (0.10.0) is updated by the next version's installer or with `--repair`; it was not touched.
+
+**Summary:** The standalone installer (FEA-0009) installs the server start and stop scripts as `start-myissuedesk.vbs` and `stop-myissuedesk.vbs`, with a spelling that differs from the name of the product, and it does not install `USERGUIDE.md`. Both shall be corrected, including for installations that already exist.
+
+**Observed:** On the first real installation (installer 0.10.0, new installation into `C:\Utility\MyIssueDeck`, 2026-11-18 14:31) the installation folder contains `start-myissuedesk.vbs`, `stop-myissuedesk.vbs`, `start-server.ps1`, `stop-server.ps1`, `server.toml` and `install.json`, and no user guide anywhere outside the virtual environment, although the installer ZIP carries `payload/USERGUIDE.md`.
+
+### Problem 1: Spelling of the script names
+
+**Current state:** The product, the Python distribution and the installer are all called *myissuedeck* (`myissuedeck-0.10.0-py3-none-any.whl`, `myissuedeck-installer-<version>-win64.zip`, the `product` field of `install.json`, the remote `MyIssueDeck.git`). Only the two scripts that a user starts by hand carry *myissuedesk*. A user who looks for the scripts by the name of the product does not find them, and the two spellings make it unclear which one is right.
+
+**Requirements:**
+- The scripts are named `start-myissuedeck.vbs` and `stop-myissuedeck.vbs`. The PowerShell helpers keep their names (`start-server.ps1`, `stop-server.ps1`).
+- The new names are used everywhere the old ones are: the installer's list of files, the files in `installer\payload\`, the final report of the installer (*start: ... stop: ...*), `README-INSTALL.txt`, `installer\USERGUIDE.md`, `docs\installer.md`, the two PowerShell scripts (their comments and log texts), the CHANGELOG entry of the installer and the tests. Historical entries of the CHANGELOG, which describe what an earlier release did, stay as they are.
+- **Installations that already exist** (the old names are on disk): an update or a repair installs the scripts under the new names and then removes the old ones, so that the two never exist side by side. The installer says so in its report (*renamed start-myissuedesk.vbs to start-myissuedeck.vbs*) and warns that a shortcut or a scheduled task that points to an old name must be changed. Before an old file is removed, a copy of it is placed in the backup folder of that update, so that a script changed by hand is not lost.
+- A failed update puts the old files back with the rest of the old version; the new names are removed again.
+- A guard in the tests fails when the old spelling appears in a file that the installer ships, so that the mistake cannot return.
+
+### Problem 2: `USERGUIDE.md` is not installed
+
+**Current state:** The generator puts `USERGUIDE.md` into the ZIP (`payload/USERGUIDE.md`) and the manifest lists it, but the installer copies only the four scripts. The guide that explains how to connect an AI assistant to the server therefore reaches the computer only inside the unpacked ZIP, which the user is likely to delete after the installation.
+
+**Requirements:**
+- A new installation, an update and a repair copy the guide to `<installation folder>\USERGUIDE.md`. The guide belongs to the installed version, so an update replaces it; the previous copy is kept in the backup folder of that update, in case it was edited.
+- The final report of the installer names the guide and its path.
+- The guide describes the installed layout. Statements that are only true in the source tree or that refer to a file that is not installed (the guide now points to `docs\installer.md`) are corrected, or the file they refer to is installed as well.
+- A new installation from the small *online* ZIP behaves the same.
+- When the guide is missing from the installer, the installer stops with the *damaged* code (3) before it changes anything; the generator already fails when the file is absent.
+
+**Tests:** new installation, update and repair each leave `USERGUIDE.md` in the folder with the content of the installer; the update keeps the old copy in the backup; a failed update leaves the old guide in place; an update of an installation that has the old script names ends with the new names only, the old files in the backup and a report line for each; a rollback restores the old names; the guard against the old spelling. The change is also tried on this PC, where `C:\Utility\MyIssueDeck` is exactly such an installation (a repair with the new installer shows the rename and the guide).
+
+**Points to settle when the issue is planned:**
+- Whether the default installation folder, and the texts that the user sees (the installer's messages, the title of the message boxes of the two `.vbs` files, `README-INSTALL.txt`), also change from *MyIssueDesk* to *MyIssueDeck*; the folder `C:\Utility\MyIssueDeck` in use today suggests that they should. A folder that already exists is never renamed by the installer.
+- Whether `README-INSTALL.txt` and `docs\installer.md` are installed with the guide.
+- Whether the old names are kept for a transition period as small forwarding scripts.
+- Which version ships the correction: an installation at 0.10.0 is updated only by a newer installer or with `--repair`.
+
+**Not part of this request:** renaming the product, the Python package or the repository; changing what the scripts do; any other behaviour of the installer.
+
+**Related items:** FEA-0009 (the standalone installer, where both mistakes were made); TASK-0003 (the first installer, which introduced the script names); IS-0008 (found on the same first installation: the empty start of a new installation); IS-0003 (nothing secret in the guide or the report).
+
+---
+
 ## IS-0007: Language Combo Box, Optional Import Menu Entries, Application Icon and Built-in Help
 
 **Status:** Implemented in commit 04f451e (tracked as IS-0007 in MyIssueDesk). All four parts are done; see `docs/dashboard-help-and-icons.md`. Decisions taken at planning: the combo box lists each language by its own name; hiding an import entry removes only the menu entry (the *GitHub* page of FEA-0008 is not part of that setting); the icon sizes are 32, 48, 180, 192 and 512 pixels plus a multi-size `favicon.ico`, generated from the master picture, which stays in the sources; the help sources are Markdown, with the same section anchors in every language, and the Hungarian and Chinese texts still need a review by a native speaker. The check in a real browser (headless Edge) also showed that the left panel was as high as the whole page, so the Help button would have been at the end of the page; the panel now keeps the window height.

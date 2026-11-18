@@ -59,12 +59,15 @@ Token scopes:
   `python -m pip install <wheel>` (or `uv pip install --system-certs --python <venv python> <wheel>`
   on a PC where pip fails on TLS).
 - **Standalone installer:** unzip `myissuedeck-installer-<version>-win64.zip` and run
-  `install.cmd`. It installs into `C:\Utility\MyIssueDesk` (or `--target`) with its own `.venv`,
-  writes `server.toml` with a new administrator token (shown once), and adds
-  `start-myissuedesk.vbs` and `stop-myissuedesk.vbs`. Running it again with a newer installer
-  **updates** the installation: it backs up the data, keeps the database, `server.toml`, settings
-  and projects, applies the migrations and restores the old version if anything fails. Use
-  `install.cmd --check` to see what it would do. Details: `docs\installer.md`.
+  `install.cmd`. It installs into `C:\Utility\MyIssueDesk` (or the folder given with `--target`)
+  with its own `.venv`, writes `server.toml` with a new administrator token (shown once), and adds
+  `start-myissuedeck.vbs` and `stop-myissuedeck.vbs` and this guide. Running it again with a newer
+  installer **updates** the installation: it backs up the data, keeps the database, `server.toml`,
+  settings and projects, applies the migrations and restores the old version if anything fails.
+  An installation made by the first installer, whose start and stop scripts spelled the product
+  as *myissuedesk*, gets the new names (the report of the update lists each one); a shortcut that
+  points to an old name has to be changed. Use `install.cmd --check` to see what it would do;
+  `README-INSTALL.txt` in the installer lists every option.
 - Python 3.11 or newer is required.
 
 Check that the MCP module is available in the Python you plan to use:
@@ -154,7 +157,8 @@ commands through `uv` instead, use
 ### 5.5 Using the server from an installed copy
 
 If you installed with the installer, point `command` at the installed virtual environment,
-`C:\Utility\MyIssueDesk\.venv\Scripts\python.exe`, and keep the same `ISSUEDECK_BASE_URL` and
+`<installation folder>\.venv\Scripts\python.exe` (for example
+`C:\Utility\MyIssueDeck\.venv\Scripts\python.exe`), and keep the same `ISSUEDECK_BASE_URL` and
 token as the server there uses.
 
 ## 6. Verify the connection

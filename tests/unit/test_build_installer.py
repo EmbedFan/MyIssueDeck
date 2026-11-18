@@ -74,7 +74,7 @@ def test_the_installer_contains_what_it_needs_and_nothing_else(tmp_path, wheel):
     assert names == {
         "install.cmd", "installer.py", "README-INSTALL.txt", "installer-manifest.json",
         "payload/server.toml.example", "payload/USERGUIDE.md",
-        "payload/start-myissuedesk.vbs", "payload/stop-myissuedesk.vbs",
+        "payload/start-myissuedeck.vbs", "payload/stop-myissuedeck.vbs",
         "payload/start-server.ps1", "payload/stop-server.ps1",
         f"wheelhouse/common/myissuedeck-{version}-py3-none-any.whl",
     }
