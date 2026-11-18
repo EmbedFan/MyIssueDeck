@@ -1,0 +1,11 @@
+Connect to project: myissuedesk
+PLease generate implementation plan for: IS-0008 
+	1. Check whether the MyIssuDeck throug MCP is acccessible or not. 
+	   If not exit.
+	   
+	2. Start to measure the work time.
+	3. Register it in the MyIssueDeck, do the implementation, at the and register time spent + 10 min human work. 
+	   Add comment to this registered item: 
+			"Human research and request prepation took: 10 minutes."
+	
+	4. Register the time was spent by AI in "Spent Time" field. 
