@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-23
+
 ### Fixed
 
 - A project that was imported from the GitHub repository is no longer reported as changed by
