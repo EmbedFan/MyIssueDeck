@@ -70,7 +70,7 @@ async def env(tmp_path):
 
 def _form(**values):
     return {"repository": "octo/exports", "branch": "main", "folder": "",
-            "token_env": "GITHUB_PAT", "author_name": "MyIssueDesk",
+            "token_env": "GITHUB_PAT", "author_name": "MyIssueDeck",
             "author_email": "issuedeck@users.noreply.github.com", **values}
 
 

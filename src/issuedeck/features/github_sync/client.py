@@ -33,7 +33,7 @@ from issuedeck.core.errors import GitHubError
 
 API_URL = "https://api.github.com"
 API_VERSION = "2022-11-28"
-USER_AGENT = "MyIssueDesk-github-sync"
+USER_AGENT = "MyIssueDeck-github-sync"
 
 
 def git_blob_sha(data: bytes) -> str:

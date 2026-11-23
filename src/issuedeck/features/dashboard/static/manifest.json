@@ -1,6 +1,6 @@
 {
-  "name": "MyIssueDesk",
-  "short_name": "MyIssueDesk",
+  "name": "MyIssueDeck",
+  "short_name": "MyIssueDeck",
   "start_url": "/dashboard/",
   "display": "browser",
   "icons": [

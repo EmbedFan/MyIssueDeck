@@ -1,4 +1,4 @@
-MyIssueDesk 是一个供人和 AI 编程代理使用的本地事项跟踪工具。本页介绍控制台的使用。可通过目录跳转到某个主题；浏览器的搜索（Ctrl+F）可以在本页中查找文字。
+MyIssueDeck 是一个供人和 AI 编程代理使用的本地事项跟踪工具。本页介绍控制台的使用。可通过目录跳转到某个主题；浏览器的搜索（Ctrl+F）可以在本页中查找文字。
 
 ## 开始使用 {#start}
 
@@ -78,7 +78,7 @@ MyIssueDesk 是一个供人和 AI 编程代理使用的本地事项跟踪工具�
 
 ## 连接 AI 代理 {#mcp}
 
-- AI 代理通过 **MCP 服务器**使用 MyIssueDesk：运行 `python -m issuedeck.mcp`，并设置环境变量 `ISSUEDECK_BASE_URL`（例如 `http://127.0.0.1:8766`）和 `ISSUEDECK_TOKEN`（具有 `agent` 权限范围的令牌）。
+- AI 代理通过 **MCP 服务器**使用 MyIssueDeck：运行 `python -m issuedeck.mcp`，并设置环境变量 `ISSUEDECK_BASE_URL`（例如 `http://127.0.0.1:8766`）和 `ISSUEDECK_TOKEN`（具有 `agent` 权限范围的令牌）。
 - 在代理的配置（例如 `.mcp.json`）中把它注册为名为 `issuedeck` 的 stdio 服务器，重启代理，并检查工具是否出现。
 - 推荐流程：查看项目，创建或查找事项，启动工作会话，记录进展和已用时间，完成后发布事项。
 - 服务器必须处于运行状态。详细信息见 `docs` 文件夹（MCP Client Setup、Agent Work Sessions）。

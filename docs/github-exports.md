@@ -36,7 +36,7 @@ change is recorded in the settings audit log.
 | Folder in the repository | a relative path such as `exports/issuedeck`; empty = top level | empty |
 | Name of the token environment variable | an environment variable name | `GITHUB_PAT` |
 | Allow a public repository | on / off | off |
-| Name and e-mail of the commit author | text | `MyIssueDesk`, `issuedeck@users.noreply.github.com` |
+| Name and e-mail of the commit author | text | `MyIssueDeck`, `issuedeck@users.noreply.github.com` |
 
 **Test connection** checks, without writing anything: the token variable is set, the repository
 exists, the token can write, whether the repository is private, and the branch exists. It names

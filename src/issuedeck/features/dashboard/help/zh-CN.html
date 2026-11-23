@@ -1,6 +1,6 @@
 <nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="目录" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">目录</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">开始使用</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">项目</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">事项、类型与状态</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">看板</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">列表、搜索与筛选</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">总览、时间与图表</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">AI 代理、工作会话与实时更新</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">设置</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">导入与导出</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">键盘快捷键</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">连接 AI 代理</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">故障排除</a></li></ul></nav>
 <div class="md-content help-body">
-<p>MyIssueDesk 是一个供人和 AI 编程代理使用的本地事项跟踪工具。本页介绍控制台的使用。可通过目录跳转到某个主题；浏览器的搜索（Ctrl+F）可以在本页中查找文字。</p>
+<p>MyIssueDeck 是一个供人和 AI 编程代理使用的本地事项跟踪工具。本页介绍控制台的使用。可通过目录跳转到某个主题；浏览器的搜索（Ctrl+F）可以在本页中查找文字。</p>
 <h2 id="start">开始使用</h2>
 <ul>
 <li>在登录页面使用访问令牌<strong>登录</strong>。令牌在“设置”页面创建（见<a href="#settings">设置</a>）。</li>
@@ -108,7 +108,7 @@
 </table>
 <h2 id="mcp">连接 AI 代理</h2>
 <ul>
-<li>AI 代理通过 <strong>MCP 服务器</strong>使用 MyIssueDesk：运行 <code>python -m issuedeck.mcp</code>，并设置环境变量 <code>ISSUEDECK_BASE_URL</code>（例如 <code>http://127.0.0.1:8766</code>）和 <code>ISSUEDECK_TOKEN</code>（具有 <code>agent</code> 权限范围的令牌）。</li>
+<li>AI 代理通过 <strong>MCP 服务器</strong>使用 MyIssueDeck：运行 <code>python -m issuedeck.mcp</code>，并设置环境变量 <code>ISSUEDECK_BASE_URL</code>（例如 <code>http://127.0.0.1:8766</code>）和 <code>ISSUEDECK_TOKEN</code>（具有 <code>agent</code> 权限范围的令牌）。</li>
 <li>在代理的配置（例如 <code>.mcp.json</code>）中把它注册为名为 <code>issuedeck</code> 的 stdio 服务器，重启代理，并检查工具是否出现。</li>
 <li>推荐流程：查看项目，创建或查找事项，启动工作会话，记录进展和已用时间，完成后发布事项。</li>
 <li>服务器必须处于运行状态。详细信息见 <code>docs</code> 文件夹（MCP Client Setup、Agent Work Sessions）。</li>

@@ -19,6 +19,15 @@ versioning once public releases begin.
   already in a repository is rewritten once, without a change of content; old files are still
   imported. See `docs/github-exports.md`.
 
+### Changed
+
+- The product is now spelled **MyIssueDeck** everywhere it was spelled *MyIssueDesk*: the messages of
+  the installer and the message boxes of the start and stop scripts, the READMEs and documents, the
+  built-in help in all three languages, the web manifest, the user agent, the commit trailer and the
+  **default commit author name** of the GitHub export. A commit author name that is already saved in
+  the settings is kept as it is. The lower-case names are unchanged: the tracker project key
+  `myissuedesk` and the old script names that an update replaces.
+
 ## [0.10.1] - 2026-11-18
 
 ### Added

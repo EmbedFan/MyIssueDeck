@@ -80,7 +80,7 @@ def test_bad_token_variable_names(name):
 
 
 def test_the_author_is_checked():
-    assert clean_author_name("  MyIssueDesk ") == "MyIssueDesk"
+    assert clean_author_name("  MyIssueDeck ") == "MyIssueDeck"
     assert clean_author_email("a@b.example") == "a@b.example"
     for bad in ("", "<x>", "a\nb", "x" * 101):
         with pytest.raises(InvalidSetting):

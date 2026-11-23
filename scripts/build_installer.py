@@ -1,4 +1,4 @@
-"""Build the standalone MyIssueDesk installer (FEA-0009).
+"""Build the standalone MyIssueDeck installer (FEA-0009).
 
     python scripts/build_installer.py                  full installer with the offline libraries
     python scripts/build_installer.py --no-wheelhouse  small installer that needs --online
@@ -393,7 +393,7 @@ def _require_windows_libraries(wheelhouse: Path, tags: list[str]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build the standalone MyIssueDesk installer.")
+    parser = argparse.ArgumentParser(description="Build the standalone MyIssueDeck installer.")
     parser.add_argument("--no-wheelhouse", action="store_true",
                         help="do not bundle the libraries (the installer then needs --online)")
     parser.add_argument("--wheel", type=Path, default=None,

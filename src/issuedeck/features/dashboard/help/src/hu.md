@@ -1,4 +1,4 @@
-A MyIssueDesk egy helyi hibakövető emberek és MI-alapú programozó ügynökök számára. Ez az oldal az irányítópultot mutatja be. A tartalomjegyzékből egy témára ugorhat; a böngésző keresője (Ctrl+F) ezen az oldalon szavakat keres.
+A MyIssueDeck egy helyi hibakövető emberek és MI-alapú programozó ügynökök számára. Ez az oldal az irányítópultot mutatja be. A tartalomjegyzékből egy témára ugorhat; a böngésző keresője (Ctrl+F) ezen az oldalon szavakat keres.
 
 ## Első lépések {#start}
 
@@ -78,7 +78,7 @@ A billentyűparancsok akkor működnek, ha a fókusz nem szövegmezőben van.
 
 ## MI-ügynök csatlakoztatása {#mcp}
 
-- Az MI-ügynök a MyIssueDesk-kel az **MCP-kiszolgálón** keresztül dolgozik: `python -m issuedeck.mcp` az `ISSUEDECK_BASE_URL` (például `http://127.0.0.1:8766`) és az `ISSUEDECK_TOKEN` (`agent` hatókörű token) környezeti változókkal.
+- Az MI-ügynök a MyIssueDeck-kel az **MCP-kiszolgálón** keresztül dolgozik: `python -m issuedeck.mcp` az `ISSUEDECK_BASE_URL` (például `http://127.0.0.1:8766`) és az `ISSUEDECK_TOKEN` (`agent` hatókörű token) környezeti változókkal.
 - Vegye fel az ügynök konfigurációjába (például `.mcp.json`) `issuedeck` nevű stdio-kiszolgálóként, indítsa újra az ügynököt, és ellenőrizze, hogy megjelennek-e az eszközök.
 - Jó rutin: keresse meg a projektet, hozza létre vagy keresse meg az elemet, indítson munkamenetet, rögzítse a haladást és az eltöltött időt, és adja ki az elemet, ha kész.
 - A kiszolgálónak futnia kell. A részleteket a `docs` mappa tartalmazza (MCP Client Setup, Agent Work Sessions).

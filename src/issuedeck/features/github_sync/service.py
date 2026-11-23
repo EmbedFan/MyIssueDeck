@@ -288,7 +288,7 @@ async def export_project(
             message=(
                 f"Export {project_key}: {report.items} items, {len(changed)} files changed\n\n"
                 f"Project: {project_key}\nItems: {report.items}\nExported at: {stamp}\n"
-                f"Software: MyIssueDesk {issuedeck.__version__}\n"
+                f"Software: MyIssueDeck {issuedeck.__version__}\n"
             ),
             tree_sha=tree_sha, parent_sha=head.sha,
             author_name=settings.author_name, author_email=settings.author_email,

@@ -56,8 +56,8 @@ def main() -> int:
         OUT / "favicon.ico", format="ICO", sizes=[(s, s) for s in ICO_SIZES],
     )
     manifest = {
-        "name": "MyIssueDesk",
-        "short_name": "MyIssueDesk",
+        "name": "MyIssueDeck",
+        "short_name": "MyIssueDeck",
         "start_url": "/dashboard/",
         "display": "browser",
         "icons": [

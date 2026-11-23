@@ -1,7 +1,7 @@
-MyIssueDesk installer
+MyIssueDeck installer
 =====================
 
-Install or update MyIssueDesk on this Windows computer. Python 3.11 or newer must be
+Install or update MyIssueDeck on this Windows computer. Python 3.11 or newer must be
 installed (python.org). No internet connection is needed when this is the full installer.
 
 Install (or update an installed copy):
@@ -11,7 +11,7 @@ Install (or update an installed copy):
 By default it installs to C:\Utility\MyIssueDesk. Useful options:
 
     install.cmd --check                  show what would be done, change nothing
-    install.cmd --target D:\MyIssueDesk  another folder
+    install.cmd --target D:\MyIssueDeck  another folder
     install.cmd --port 8770              another port (the default 8765 must be free)
     install.cmd --start                  leave the server running at the end
     install.cmd --repair                 reinstall the same version

@@ -77,7 +77,7 @@ async def test_first_export_is_one_commit_with_the_snapshot_files(source):
     assert files["README.md"] == b"exports\n"
     commit = fake.commits[report.commit_sha]
     assert "Export p: 2 items" in commit["message"]
-    assert commit["author"]["name"] == "MyIssueDesk"
+    assert commit["author"]["name"] == "MyIssueDeck"
     assert json.loads(files["p/items.json"])[0]["local_id"] == "FEAT-0001"
 
 

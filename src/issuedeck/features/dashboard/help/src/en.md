@@ -1,4 +1,4 @@
-MyIssueDesk is a local issue tracker for people and AI coding agents. This page explains the dashboard. Use the contents to jump to a topic; the search of your browser (Ctrl+F) finds words on this page.
+MyIssueDeck is a local issue tracker for people and AI coding agents. This page explains the dashboard. Use the contents to jump to a topic; the search of your browser (Ctrl+F) finds words on this page.
 
 ## Getting started {#start}
 
@@ -78,7 +78,7 @@ Shortcuts work when the focus is not in a text field.
 
 ## Connecting an AI agent {#mcp}
 
-- An AI agent works with MyIssueDesk through the **MCP server**: `python -m issuedeck.mcp` with the environment variables `ISSUEDECK_BASE_URL` (for example `http://127.0.0.1:8766`) and `ISSUEDECK_TOKEN` (a token with the `agent` scope).
+- An AI agent works with MyIssueDeck through the **MCP server**: `python -m issuedeck.mcp` with the environment variables `ISSUEDECK_BASE_URL` (for example `http://127.0.0.1:8766`) and `ISSUEDECK_TOKEN` (a token with the `agent` scope).
 - Register it in your agent's configuration (for example `.mcp.json`) as a stdio server named `issuedeck`, restart the agent, and check that the tools appear.
 - A good routine: look up the project, create or find the item, start a work session, record progress and time spent, and ship the item when it is done.
 - The server must be running. The `docs` folder (MCP Client Setup, Agent Work Sessions) has the details.

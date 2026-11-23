@@ -1,6 +1,6 @@
 # Standalone Installer and Updates
 
-MyIssueDesk can be installed on a Windows computer that has no copy of the source code, and an
+MyIssueDeck can be installed on a Windows computer that has no copy of the source code, and an
 installed copy can be updated without losing any data. Both are done by one installer, which the
 build produces next to the wheel. (FEA-0009; replaces `install-myissuedesk.cmd` of TASK-0003.)
 
@@ -30,7 +30,7 @@ By default the software goes to `C:\Utility\MyIssueDesk`. The installer looks at
 | an older version | an **update** |
 | the same version | refuses; `--repair` reinstalls it |
 | a newer version | refuses; `--allow-downgrade` forces it (see below) |
-| other files, no MyIssueDesk | refuses; nothing is written there |
+| other files, no MyIssueDeck | refuses; nothing is written there |
 
 An installation made by the old `install-myissuedesk.cmd` is recognised and can be updated.
 
@@ -38,7 +38,7 @@ An installation made by the old `install-myissuedesk.cmd` is recognised and can 
 
 1. Checks Python, free disk space, write permission and that the port is free.
 2. Creates `data`, `projects`, `project-templates`, `logs`, `run`, `backups` and a virtual
-   environment `.venv`, and installs MyIssueDesk and its libraries **from the installer**.
+   environment `.venv`, and installs MyIssueDeck and its libraries **from the installer**.
 3. Writes `server.toml` from the example with the address `127.0.0.1`, port 8765 (it must be free;
    there is no silent switch to another port) and a **new random administrator token**. The token is
    shown once at the end and is stored only in `server.toml` (the file is limited to your Windows

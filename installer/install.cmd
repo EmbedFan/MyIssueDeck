@@ -1,6 +1,6 @@
 @echo off
 rem ------------------------------------------------------------------
-rem MyIssueDesk installer launcher.
+rem MyIssueDeck installer launcher.
 rem Finds Python 3.11 or newer and runs installer.py with the same
 rem arguments:  install.cmd --target C:\Utility\MyIssueDesk
 rem             install.cmd --check          (show what would be done)

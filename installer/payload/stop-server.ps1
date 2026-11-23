@@ -1,4 +1,4 @@
-# Stops the MyIssueDesk server started from this folder. Called by stop-myissuedeck.vbs.
+# Stops the MyIssueDeck server started from this folder. Called by stop-myissuedeck.vbs.
 # Only processes whose command line points into this installation are stopped, so
 # another IssueDeck running on the same machine (for example from the source
 # checkout) is left alone.

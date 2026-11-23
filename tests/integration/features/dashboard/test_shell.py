@@ -250,7 +250,7 @@ async def test_every_page_declares_the_icons_and_they_can_be_fetched(shell):
 async def test_the_manifest_points_to_icons_that_exist(shell):
     client, *_ = shell
     manifest = json.loads((await client.get("/dashboard/static/manifest.json")).text)
-    assert manifest["name"] == "MyIssueDesk" and len(manifest["icons"]) == 2
+    assert manifest["name"] == "MyIssueDeck" and len(manifest["icons"]) == 2
     for icon in manifest["icons"]:
         assert (await client.get(icon["src"])).status_code == 200
         side = int(icon["sizes"].split("x")[0])

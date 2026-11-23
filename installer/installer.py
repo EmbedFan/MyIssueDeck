@@ -1,10 +1,10 @@
-"""MyIssueDesk installer: a new installation, or an update of an installed copy.
+"""MyIssueDeck installer: a new installation, or an update of an installed copy.
 
 Standard library only. It runs from the installer ZIP built by ``scripts/build_installer.py``
 (``installer.py``, ``wheelhouse/``, ``payload/`` and ``installer-manifest.json`` side by side)
 and, for development, from the ``installer`` folder of the source tree.
 
-    python installer.py --target C:\\Utility\\MyIssueDesk            install or update
+    python installer.py --target C:\\Utility\\MyIssueDeck            install or update
     python installer.py --check                                      show what would be done
 
 Exit codes: 0 done, 1 failed and rolled back, 2 stopped before anything was changed,
@@ -480,7 +480,7 @@ class Installer:
                 return "new"  # an interrupted installation is repeated
             if target.exists() and any(target.iterdir()):
                 raise InstallError(
-                    f"{target} is not empty and holds no MyIssueDesk installation; "
+                    f"{target} is not empty and holds no MyIssueDeck installation; "
                     "choose another folder with --target")
             return "new"
         order = compare_versions(self.version, existing.version)
@@ -544,7 +544,7 @@ class Installer:
 
     def describe_plan(self, mode: str, existing: Installation | None) -> list[str]:
         libraries = "downloaded from the package index" if self.opt.online else "from the installer"
-        lines = [f"MyIssueDesk {self.version} installer",
+        lines = [f"MyIssueDeck {self.version} installer",
                  f"  target:   {self.opt.target}",
                  f"  Python:   {platform.python_version()} ({self.python_tag})",
                  f"  libraries: {libraries}"]
@@ -619,7 +619,7 @@ class Installer:
         self.log.write("Creating the Python environment ...")
         self._run([sys.executable, "-m", "venv", str(venv)], what="creating the environment")
         py = str(venv_python(venv))
-        self.log.write("Installing MyIssueDesk and its libraries ...")
+        self.log.write("Installing MyIssueDeck and its libraries ...")
         if self.opt.online:
             command = [py, "-m", "pip", "install", "--disable-pip-version-check",
                        str(self._app_wheel())]
@@ -987,7 +987,7 @@ class Installer:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="installer.py",
-        description="Install MyIssueDesk, or update an installed copy without touching its data.",
+        description="Install MyIssueDeck, or update an installed copy without touching its data.",
     )
     parser.add_argument("--target", default=DEFAULT_TARGET, help="installation folder "
                         f"(default {DEFAULT_TARGET})")
@@ -1023,7 +1023,7 @@ def build_parser() -> argparse.ArgumentParser:
 def print_report(report: Report, log: Log) -> None:
     out = log.write
     out("")
-    out(f"MyIssueDesk {report.new_version}: {report.mode} finished.")
+    out(f"MyIssueDeck {report.new_version}: {report.mode} finished.")
     out(f"  folder:  {report.target}")
     if report.old_version:
         out(f"  version: {report.old_version} -> {report.new_version}")

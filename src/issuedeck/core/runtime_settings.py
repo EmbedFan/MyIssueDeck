@@ -84,7 +84,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
         "folder": "",
         "token_env": DEFAULT_TOKEN_ENV,
         "allow_public": False,
-        "author_name": "MyIssueDesk",
+        "author_name": "MyIssueDeck",
         "author_email": "issuedeck@users.noreply.github.com",
     },
 }

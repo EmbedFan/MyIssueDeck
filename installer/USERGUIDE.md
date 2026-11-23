@@ -1,11 +1,11 @@
-# MyIssueDesk User Guide: Connecting an AI to the MCP Server
+# MyIssueDeck User Guide: Connecting an AI to the MCP Server
 
 This guide tells **any AI assistant or MCP client** (Claude Code, Claude Desktop, Cursor,
-Codex and similar) how to connect to a MyIssueDesk server and work with its items, and gives a
+Codex and similar) how to connect to a MyIssueDeck server and work with its items, and gives a
 person the same steps. It is written so that an AI can read it and configure the connection by
 itself.
 
-MyIssueDesk is a local fork of [IssueDeck](https://github.com/xq520mmy/IssueDeck): a FastAPI +
+MyIssueDeck is a local fork of [IssueDeck](https://github.com/xq520mmy/IssueDeck): a FastAPI +
 SQLite issue tracker with a web dashboard and MCP tools for coding agents. The package is named
 `myissuedeck`; the Python import package and the command are still `issuedeck`.
 
@@ -20,7 +20,7 @@ AI client (Claude Code, Cursor, ...)
 MCP process:  python -m issuedeck.mcp        <- reads ISSUEDECK_BASE_URL and ISSUEDECK_TOKEN
    | HTTP + "Authorization: Bearer <token>"
    v
-MyIssueDesk server:  issuedeck serve          <- REST API + dashboard, owns the SQLite database
+MyIssueDeck server:  issuedeck serve          <- REST API + dashboard, owns the SQLite database
 ```
 
 - The MCP process is only a client of the REST API. It **never opens the database**.
@@ -258,7 +258,7 @@ Be honest in the notes: say what was tested and what was not.
 
 ## 11. Prompt you can give another AI
 
-> Connect to the MyIssueDesk MCP server. Find the folder that holds `server.toml` and read its
+> Connect to the MyIssueDeck MCP server. Find the folder that holds `server.toml` and read its
 > `host` and `port`. Find the Python of the virtual environment where `myissuedeck` is installed
 > and check that `python -c "import issuedeck.mcp.tools"` works. Do not print or log any token:
 > read it only to place it in the client configuration, and prefer an `agent`-scope token. Make
