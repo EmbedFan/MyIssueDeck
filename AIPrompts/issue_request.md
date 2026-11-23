@@ -1,5 +1,48 @@
 # Requested issues
 
+## IS-0011: A Snapshot Exported by an Earlier Version Cannot Be Imported: the Importer Rejects Doubled Carriage Returns in `project.toml`
+
+**Status:** Proposed (not yet planned or implemented). The request was written under the words *feature request*; it describes a defect of an existing function (FEA-0008), so it is kept here as an issue.
+
+**Summary:** On a new installation, with no project on the server, *Import from GitHub* (repository `EmbedFan/MyIssueDeckExports`) fails at the last step with `the project configuration in the snapshot is invalid: Expected newline or end of document after a statement (at line 1, column 20)`; nothing is imported. The importer shall accept the snapshots that are already in the repository, whatever line endings their `project.toml` has, so that a project exported by an earlier version can be restored.
+
+**Reported:** Import a project from `MyIssueDeckExports` after an installation, with no project definition on the server for the selected project. The progress shows every step done (connecting, reading the repository, downloading the 7 files `import_batches.json`, `items.json`, `manifest.json`, `project.json`, `project.toml`, `relationships.json`, `work_sessions.json`, checking the content), the action stops after 3.1 s, and the message above is shown.
+
+**Cause (found and reproduced on 2026-11-23):**
+- The `project.toml` in the repository has the line ending CR CR LF (two carriage returns before the line feed). This is the damage that IS-0010 describes: before its correction the importer wrote the configuration of an imported project in text mode, which on Windows doubled every carriage return, and the next export then copied that file as it was. A repository that was filled by such a server holds files like this.
+- The importer decodes the file of the snapshot and gives the raw text to the TOML parser (`snapshot_import.py`, `_parse_config`). The parser accepts LF and CR LF but not a lone CR, and stops after the first statement. For the key `myissuedesk` the statement `key = "myissuedesk"` has 19 characters, so the error is at column 20, exactly the message that was reported. The same text with CR CR LF gives that message, with LF or CR LF it gives none.
+- The server itself accepts the same file from disk, because it reads its own configuration files in text mode, which turns a lone CR into a line break. So the damaged project worked on the server where it was imported and was exported without any sign of a problem; only the import of the exported snapshot fails.
+- Through the importer, with a snapshot whose `project.toml` was changed to CR CR LF, the result is the same error, no row and no configuration file are written, and the same snapshot with LF is imported. Every import path is affected, because all of them use `_parse_config`: the GitHub import of the dashboard, the command `github-import` and the import of a snapshot ZIP.
+- It is not a problem of the network, of the token or of the repository: all earlier steps are done.
+
+**Why it matters:** The repository is the backup and the way to move a project to another installation (FEA-0008). The files that are in it now were written by 0.10.0 and 0.10.1 and cannot be restored on a new installation, which is exactly when they are needed, and the correction of IS-0010 does not help them: it only changes what is exported from now on. The message does not tell the user what to do, and the project cannot be repaired by hand without unpacking the files from the repository.
+
+**Requirements:**
+1. **The importer accepts every line ending.** A `project.toml` with LF, CR LF, CR CR LF or a lone CR, with or without a byte order mark, is imported. The text is brought to one form, the same one the exporter writes since IS-0010 (every CR+ LF and every lone CR becomes LF, no BOM), before it is parsed. This holds for every import path (GitHub import in the dashboard, `github-import`, snapshot ZIP, preview and apply).
+2. **The configuration is written in that form.** The file that the import creates has LF line ends, never a doubled CR, so a project imported from a damaged snapshot exports the same files as one imported from a clean snapshot, and the repository is repaired by the first export of the imported project.
+3. **The report says what was done.** When the line ends of the snapshot were changed, the preview and the result of the import say so in one line (*the line endings of project.toml were normalised*), so that nobody has to wonder about the difference.
+4. **A configuration that is really invalid is still refused, with a message that helps.** The message names the file (`project.toml`) and the line and shows the text of that line, nothing is written, and a line ending is never mentioned as the cause when it is not.
+5. **Nothing else changes.** Snapshots made by this version are imported as before; the rules of FEA-0007 (preview, conflict policies, all or nothing) are not touched; the exporter is not touched.
+
+**Tests:**
+- A snapshot with the project configuration in each line ending (LF, CR LF, CR CR LF, lone CR, BOM plus CR LF) is imported as a new project, in the preview and in the apply, through the importer, through the dashboard GitHub import against the local test double of the GitHub API and through the command `github-import`; the written file has LF only.
+- The files of the repository as the user has them (a configuration with CR CR LF, key `myissuedesk`, 7 files) are imported, and the project exported afterwards is up to date against a clean export (IS-0010).
+- A configuration that is invalid for another reason is refused with the file and the line named, nothing is written, and no configuration file is left behind.
+- The report carries the line about the normalised line endings only when something was changed.
+- The tests of IS-0010 and of FEA-0007 and FEA-0008 still pass. The test of the exact bytes (IS-0010) is adapted to the decision below.
+- Tried on this PC: a throwaway server with no project, a repository double that holds the snapshot with CR CR LF, the import in the dashboard, then the project is open and its export is up to date.
+
+**Points to settle when the issue is planned:**
+- Whether the importer writes the normalised text always (recommended: the file equals what the exporter writes, so the round trip is exact whatever the source) or the bytes it received when they are valid (this keeps a CR LF file as CR LF, but then the same project has different bytes on disk depending on where it came from).
+- Whether a repository that holds damaged files is repaired by the first export of the imported project only (as proposed) or whether a command rewrites the files in the repository.
+- Whether the *Check* of the GitHub page tells beforehand, when it lists the projects of the repository, that a project cannot be imported, so that the user does not wait for the downloads (the problem is found only after all files are downloaded).
+
+**Not part of this request:** changing the exporter, the GitHub API handling, the server's own reading of its configuration files, or the format of the snapshot.
+
+**Related items:** IS-0010 (its defect wrote the files that this issue cannot read; its correction prevents new ones); FEA-0008 (the GitHub import and export); FEA-0007 (the snapshot import, whose parser is the place of the change); IS-0008 (the first-start import from GitHub, where this was found); FEA-0009 (the installation after which it happened).
+
+---
+
 ## IS-0010: An Imported Project Is Reported as Changed: the Export Is Not Stable across an Import
 
 **Status:** Implemented, not yet committed (tracked as IS-0010 in MyIssueDesk). The request was written under the words *feature request*; it describes a defect of an existing function (FEA-0008), so it is kept here as an issue. Decisions taken at planning: the ids are removed from the files (they are neither kept nor ignored in the comparison), and everything is ordered by content; the format name stays `issuedeck.audit_bundle.v1` because the new files are read by 0.10.x (the ids were optional there) and the old files are read by the new importer, so no format version had to be raised; `generated_at` stays in the manifest (it alone is never a change); the audit-bundle ZIP and the backup of a deleted project share the code and lose the ids too; the one-time rewrite of projects already in a repository is documented, not announced in the app.
