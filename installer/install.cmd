@@ -2,7 +2,7 @@
 rem ------------------------------------------------------------------
 rem MyIssueDeck installer launcher.
 rem Finds Python 3.11 or newer and runs installer.py with the same
-rem arguments:  install.cmd --target C:\Utility\MyIssueDesk
+rem arguments:  install.cmd --target D:\MyIssueDeck_0.10.1
 rem             install.cmd --check          (show what would be done)
 rem ------------------------------------------------------------------
 setlocal EnableExtensions

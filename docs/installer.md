@@ -22,7 +22,10 @@ install.cmd
 
 ## Install or update
 
-By default the software goes to `C:\Utility\MyIssueDesk`. The installer looks at that folder:
+Without `--target` the software goes to a **new folder named after the version**,
+`C:\Utility\MyIssueDeck_<version>` (for example `C:\Utility\MyIssueDeck_0.10.1`), so a run without
+options never touches an installation that already exists. To update an installation, give its folder
+with `--target`. The installer looks at the target folder:
 
 | What it finds | What it does |
 |---|---|
@@ -33,6 +36,12 @@ By default the software goes to `C:\Utility\MyIssueDesk`. The installer looks at
 | other files, no MyIssueDeck | refuses; nothing is written there |
 
 An installation made by the old `install-myissuedesk.cmd` is recognised and can be updated.
+
+**A new version installs next to the old one by default**, as a new installation with its own
+`server.toml` and administrator token and an empty database (and the default port 8765 must be free,
+so the old server has to be stopped or another `--port` chosen; the message then reminds you of
+`--target`). To keep the data, update the old folder (`--target <old folder>`), or start the new one
+with `--import-data` (a project snapshot, or the data folder of the old installation).
 
 ### New installation
 
@@ -91,7 +100,7 @@ message lists it; the backup is complete and you can restore by hand from it.
 
 | Option | Meaning |
 |---|---|
-| `--target FOLDER` | installation folder (default `C:\Utility\MyIssueDesk`) |
+| `--target FOLDER` | installation folder; give the folder of an existing installation to update it (default `C:\Utility\MyIssueDeck_<version>`, one folder per version) |
 | `--host`, `--port` | address of a new installation (default `127.0.0.1`, `8765`) |
 | `--check` | show what would be done, change nothing |
 | `--repair` | reinstall the same version |

@@ -4,8 +4,9 @@ Standard library only. It runs from the installer ZIP built by ``scripts/build_i
 (``installer.py``, ``wheelhouse/``, ``payload/`` and ``installer-manifest.json`` side by side)
 and, for development, from the ``installer`` folder of the source tree.
 
-    python installer.py --target C:\\Utility\\MyIssueDeck            install or update
-    python installer.py --check                                      show what would be done
+    python installer.py                  new installation in C:\\Utility\\MyIssueDeck_<version>
+    python installer.py --target FOLDER  install into FOLDER, or update the installation in it
+    python installer.py --check          show what would be done
 
 Exit codes: 0 done, 1 failed and rolled back, 2 stopped before anything was changed,
 3 the installer itself is damaged.
@@ -42,7 +43,9 @@ PRODUCT = "myissuedeck"
 MARKER = "install.json"
 PARTIAL = "install.partial"
 MANIFEST = "installer-manifest.json"
-DEFAULT_TARGET = r"C:\Utility\MyIssueDesk"
+# one folder per version: an installer run without --target never touches an installation that
+# already exists (to update one, give its folder with --target)
+DEFAULT_TARGET_TEMPLATE = r"C:\Utility\MyIssueDeck_{version}"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 DEFAULT_KEEP_BACKUPS = 5
@@ -72,6 +75,30 @@ class InstallError(Exception):
 
 
 # --------------------------------------------------------------------------- helpers
+
+
+def default_target(version: str) -> Path:
+    """The folder an installer run without --target uses: one folder per version."""
+    return Path(DEFAULT_TARGET_TEMPLATE.format(version=version))
+
+
+def product_version(source: Path) -> str:
+    """The version this installer installs, from its manifest (or, in a development run, from
+    the name of the wheel next to it)."""
+    manifest = source / MANIFEST
+    if manifest.exists():
+        try:
+            return str(json.loads(manifest.read_text(encoding="utf-8"))["version"])
+        except (OSError, ValueError, KeyError) as exc:
+            raise InstallError(
+                f"the installer manifest is unreadable: {exc}", EXIT_DAMAGED) from exc
+    common = source / "wheelhouse" / "common"
+    wheels = sorted(common.glob(f"{PRODUCT}-*.whl")) if common.exists() else []
+    if not wheels:
+        raise InstallError(
+            "no installer manifest and no myissuedeck wheel found next to the installer",
+            EXIT_DAMAGED)
+    return wheels[-1].name.split("-")[1]
 
 
 def parse_version(text: str) -> tuple[int, ...]:
@@ -325,6 +352,7 @@ class Options:
     silent: bool = False
     assume_yes: bool = False
     source: Path = HERE
+    target_is_default: bool = False  # no --target was given
 
 
 @dataclass
@@ -526,9 +554,11 @@ class Installer:
                 f"not enough free disk space on {anchor.drive or anchor}: "
                 f"{free // 2**20} MB free, about {needed // 2**20} MB needed")
         if mode in ("new",) and self.control.port_in_use(self.opt.host, self.opt.port):
+            hint = (" If it is an installation that you want to update, give its folder with "
+                    "--target." if self.opt.target_is_default else "")
             raise InstallError(
                 f"port {self.opt.port} is already in use by another program. "
-                "Stop it, or choose another port with --port")
+                f"Stop it, or choose another port with --port.{hint}")
         if mode != "new" and self.opt.import_data is not None:
             raise InstallError("--import-data is only for a new installation")
         if self.opt.import_data is not None and not self.opt.import_data.exists():
@@ -545,9 +575,12 @@ class Installer:
     def describe_plan(self, mode: str, existing: Installation | None) -> list[str]:
         libraries = "downloaded from the package index" if self.opt.online else "from the installer"
         lines = [f"MyIssueDeck {self.version} installer",
-                 f"  target:   {self.opt.target}",
-                 f"  Python:   {platform.python_version()} ({self.python_tag})",
-                 f"  libraries: {libraries}"]
+                 f"  target:   {self.opt.target}"]
+        if self.opt.target_is_default:
+            lines.append("            (the default folder holds one version; to update an "
+                         "installation that already exists, give its folder with --target)")
+        lines += [f"  Python:   {platform.python_version()} ({self.python_tag})",
+                  f"  libraries: {libraries}"]
         if mode == "new":
             lines += [f"  mode:     new installation (address {self.opt.host}:{self.opt.port})",
                       "  steps:    create folders and environment, install, write server.toml "
@@ -989,8 +1022,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="installer.py",
         description="Install MyIssueDeck, or update an installed copy without touching its data.",
     )
-    parser.add_argument("--target", default=DEFAULT_TARGET, help="installation folder "
-                        f"(default {DEFAULT_TARGET})")
+    parser.add_argument(
+        "--target", default=None,
+        help="installation folder; to update an installation, give its folder (default: "
+             + DEFAULT_TARGET_TEMPLATE.replace("{version}", "<version>")
+             + ", one folder per version)")
     parser.add_argument("--host", default=DEFAULT_HOST, help="address of a new installation")
     parser.add_argument("--port", type=int, default=None,
                         help=f"port of a new installation (default {DEFAULT_PORT}, must be free)")
@@ -1056,24 +1092,28 @@ def print_report(report: Report, log: Log) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    options = Options(
-        target=Path(args.target),
-        host=args.host,
-        port=args.port if args.port is not None else DEFAULT_PORT,
-        port_given=args.port is not None,
-        online=args.online,
-        check=args.check,
-        repair=args.repair,
-        allow_downgrade=args.allow_downgrade,
-        keep_backups=args.keep_backups,
-        start=args.start,
-        import_data=Path(args.import_data) if args.import_data else None,
-        silent=args.silent,
-        assume_yes=args.yes,
-        source=Path(args.source) if args.source else HERE,
-    )
     log = Log(quiet=args.silent)
+    source = Path(args.source) if args.source else HERE
     try:
+        # without --target the folder is named after the version this installer installs
+        target = Path(args.target) if args.target else default_target(product_version(source))
+        options = Options(
+            target=target,
+            host=args.host,
+            port=args.port if args.port is not None else DEFAULT_PORT,
+            port_given=args.port is not None,
+            online=args.online,
+            check=args.check,
+            repair=args.repair,
+            allow_downgrade=args.allow_downgrade,
+            keep_backups=args.keep_backups,
+            start=args.start,
+            import_data=Path(args.import_data) if args.import_data else None,
+            silent=args.silent,
+            assume_yes=args.yes,
+            source=source,
+            target_is_default=not args.target,
+        )
         installer = Installer(options, log=log)
         report = installer.run()
     except InstallError as exc:

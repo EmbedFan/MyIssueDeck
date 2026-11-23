@@ -27,6 +27,11 @@ versioning once public releases begin.
   **default commit author name** of the GitHub export. A commit author name that is already saved in
   the settings is kept as it is. The lower-case names are unchanged: the tracker project key
   `myissuedesk` and the old script names that an update replaces.
+- The standalone installer's default folder is now `C:\Utility\MyIssueDeck_<version>` (one folder per
+  version, named after the version the installer installs) instead of `C:\Utility\MyIssueDesk`. A
+  run without `--target` therefore never touches an installation that already exists: it makes a new
+  one next to it. To update an installation, give its folder with `--target`; the plan and the
+  "port in use" message say so. See `docs/installer.md`.
 
 ## [0.10.1] - 2026-11-18
 
