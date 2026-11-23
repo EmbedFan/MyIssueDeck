@@ -66,6 +66,9 @@ Rules:
   otherwise the import stops before anything is written and lists the problems.
 - The import is all or nothing (one database transaction). The ZIP is never extracted: only the
   known file names are read, with a size limit.
+- `project.toml` of the snapshot may have any line ending (LF, CR LF, CR CR LF, a lone CR) and a
+  byte order mark: it is brought to one form (LF) before it is read, the project configuration is
+  written in that form, and the report says so. Earlier versions exported such files from Windows.
 - A snapshot made when a project was deleted (`data/deleted-projects/`) can be used to
   restore that project.
 - Not restored: tokens and server settings. The files carry no numeric database ids (of events,

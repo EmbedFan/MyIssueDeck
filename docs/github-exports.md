@@ -72,8 +72,13 @@ it received it. The one thing that always differs between two exports is the exp
 elsewhere, with nothing edited, is reported as **up to date** by *Check what would change*.
 
 **Projects that are already in a repository.** Files exported by 0.10.1 and earlier still carry
-the ids and, from a Windows machine, CR LF line ends. They are still imported. The first export
-of such a project after this change rewrites `items.json`, `relationships.json`,
+the ids and, from a Windows machine, CR LF or even CR CR LF line ends in `project.toml` (an earlier
+importer doubled every carriage return when it wrote the configuration, and the next export copied
+that file). They are still imported: the importer brings `project.toml` to one form (LF, no byte
+order mark) before it reads it, writes the configuration in that form and says so in the preview and
+in the result (*the line endings of project.toml were normalised*). A configuration that is really
+invalid is refused with the file, the line and the text of the line named, and nothing is written.
+The first export of such a project after this change rewrites `items.json`, `relationships.json`,
 `work_sessions.json`, `import_batches.json` and `project.toml` once, without any change of
 content; after that the files stay equal until the data really changes.
 

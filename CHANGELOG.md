@@ -7,6 +7,19 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Fixed
+
+- A snapshot that an earlier version exported from Windows can be imported again (IS-0011). Its
+  `project.toml` could have CR CR LF line ends (the importer of 0.10.0 and 0.10.1 doubled every
+  carriage return when it wrote a configuration, and the next export copied the file), which the
+  TOML parser refuses: the import of such a repository stopped after the download with `Expected
+  newline or end of document after a statement (at line 1, column 20)` and nothing was imported. The
+  importer now brings `project.toml` to one form (LF, no byte order mark) before it reads it, for
+  every way to import (dashboard, `github-import`, snapshot ZIP), writes the configuration in that
+  form and says so in the preview and the result; the first export of the imported project repairs
+  the repository. A configuration that is really invalid is refused with the file, the line and the
+  text of the line named. The importer always writes LF now (it used to write the bytes it received).
+
 ## [0.10.2] - 2026-11-23
 
 ### Fixed

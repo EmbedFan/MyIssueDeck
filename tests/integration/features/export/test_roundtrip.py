@@ -236,9 +236,11 @@ def _real_toml(snapshot_zip, ending):
 
 
 @pytest.mark.parametrize("ending", [b"\n", b"\r\n"])
-async def test_the_importer_writes_the_configuration_byte_for_byte(
+async def test_the_importer_writes_the_configuration_in_the_form_the_exporter_writes(
         tmp_path, bundle, ending):  # noqa: F811
-    """Text mode turned every CR LF into CR CR LF on Windows (IS-0010)."""
+    """Text mode turned every CR LF into CR CR LF on Windows (IS-0010); since IS-0011 the importer
+    always writes the canonical text (LF): byte for byte for a snapshot of this version, and
+    without any doubling for an older one."""
     raw = _real_toml(bundle, ending)
     snapshot = _zip_without(
         bundle, tmp_path / "ends.zip", drop={"project.toml"}, add={"project.toml": raw})
@@ -250,8 +252,8 @@ async def test_the_importer_writes_the_configuration_byte_for_byte(
     await engine.dispose()
 
     written = (registry.server.projects_dir / "p.toml").read_bytes()
-    assert written == raw
-    assert b"\r\r" not in written
+    assert written == _real_toml(bundle, b"\n")
+    assert b"\r" not in written
     assert registry.project("p").key == "p"
 
 

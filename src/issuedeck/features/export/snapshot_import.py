@@ -70,6 +70,9 @@ class Snapshot:
     relationships: list[dict[str, Any]]
     work_sessions: list[dict[str, Any]]
     import_batches: list[dict[str, Any]]
+    # project.toml had other line endings than LF, or a byte order mark, and was brought to one
+    # form (IS-0011); the importer says so in its report
+    config_normalised: bool = False
 
     @property
     def project_key(self) -> str:
@@ -99,6 +102,17 @@ class ImportReport:
 # ---------------------------------------------------------------------------
 # Reading
 # ---------------------------------------------------------------------------
+
+def canonical_config_text(text: str) -> str:
+    """The text of a project configuration with one line ending (LF) and no byte order mark.
+
+    Snapshots that earlier versions exported from Windows can hold CR CR LF (the importer used to
+    double every carriage return when it wrote a configuration). The TOML parser refuses a lone
+    carriage return, although the server reads the same file from disk without a problem, so every
+    snapshot is brought to the form the exporter writes before it is parsed (IS-0011).
+    """
+    return re.sub(r"\r+\n|\r", "\n", text.lstrip(chr(0xFEFF)))
+
 
 def read_snapshot(path: Path) -> Snapshot:
     """Read and check a snapshot ZIP. Raises SnapshotInvalid; touches nothing on disk."""
@@ -147,11 +161,14 @@ def read_snapshot(path: Path) -> Snapshot:
             raise SnapshotInvalid("the snapshot has no valid project key")
 
         project_toml = None
+        config_normalised = False
         if "project.toml" in infos:
             try:
-                project_toml = raw("project.toml").decode("utf-8-sig")
+                original = raw("project.toml")
+                project_toml = canonical_config_text(original.decode("utf-8-sig"))
             except UnicodeDecodeError as exc:
                 raise SnapshotInvalid("project.toml is not valid text") from exc
+            config_normalised = project_toml.encode("utf-8") != original
 
         snapshot = Snapshot(
             manifest=manifest,
@@ -161,6 +178,7 @@ def read_snapshot(path: Path) -> Snapshot:
             relationships=load("relationships.json", list),
             work_sessions=load("work_sessions.json", list),
             import_batches=load("import_batches.json", list),
+            config_normalised=config_normalised,
         )
 
     counts = manifest.get("counts") or {}
@@ -255,6 +273,11 @@ async def import_snapshot(
         mode=mode, project_key=target, source_project_key=snapshot.project_key,
         conflict=conflict,
     )
+    if mode == "create" and snapshot.config_normalised:
+        report.warnings.append(
+            "the line endings of project.toml were normalised (one line ending, no byte order "
+            "mark): the snapshot was made by an earlier version",
+        )
 
     wrote_config = False
     try:
@@ -303,10 +326,32 @@ def _config_text_for(snapshot: Snapshot, target: str) -> str:
     return text
 
 
+_TOML_POSITION = re.compile(r"\s*\(at line (\d+), column (\d+)\)")
+
+
+def _toml_problem(text: str, exc: tomllib.TOMLDecodeError) -> str:
+    """The TOML error with the file, the line and the text of that line (IS-0011): a bare
+    "line 1, column 20" tells the user nothing about a file inside a ZIP."""
+    message = str(exc)
+    position = _TOML_POSITION.search(message)
+    if position is None:
+        return f"the project configuration (project.toml) in the snapshot is invalid: {message}"
+    reason = _TOML_POSITION.sub("", message).strip()
+    line_number, column = int(position.group(1)), int(position.group(2))
+    lines = text.split("\n")
+    shown = lines[line_number - 1].strip()[:120] if line_number <= len(lines) else ""
+    return (
+        f"the project configuration (project.toml) in the snapshot is invalid at line "
+        f"{line_number}, column {column}: {reason}; that line reads: {shown!r}"
+    )
+
+
 def _parse_config(text: str, target: str) -> ProjectConfig:
     try:
         config = ProjectConfig.model_validate(tomllib.loads(text))
-    except (tomllib.TOMLDecodeError, ValueError) as exc:
+    except tomllib.TOMLDecodeError as exc:
+        raise SnapshotInvalid(_toml_problem(text, exc)) from exc
+    except ValueError as exc:
         raise SnapshotInvalid(
             f"the project configuration in the snapshot is invalid: {exc}",
         ) from exc

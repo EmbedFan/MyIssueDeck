@@ -2,7 +2,7 @@
 
 ## IS-0011: A Snapshot Exported by an Earlier Version Cannot Be Imported: the Importer Rejects Doubled Carriage Returns in `project.toml`
 
-**Status:** Proposed (not yet planned or implemented). The request was written under the words *feature request*; it describes a defect of an existing function (FEA-0008), so it is kept here as an issue.
+**Status:** Implemented, not yet committed (tracked as IS-0011 in MyIssueDeck, not registered: the server was not running). The request was written under the words *feature request*; it describes a defect of an existing function (FEA-0008), so it is kept here as an issue. Decisions taken: the importer always writes the normalised text (LF), also for a snapshot with CR LF, which changes the earlier rule of IS-0010 that the received bytes are written (the exporter writes LF, so a snapshot of this version is still written byte for byte); the repository is repaired by the first export of the imported project, no command rewrites it; the listing of the repository does not warn beforehand (the problem is gone, so the warning would only be noise). The normalisation is in `read_snapshot`, the one place every import path goes through.
 
 **Summary:** On a new installation, with no project on the server, *Import from GitHub* (repository `EmbedFan/MyIssueDeckExports`) fails at the last step with `the project configuration in the snapshot is invalid: Expected newline or end of document after a statement (at line 1, column 20)`; nothing is imported. The importer shall accept the snapshots that are already in the repository, whatever line endings their `project.toml` has, so that a project exported by an earlier version can be restored.
 
