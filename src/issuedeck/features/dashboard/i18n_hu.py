@@ -107,6 +107,8 @@ MESSAGES_HU: dict[str, str] = {
     "custom_fields.true": "Igen",
     "form.done_requires_ship": "A „Kész” állapotot az elem kiadásával kell beállítani.",
     "form.edit_item": "Elem szerkesztése",
+    "form.saved": "Mentve",
+    "form.save_failed": "A mentés nem sikerült",
     "form.empty_preview": "Nincs megjeleníthető tartalom",
     "form.external_links": "Külső hivatkozások",
     "form.external_links_help": (

@@ -7,6 +7,14 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Ctrl-S (Cmd-S on macOS) saves the item on the edit page without closing the editor (IS-0012). The
+  form is sent in the background, so the fields, the cursor and the preview stay as they are; a
+  "Saved" message (or the server's error, with the typed text kept) appears in the corner for a
+  moment, in English, Hungarian and Chinese. The *Save* button works as before and goes to the item
+  page. The new item page is unchanged.
+
 ## [0.10.3] - 2026-11-26
 
 ### Added

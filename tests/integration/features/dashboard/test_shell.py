@@ -392,3 +392,79 @@ async def test_sidebar_shows_the_software_version(shell):
     assert page.status_code == 200
     box = page.text.split("data-app-version>")[1].split("</span>")[0]
     assert box.strip() == f"V{__version__}"
+
+
+async def _create_item(client, title="Quick save"):
+    response = await client.post(
+        "/dashboard/example/items-new",
+        data={"kind": "feature", "title": title, "applies_to": "main"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    return response.headers["location"].rsplit("/", 1)[1]
+
+
+async def test_edit_page_offers_ctrl_s_and_the_create_page_does_not(shell):
+    """IS-0012: Ctrl-S is wired on the edit page only."""
+    client, _app, _tmp = shell
+    local_id = await _create_item(client)
+
+    edit = await client.get(f"/dashboard/example/items/{local_id}/edit")
+    create = await client.get("/dashboard/example/items-new")
+
+    assert "@keydown.ctrl.s.window.prevent" in edit.text
+    assert "@keydown.meta.s.window.prevent" in edit.text
+    assert "data-save-status" in edit.text
+    assert "@keydown.ctrl.s" not in create.text
+    assert "data-save-status" not in create.text
+
+
+async def test_ctrl_s_save_returns_json_and_keeps_the_editor_open(shell):
+    """IS-0012: the background save stores the item and does not redirect."""
+    client, _app, _tmp = shell
+    local_id = await _create_item(client)
+
+    response = await client.post(
+        f"/dashboard/example/items/{local_id}/edit",
+        data={"title": "Saved by Ctrl-S", "body": "Edited text", "tags": "a, b",
+              "applies_to": "main"},
+        headers={"X-Requested-With": "fetch", "Accept": "application/json"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "local_id": local_id}
+    page = await client.get(f"/dashboard/example/items/{local_id}")
+    assert "Saved by Ctrl-S" in page.text
+    assert "Edited text" in page.text
+
+
+async def test_save_button_still_redirects_to_the_item_page(shell):
+    """IS-0012: without the fetch header the form behaves as before."""
+    client, _app, _tmp = shell
+    local_id = await _create_item(client)
+
+    response = await client.post(
+        f"/dashboard/example/items/{local_id}/edit",
+        data={"title": "Saved by button", "body": "", "applies_to": "main"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == f"/dashboard/example/items/{local_id}"
+
+
+async def test_ctrl_s_save_reports_a_server_error_as_json(shell):
+    """IS-0012: a refused save answers with the error message the page shows."""
+    client, _app, _tmp = shell
+    local_id = await _create_item(client)
+
+    response = await client.post(
+        f"/dashboard/example/items/{local_id}/edit",
+        data={"title": "x", "body": "", "applies_to": "no-such-branch"},
+        headers={"X-Requested-With": "fetch", "Accept": "application/json"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code >= 400
+    assert response.json()["error"]["message"]

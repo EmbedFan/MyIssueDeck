@@ -14,7 +14,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import httpx
 from fastapi import APIRouter, File, Form, Query, Request, Response, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy import func, select
 
@@ -2380,6 +2380,10 @@ async def edit_item_submit(
         )
     finally:
         await session.close()
+
+    # Ctrl-S in the editor (IS-0012): saved in the background, so the editor stays open.
+    if request.headers.get("x-requested-with") == "fetch":
+        return JSONResponse({"ok": True, "local_id": local_id})
 
     return RedirectResponse(
         url=f"/dashboard/{project_key}/items/{local_id}",
