@@ -26,6 +26,11 @@ for fn in (
     tools.get_work_session,
     tools.update_work_session,
     tools.finish_work_session,
+    tools.upload_image,
+    tools.upload_image_data,
+    tools.list_images,
+    tools.get_image,
+    tools.delete_image,
 ):
     mcp_server.tool()(fn)
 

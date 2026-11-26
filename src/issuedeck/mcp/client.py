@@ -8,7 +8,11 @@ import httpx
 
 from issuedeck.core.errors import (
     ConfigError,
+    ImageDuplicate,
+    ImageNotFound,
+    ImageTooLarge,
     InvalidBranch,
+    InvalidImage,
     InvalidKind,
     InvalidStatus,
     InvalidTransition,
@@ -35,6 +39,10 @@ _ERROR_MAP: dict[str, type[IssueDeckError]] = {
     RelationshipDuplicate.code: RelationshipDuplicate,
     Unauthorized.code: Unauthorized,
     WorkSessionNotFound.code: WorkSessionNotFound,
+    InvalidImage.code: InvalidImage,
+    ImageTooLarge.code: ImageTooLarge,
+    ImageNotFound.code: ImageNotFound,
+    ImageDuplicate.code: ImageDuplicate,
 }
 
 
@@ -195,6 +203,28 @@ class IssueDeckClient:
             f"/api/v1/projects/{key}/work-sessions/{session_id}/finish",
             json=body,
         )
+
+    async def upload_image(
+        self, key: str, filename: str, data: bytes,
+    ) -> dict[str, Any]:
+        return await self._request(
+            "POST", f"/api/v1/projects/{key}/images",
+            files={"file": (filename, data, "image/svg+xml")},
+        )
+
+    async def list_images(self, key: str) -> dict[str, Any]:
+        return await self._request("GET", f"/api/v1/projects/{key}/images")
+
+    async def get_image(self, key: str, image_id: str) -> dict[str, Any]:
+        return await self._request("GET", f"/api/v1/projects/{key}/images/{image_id}")
+
+    async def get_image_content(self, key: str, image_id: str) -> bytes:
+        r = await self._http.get(f"/api/v1/projects/{key}/images/{image_id}/content")
+        _raise_for_error(r)
+        return r.content
+
+    async def delete_image(self, key: str, image_id: str) -> dict[str, Any]:
+        return await self._request("DELETE", f"/api/v1/projects/{key}/images/{image_id}")
 
 
 _client: IssueDeckClient | None = None

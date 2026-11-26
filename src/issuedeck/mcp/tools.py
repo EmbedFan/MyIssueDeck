@@ -1,9 +1,17 @@
 """MCP tool functions. Thin wrappers calling IssueDeckClient."""
 from __future__ import annotations
 
+import base64
+import binascii
+from pathlib import Path
 from typing import Any
 
+from issuedeck.core.errors import ImageTooLarge, InvalidImage
 from issuedeck.mcp.client import get_client
+
+# The MCP process reads the file itself, so it never reads more than this from the disk. The
+# server enforces its own (smaller) limit, [images] max_file_bytes in server.toml.
+MAX_LOCAL_IMAGE_BYTES = 10_000_000
 
 
 def _drop_none(data: dict[str, Any]) -> dict[str, Any]:
@@ -294,3 +302,69 @@ async def finish_work_session(
         "metadata": metadata,
     })
     return await get_client().finish_work_session(project_key, session_id, payload)
+
+
+async def upload_image(project_key: str, source_path: str) -> dict[str, Any]:
+    """Store an SVG file from this machine (local folder or network share) as a project image.
+
+    The MCP process reads ``source_path`` and uploads it, so the server needs no access to the
+    path. Only ``.svg`` files are read; the server checks the content and refuses anything
+    that is not a safe SVG. Returns the image with its id (for example ``IMG-0001``).
+    """
+    path = Path(source_path).expanduser()
+    if path.suffix.lower() != ".svg":
+        raise InvalidImage("only .svg files can be uploaded", details={"reason": "extension"})
+    if not path.is_file():
+        raise InvalidImage(f"{path} is not a file", details={"reason": "not_a_file"})
+    if path.stat().st_size > MAX_LOCAL_IMAGE_BYTES:
+        raise ImageTooLarge(f"{path.name} is larger than {MAX_LOCAL_IMAGE_BYTES} bytes")
+    return await get_client().upload_image(project_key, path.name, path.read_bytes())
+
+
+async def upload_image_data(
+    project_key: str,
+    name: str,
+    data_base64: str | None = None,
+    svg_text: str | None = None,
+) -> dict[str, Any]:
+    """Store an SVG given as data (base64, or the SVG text itself) as a project image.
+
+    Use this when the SVG is not a file the MCP process can read. Give exactly one of
+    ``data_base64`` and ``svg_text``. Returns the image with its id.
+    """
+    if (data_base64 is None) == (svg_text is None):
+        raise InvalidImage("give exactly one of data_base64 and svg_text",
+                           details={"reason": "data"})
+    if svg_text is not None:
+        data = svg_text.encode("utf-8")
+    else:
+        try:
+            data = base64.b64decode(data_base64 or "", validate=True)
+        except (binascii.Error, ValueError) as exc:
+            raise InvalidImage("data_base64 is not valid base64",
+                               details={"reason": "base64"}) from exc
+    if len(data) > MAX_LOCAL_IMAGE_BYTES:
+        raise ImageTooLarge(f"the data is larger than {MAX_LOCAL_IMAGE_BYTES} bytes")
+    return await get_client().upload_image(project_key, name, data)
+
+
+async def list_images(project_key: str) -> dict[str, Any]:
+    """List the SVG images of a project (id, name, size, SHA-256, upload time)."""
+    return await get_client().list_images(project_key)
+
+
+async def get_image(
+    project_key: str, image_id: str, include_content: bool = False,
+) -> dict[str, Any]:
+    """Return the metadata of an image, and with ``include_content`` its SVG text."""
+    image = await get_client().get_image(project_key, image_id)
+    if include_content:
+        data = await get_client().get_image_content(project_key, image_id)
+        image = {**image, "content": data.decode("utf-8", errors="replace")}
+    return image
+
+
+async def delete_image(project_key: str, image_id: str) -> dict[str, Any]:
+    """Delete an image of a project."""
+    await get_client().delete_image(project_key, image_id)
+    return {"deleted": image_id}
