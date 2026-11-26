@@ -120,6 +120,24 @@ class ItemExternalLink(Base):
     )
 
 
+class ItemImage(Base):
+    """An image of the project image store (FEA-0013) linked to an item.
+
+    ``image_id`` is the id in ``data/images/<project>/images.json`` (for example IMG-0001);
+    the image itself is not in the database.
+    """
+
+    __tablename__ = "item_images"
+
+    item_pk: Mapped[int] = mapped_column(
+        Integer, ForeignKey("items.pk", ondelete="CASCADE"), primary_key=True,
+    )
+    image_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    created_at: Mapped[str] = mapped_column(String(40), nullable=False)
+
+    __table_args__ = (Index("ix_item_images_image", "image_id"),)
+
+
 class ShipRecord(Base):
     __tablename__ = "ship_records"
 

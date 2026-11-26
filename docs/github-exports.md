@@ -54,11 +54,18 @@ Each project gets its own folder, named with the project key, inside the configu
                        relationships.json
                        work_sessions.json
                        import_batches.json
+                       images.json            (only when the project has images)
+                       item_images.json       (the same)
+                       images/IMG-0001.svg    (one file per image, as stored)
 ```
 
 These are the files of a snapshot (an audit bundle, see [Audit Bundles](audit-bundles.md)),
 stored **unpacked** so that GitHub shows readable differences between two exports. The files
 are written in a stable order and format, so the same data always gives the same files.
+
+Image files are uploaded only when they changed, like every other file. An image that is deleted
+in the project stays in the repository folder (an export only adds and changes files), but
+`images.json` no longer lists it, so an import ignores it.
 
 **What makes them stable (IS-0010).** The files never carry the numeric row ids of the database
 a project lives in (events, relationships, work sessions and their updates, import batches,

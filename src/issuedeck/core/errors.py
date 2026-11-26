@@ -133,6 +133,26 @@ class RelationshipDuplicate(IssueDeckError):
     http_status = 409
 
 
+class InvalidImage(IssueDeckError):
+    code = "invalid_image"
+    http_status = 422
+
+
+class ImageTooLarge(IssueDeckError):
+    code = "image_too_large"
+    http_status = 413
+
+
+class ImageNotFound(IssueDeckError):
+    code = "image_not_found"
+    http_status = 404
+
+
+class ImageDuplicate(IssueDeckError):
+    code = "image_duplicate"
+    http_status = 409
+
+
 class Unauthorized(IssueDeckError):
     code = "unauthorized"
     http_status = 401

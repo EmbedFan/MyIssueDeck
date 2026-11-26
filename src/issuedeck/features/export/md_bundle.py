@@ -15,9 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from issuedeck.core.config import ConfigRegistry
+from issuedeck.features.images.bundle import IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE
+from issuedeck.features.images.repo import ImageStore, registry_text
 from issuedeck.features.items.models import (
     ImportBatch,
     Item,
+    ItemImage,
     ItemRelationship,
     ShipRecord,
     WorkSession,
@@ -36,6 +39,8 @@ class AuditBundleReport:
     relationships_written: int
     work_sessions_written: int
     import_batches_written: int
+    images_written: int = 0
+    item_images_written: int = 0
 
 
 async def export_md_bundle(
@@ -117,6 +122,21 @@ async def export_audit_bundle(
         .order_by(ImportBatch.created_at.desc(), ImportBatch.id.desc())
     )).scalars().all())
 
+    # FEA-0013: the image store of the project and the links to its items, when there are any
+    image_doc, image_files = _images_of_project(registry, project_key)
+    item_links: list[dict[str, str]] = []
+    if item_pks:
+        rows = (await session.execute(
+            select(ItemImage.item_pk, ItemImage.image_id, ItemImage.created_at)
+            .where(ItemImage.item_pk.in_(item_pks))
+        )).all()
+        item_links = sorted(
+            ({"image_id": image_id, "local_id": item_pk_to_local_id[pk], "created_at": created}
+             for pk, image_id, created in rows),
+            key=lambda row: (row["local_id"], row["image_id"]),
+        )
+    has_images = bool(image_doc["images"] or item_links or int(image_doc["next_id"]) > 1)
+
     bundle_path = _audit_bundle_path(out_path, project_key)
     bundle_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -139,6 +159,11 @@ async def export_audit_bundle(
             "import_batches.json",
         ],
     }
+
+    if has_images:
+        manifest["counts"]["images"] = len(image_doc["images"])
+        manifest["counts"]["item_images"] = len(item_links)
+        manifest["files"].extend([IMAGE_REGISTRY_FILE, *sorted(image_files), ITEM_IMAGES_FILE])
 
     project_toml = registry.server.projects_dir / f"{project_key}.toml"
     if project_toml.exists():
@@ -179,6 +204,11 @@ async def export_audit_bundle(
                 reverse=True,
             ),
         )
+        if has_images:
+            bundle.writestr(IMAGE_REGISTRY_FILE, registry_text(image_doc))
+            for name in sorted(image_files):
+                bundle.writestr(name, image_files[name])  # the file, byte for byte
+            _write_json(bundle, ITEM_IMAGES_FILE, item_links)
 
     return AuditBundleReport(
         bundle_path=bundle_path,
@@ -186,7 +216,24 @@ async def export_audit_bundle(
         relationships_written=len(relationships),
         work_sessions_written=len(work_sessions),
         import_batches_written=len(import_batches),
+        images_written=len(image_files),
+        item_images_written=len(item_links),
     )
+
+
+def _images_of_project(
+    registry: ConfigRegistry, project_key: str,
+) -> tuple[dict[str, Any], dict[str, bytes]]:
+    """The registry of the project's image store and the files it lists (by snapshot name)."""
+    store = ImageStore(registry.server.data_dir / "images", project_key)
+    doc = store.load()
+    files: dict[str, bytes] = {}
+    for entry in doc["images"]:
+        try:
+            files[f"images/{entry['stored']}"] = store.read_file(entry["stored"])
+        except (FileNotFoundError, ValueError):
+            continue  # the import names an image whose file is missing and skips it
+    return doc, files
 
 
 def _render_item_md(item: Item) -> str:

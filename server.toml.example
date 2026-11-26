@@ -72,3 +72,8 @@ log_level = "info"
 [sqlite]
 wal_mode = true
 busy_timeout_ms = 5000
+
+# Project image store (FEA-0013): SVG images only, kept under data/images/<project>/.
+# [images]
+# max_file_bytes = 2000000       # largest single file
+# max_project_bytes = 100000000  # total per project

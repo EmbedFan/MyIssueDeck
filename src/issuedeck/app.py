@@ -27,6 +27,7 @@ from issuedeck.core.runtime_settings import RuntimeSettings
 from issuedeck.core.webhooks import WebhookDispatcher
 from issuedeck.features.dashboard.github_routes import router as github_router
 from issuedeck.features.dashboard.help_routes import router as help_router
+from issuedeck.features.dashboard.image_routes import router as dashboard_images_router
 from issuedeck.features.dashboard.live_routes import router as live_router
 from issuedeck.features.dashboard.routes import router as dashboard_router
 from issuedeck.features.dashboard.settings_routes import (
@@ -34,6 +35,8 @@ from issuedeck.features.dashboard.settings_routes import (
 )
 from issuedeck.features.dashboard.settings_routes import router as settings_router
 from issuedeck.features.dashboard.snapshot_routes import router as snapshot_router
+from issuedeck.features.images.routes import item_router as item_images_router
+from issuedeck.features.images.routes import router as images_router
 from issuedeck.features.items.models import Item
 from issuedeck.features.items.routes import router as items_router
 from issuedeck.features.projects.routes import router as projects_router
@@ -117,6 +120,8 @@ def create_app(server_toml: Path | str) -> FastAPI:
     app.state.registry = registry
     app.state.engine = engine
     app.state.session_factory = session_factory
+    app.state.images_dir = server_cfg.data_dir / "images"
+    app.state.images_config = server_cfg.images
     app.state.webhook_dispatcher = WebhookDispatcher(
         server_cfg.webhooks,
         server_cfg.notifications,
@@ -164,9 +169,12 @@ def create_app(server_toml: Path | str) -> FastAPI:
     app.include_router(work_sessions_router)
     app.include_router(relationships_router)
     app.include_router(search_router)
+    app.include_router(images_router)
+    app.include_router(item_images_router)
     # The settings router must come before the dashboard router: its fixed path
     # /dashboard/settings would otherwise match the project route /dashboard/{key}.
     app.include_router(settings_router)
+    app.include_router(dashboard_images_router)
     app.include_router(snapshot_router)
     app.include_router(github_router)
     app.include_router(help_router)

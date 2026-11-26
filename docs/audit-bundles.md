@@ -27,6 +27,18 @@ exact file.
   bidirectional inverse rows.
 - `work_sessions.json`: agent work sessions and progress updates.
 - `import_batches.json`: dashboard and CLI import history metadata.
+- `images.json`, `images/IMG-0001.svg`, ... and `item_images.json`: the SVG images of the
+  project's image store (the registry, the files byte for byte) and the links between items
+  and images. They are written only when the project has images, so a project without
+  images gives the same files as before.
+
+On import every image is checked on its own: the file must be present, its SHA-256 and size must
+match the registry, and it must pass the same SVG safety check as an upload. An image that fails is
+skipped and named in a warning, and so are the links to it; the rest of the import goes on. Images
+are matched by id (the text of an item refers to `image:IMG-0001`): the same id with the same
+content is unchanged, the same id with other content is skipped and the project's own image is
+kept, a free id is added. Deleting a project removes its image folder; the backup in
+`data/deleted-projects/` keeps the images, so importing it restores them.
 
 Exporting is read-only and does not mutate project data.
 

@@ -121,7 +121,7 @@ async def test_the_form_preview_uses_the_same_renderer_and_class(client):
     page = await client.get(f"/dashboard/a/items/{local_id}/edit")
 
     assert page.status_code == 200
-    assert "window.renderMarkdown(this.bodyText)" in page.text
+    assert "window.renderMarkdown(this.bodyText, \"a\")" in page.text
     assert 'x-html="renderedBody" class="md-content"' in page.text
     assert "marked.parse" not in page.text
     assert "prose" not in page.text

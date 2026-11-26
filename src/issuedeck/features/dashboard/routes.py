@@ -59,6 +59,8 @@ from issuedeck.features.dashboard.saved_filters import (
     saved_filter_href,
 )
 from issuedeck.features.export.md_bundle import export_audit_bundle
+from issuedeck.features.images.routes import link_service
+from issuedeck.features.images.service import ImageService
 from issuedeck.features.items.custom_fields import normalize_custom_field_filters
 from issuedeck.features.items.models import ImportBatch, Item, ItemTag
 from issuedeck.features.items.repo import ItemRepo
@@ -2218,6 +2220,21 @@ async def delete_saved_filter(
 # Item detail
 # ---------------------------------------------------------------------------
 
+def _has_image_store(request: Request) -> bool:
+    state = request.app.state
+    return hasattr(state, "images_dir") and hasattr(state, "images_config")
+
+
+def _project_images(request: Request, project_key: str) -> list[dict]:
+    """The images of the project's image store (FEA-0013), by id."""
+    if not _has_image_store(request):
+        return []
+    return ImageService(
+        request.app.state.images_dir, request.app.state.images_config,
+        request.app.state.registry,
+    ).list(project_key)["items"]
+
+
 @router.get("/{project_key}/items/{local_id}")
 async def item_detail(project_key: str, local_id: str, request: Request):
     svc, session = _item_svc(request)
@@ -2225,6 +2242,17 @@ async def item_detail(project_key: str, local_id: str, request: Request):
         item = await svc.get(project_key, local_id, include_deleted=True)
     finally:
         await session.close()
+
+    # the images linked to this item, and the other images of the project to link
+    item_images: list[dict] = []
+    if _has_image_store(request) and not item.deleted_at:
+        links, session = link_service(request)
+        try:
+            item_images = await links.list(project_key, local_id)
+        finally:
+            await session.close()
+    linked = {image["id"] for image in item_images}
+    project_images = _project_images(request, project_key)
 
     work_svc, session = _work_session_svc(request)
     try:
@@ -2241,6 +2269,9 @@ async def item_detail(project_key: str, local_id: str, request: Request):
         **_ctx(request, project_key, live_view="item", live_local_id=local_id),
         item=item,
         work_sessions=work_sessions.sessions,
+        item_images=item_images,
+        unlinked_images=[image for image in project_images if image["id"] not in linked],
+        project_images=project_images,
         active_page="detail",
     )
 
@@ -2288,6 +2319,7 @@ async def create_item_form(project_key: str, request: Request):
         **_ctx(request, project_key),
         mode="create",
         item=None,
+        project_images=_project_images(request, project_key),
         active_page="create",
     )
 
@@ -2344,6 +2376,7 @@ async def edit_item_form(project_key: str, local_id: str, request: Request):
         **_ctx(request, project_key),
         mode="edit",
         item=item,
+        project_images=_project_images(request, project_key),
         active_page="edit",
     )
 

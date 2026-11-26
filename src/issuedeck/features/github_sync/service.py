@@ -34,6 +34,7 @@ from issuedeck.features.export.snapshot_import import (
     import_snapshot,
 )
 from issuedeck.features.github_sync.client import GitHubClient, git_blob_sha
+from issuedeck.features.images.bundle import is_snapshot_image_name
 
 REQUIRED_FILES = (
     "manifest.json",
@@ -209,9 +210,11 @@ async def _snapshot_files(
             out_path=Path(tmp) / "snapshot.zip",
         )
         with zipfile.ZipFile(report.bundle_path) as bundle:
-            files = {
-                name: bundle.read(name) for name in SNAPSHOT_FILES if name in bundle.namelist()
-            }
+            present = set(bundle.namelist())
+            # the fixed files in their fixed order, then the image files (FEA-0013) by name
+            names = [name for name in SNAPSHOT_FILES if name in present]
+            names += sorted(name for name in present if is_snapshot_image_name(name))
+            files = {name: bundle.read(name) for name in names}
     return files, report.items_written
 
 
@@ -371,7 +374,8 @@ async def fetch_snapshot(
             entry.path[len(prefix):]: entry
             for entry in await client.tree(head.tree_sha)
             if entry.type == "blob" and entry.path.startswith(prefix)
-            and entry.path[len(prefix):] in SNAPSHOT_FILES
+            and (entry.path[len(prefix):] in SNAPSHOT_FILES
+                 or is_snapshot_image_name(entry.path[len(prefix):]))
         }
         missing = [name for name in REQUIRED_FILES if name not in wanted]
         if missing:

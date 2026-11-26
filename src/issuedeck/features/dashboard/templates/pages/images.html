@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t("images.title") }} - IssueDeck{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-6xl">
+  <div>
+    <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100">
+      {{ t("images.title") }}
+    </h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ t("images.description") }}
+    </p>
+  </div>
+
+  {% if uploaded %}
+    <div role="status" data-images-uploaded
+         class="rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950 px-4 py-3 text-sm text-green-800 dark:text-green-200">
+      {{ t("images.uploaded", names=uploaded | join(", ")) }}
+    </div>
+  {% endif %}
+  {% if deleted %}
+    <div role="status" data-images-deleted
+         class="rounded-md border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950 px-4 py-3 text-sm text-green-800 dark:text-green-200">
+      {{ t("images.deleted", id=deleted) }}
+    </div>
+  {% endif %}
+  {% if errors %}
+    <div role="alert" data-images-errors
+         class="rounded-md border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-800 dark:text-red-200 space-y-1">
+      {% for message in errors %}<p>{{ message }}</p>{% endfor %}
+    </div>
+  {% endif %}
+
+  {# ── Upload: file picker and drag-and-drop, several files at once ── #}
+  <form method="post" enctype="multipart/form-data"
+        action="/dashboard/{{ project_key }}/images"
+        x-data="{ over: false }"
+        class="rounded-md border border-dashed border-ledger-lineStrong dark:border-ledger-darkLineStrong bg-white dark:bg-ledger-darkPanel p-5"
+        :class="over ? 'ring-2 ring-primary-500' : ''"
+        @dragover.prevent="over = true"
+        @dragleave.prevent="over = false"
+        @drop.prevent="over = false; $refs.files.files = $event.dataTransfer.files; $el.submit()">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <input type="file" name="files" multiple x-ref="files" required
+             accept=".svg,image/svg+xml"
+             aria-label="{{ t('images.choose') }}"
+             class="block w-full text-sm text-gray-700 dark:text-gray-200">
+      <button type="submit"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 transition-colors">
+        {{ t("images.upload") }}
+      </button>
+    </div>
+    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+      {{ t("images.drop_hint") }} · {{ t("images.max_file", limit=max_file_text) }}
+    </p>
+  </form>
+
+  <p class="text-xs text-gray-500 dark:text-gray-400" data-images-usage>
+    {{ t("images.usage", count=images | length, used=used_text, limit=limit_text) }}
+  </p>
+
+  {% if not images %}
+    <p class="text-sm text-gray-500 dark:text-gray-400" data-images-empty>{{ t("images.empty") }}</p>
+  {% else %}
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-images-grid>
+      {% for image in images %}
+        <li class="rounded-md border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel overflow-hidden"
+            data-image-id="{{ image.id }}">
+          {# A white box, because an SVG often has a transparent background. #}
+          <a href="/dashboard/{{ project_key }}/images/{{ image.id }}/file" target="_blank" rel="noopener"
+             class="block bg-white border-b border-ledger-line dark:border-ledger-darkLine">
+            <img src="/dashboard/{{ project_key }}/images/{{ image.id }}/file"
+                 alt="{{ image.name }}" loading="lazy"
+                 class="h-40 w-full object-contain p-2">
+          </a>
+          <div class="p-3 space-y-2">
+            <div class="min-w-0">
+              <p class="font-mono text-xs font-semibold text-gray-900 dark:text-gray-100">{{ image.id }}</p>
+              <p class="truncate text-sm text-gray-700 dark:text-gray-200" title="{{ image.name }}">{{ image.name }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                {{ human_size(image.size) }} · {{ image.uploaded_at[:10] }} · {{ image.actor }}
+              </p>
+              {% set linked = linked_counts.get(image.id, 0) %}
+              {% if linked %}
+                <p class="text-xs text-gray-500 dark:text-gray-400" data-linked-count="{{ linked }}">
+                  {{ t("images.linked_to", count=linked) }}
+                </p>
+              {% endif %}
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <a href="/dashboard/{{ project_key }}/images/{{ image.id }}/file" target="_blank" rel="noopener"
+                 class="px-2 py-1 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                {{ t("images.open") }}
+              </a>
+              <a href="/dashboard/{{ project_key }}/images/{{ image.id }}/file?download=true"
+                 class="px-2 py-1 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                {{ t("images.download") }}
+              </a>
+              <form method="post" action="/dashboard/{{ project_key }}/images/{{ image.id }}/delete" class="inline">
+                <button type="submit"
+                        data-confirm="{% if linked %}{{ t('images.delete_confirm_linked', count=linked) }}{% else %}{{ t('images.delete_confirm') }}{% endif %}"
+                        onclick="return confirm(this.dataset.confirm)"
+                        class="px-2 py-1 rounded-md border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950">
+                  {{ t("images.delete") }}
+                </button>
+              </form>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

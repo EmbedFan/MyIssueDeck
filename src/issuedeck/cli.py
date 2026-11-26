@@ -1563,7 +1563,8 @@ async def _cmd_import_audit_bundle(
         f"unchanged={report.items_unchanged}; events={report.events_added}, "
         f"relationships={report.relationships_added}, "
         f"work_sessions={report.work_sessions_added}, "
-        f"import_batches={report.import_batches_added}",
+        f"import_batches={report.import_batches_added}, "
+        f"images={report.images_added}, image_links={report.item_images_added}",
         file=sys.stderr,
     )
     for warning in report.warnings:
@@ -1700,7 +1701,8 @@ async def _cmd_github_import(
         f"'{report.project_key}' ({report.mode}): items created={report.items_created}, "
         f"updated={report.items_updated}, unchanged={report.items_unchanged}; "
         f"events={report.events_added}, relationships={report.relationships_added}, "
-        f"work_sessions={report.work_sessions_added}",
+        f"work_sessions={report.work_sessions_added}, "
+        f"images={report.images_added}, image_links={report.item_images_added}",
         file=sys.stderr,
     )
     for warning in report.warnings:

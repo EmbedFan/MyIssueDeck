@@ -7,6 +7,75 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Images in snapshots, export, import and project deletion, phase 5 and last phase of FEAT-0013.
+  A snapshot (audit bundle, and the files of the GitHub export) now carries the project's SVG
+  images: `images.json` (the registry in its stable form), `images/IMG-0001.svg`, ... (byte for
+  byte) and `item_images.json` (the links to items), only when the project has images, so a
+  project without images exports exactly the files it did before. The import (dashboard, CLI,
+  GitHub import) checks every image on its own: the file must be present, its SHA-256 and size
+  must match the registry, and it must pass the same SVG safety check as an upload. An image that
+  fails is skipped and named in a warning together with the links to it, and the rest of the
+  import goes on. Images are matched by id, because the text of an item refers to `image:<id>`:
+  the same id with the same content is unchanged, the same id with other content is skipped (the
+  project's own image is kept), a free id is added; the next free id never goes down. The images
+  are written just before the commit and taken back if the import fails. The preview and the
+  result show the number of images and links added. Exporting an imported project gives the same
+  files again, also for the images (IS-0010). The GitHub export uploads only changed image files;
+  an image deleted in the project stays in the repository folder but is no longer listed, so an
+  import ignores it. Deleting a project now removes its image folder and the links; the backup in
+  `data/deleted-projects/` holds the images, so importing it restores them.
+
+- Images on items, phase 4 of FEAT-0013. An item can link images of the project's image store
+  (new table `item_images`, migration 0008). The item page has an *Images* section with the
+  linked images (open in a new page, remove the link) and a list of the other images of the
+  project to link. The API has `GET/POST /api/v1/projects/{key}/items/{id}/images` and
+  `DELETE .../images/{image_id}`; every link change is written to the item's activity
+  (`image_linked`, `image_unlinked`), and linking twice is harmless. Deleting an image removes
+  the links to it first (the activity of those items says so), and the images page shows how many
+  items link each image and names that number in the delete confirmation. In the Markdown text
+  of an item, `![name](image:IMG-0001)` shows the image and `[text](image:IMG-0001)` opens it in
+  a new page (`markdown.js` accepts the `image:` address only with the project key, and only in
+  the form `IMG-` plus digits; every other address rule is unchanged). The edit and new item
+  pages have an *Insert image...* menu that adds the Markdown reference to the text. Export,
+  import and the deletion of a whole project do not handle the links yet (phase 5).
+
+- MCP tools for the project image store, phase 3 of FEAT-0013: `upload_image(project_key,
+  source_path)`, `upload_image_data(project_key, name, data_base64 | svg_text)`,
+  `list_images`, `get_image(project_key, image_id, include_content)` and `delete_image`
+  (23 tools now). The MCP process runs next to the AI client, so `upload_image` reads the `.svg`
+  file there (a local folder or a network share) and uploads it over HTTP: the server never
+  reads a path from its disk, and no source folders have to be configured. Only `.svg` files up
+  to 10 MB are read; the server checks the content and its size limit as for every upload. The
+  client maps the image errors (`invalid_image`, `image_too_large`, `image_not_found`,
+  `image_duplicate`) to their own exceptions. A running MCP process has to be restarted to
+  list the new tools.
+
+- Images page, phase 2 of FEAT-0013: a new *Images* entry in the sidebar opens
+  `/dashboard/<project>/images`, a page with a grid of thumbnails (name, size, date, who uploaded)
+  and an upload box (file picker, several files at once, or drag and drop). Each image can be
+  opened in a new page, downloaded or deleted (after a confirmation). Files that are refused are
+  listed with the reason, and the other files of the same upload are still stored. The page uses
+  the session cookie (the `<img>` tags need it) and the same service and safety headers as the API:
+  `GET /dashboard/<project>/images/<id>/file` (`?download=true` to save), `POST` to the page to
+  upload, `POST .../<id>/delete`. Translated into English, Hungarian and Chinese.
+
+- Project image store, phase 1 of FEAT-0013: a project can hold SVG images, kept under
+  `data/images/<project>/` with a registry `images.json` (stable form: sorted keys, LF, written
+  atomically). API: `POST /api/v1/projects/{key}/images` (multipart upload), `GET .../images`,
+  `GET .../images/{id}`, `GET .../images/{id}/content` (`?download=true` to save) and
+  `DELETE .../images/{id}`. Images get ids `IMG-0001`, ... that are never reused. **SVG is the
+  only accepted type**, and a file is accepted only when it is well-formed, has the SVG root and
+  holds nothing that runs script or loads another resource: no `<script>`, `<foreignObject>`,
+  `on*` attributes, outside or `javascript:`/`data:` addresses, DOCTYPE or entity declarations,
+  style sheets or outside `url()`s (checked without an extra library); a refused file is never
+  rewritten and the message names the reason. Images are served with `nosniff` and a sandboxing
+  `Content-Security-Policy`, so a file opened in its own tab cannot run script. The same image is
+  stored once (409), and the sizes are limited by `[images] max_file_bytes` (2 MB) and
+  `max_project_bytes` (100 MB) in `server.toml`. The dashboard page, MCP tools, item links and
+  export/import follow in later phases.
+
 ## [0.10.4] - 2026-11-26
 
 ### Added

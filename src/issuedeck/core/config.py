@@ -32,6 +32,13 @@ class SqliteConfig(BaseModel):
     busy_timeout_ms: int = 5000
 
 
+class ImagesConfig(BaseModel):
+    """Limits of the project image store (FEA-0013); the store holds SVG images only."""
+
+    max_file_bytes: int = Field(default=2_000_000, ge=1)
+    max_project_bytes: int = Field(default=100_000_000, ge=1)
+
+
 TokenScope = Literal["read", "read-only", "agent", "admin"]
 
 
@@ -145,6 +152,7 @@ class ServerConfig(BaseModel):
     project_templates_dir: Path = Path("./project-templates")
     log_level: Literal["debug", "info", "warning", "error"] = "info"
     sqlite: SqliteConfig = SqliteConfig()
+    images: ImagesConfig = ImagesConfig()
     webhooks: list[WebhookConfig] = Field(default_factory=list)
     notifications: list[NotificationConfig] = Field(default_factory=list)
     email_notifications: list[EmailNotificationConfig] = Field(default_factory=list)

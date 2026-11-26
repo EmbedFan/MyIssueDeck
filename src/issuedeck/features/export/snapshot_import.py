@@ -29,12 +29,22 @@ from sqlalchemy.orm import selectinload
 from issuedeck.core import events as live_events
 from issuedeck.core.config import ConfigRegistry, ProjectConfig, load_project_config
 from issuedeck.core.errors import ProjectNotFound, SnapshotConflict, SnapshotInvalid
+from issuedeck.features.images.bundle import (
+    IMAGE_REGISTRY_FILE,
+    ITEM_IMAGES_FILE,
+    ImagePlan,
+    apply_image_plan,
+    is_image_file,
+    plan_image_import,
+)
+from issuedeck.features.images.repo import ImageStore
 from issuedeck.features.items.models import (
     ImportBatch,
     Item,
     ItemApplyTo,
     ItemEvent,
     ItemExternalLink,
+    ItemImage,
     ItemRelationship,
     ItemTag,
     ShipCommit,
@@ -57,7 +67,7 @@ _REQUIRED = (
     "work_sessions.json",
     "import_batches.json",
 )
-_ALLOWED = (*_REQUIRED, "project.toml")
+_ALLOWED = (*_REQUIRED, "project.toml", IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE)
 _MAX_LISTED_PROBLEMS = 10
 
 
@@ -70,6 +80,10 @@ class Snapshot:
     relationships: list[dict[str, Any]]
     work_sessions: list[dict[str, Any]]
     import_batches: list[dict[str, Any]]
+    # FEA-0013: the image store of the project and its links to items (absent in older snapshots)
+    images_registry: dict[str, Any] | None = None
+    image_files: dict[str, bytes] = field(default_factory=dict)
+    item_images: list[dict[str, Any]] = field(default_factory=list)
     # project.toml had other line endings than LF, or a byte order mark, and was brought to one
     # form (IS-0011); the importer says so in its report
     config_normalised: bool = False
@@ -93,6 +107,10 @@ class ImportReport:
     relationships_added: int = 0
     work_sessions_added: int = 0
     import_batches_added: int = 0
+    images_added: int = 0
+    images_unchanged: int = 0
+    images_skipped: int = 0
+    item_images_added: int = 0
     warnings: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
@@ -123,7 +141,9 @@ def read_snapshot(path: Path) -> Snapshot:
 
     with bundle:
         infos = {info.filename: info for info in bundle.infolist()}
-        unexpected = sorted(set(infos) - set(_ALLOWED))
+        unexpected = sorted(
+            name for name in infos if name not in _ALLOWED and not is_image_file(name)
+        )
         if unexpected:
             raise SnapshotInvalid(
                 "the snapshot contains unexpected files: " + ", ".join(unexpected[:5]),
@@ -178,6 +198,11 @@ def read_snapshot(path: Path) -> Snapshot:
             relationships=load("relationships.json", list),
             work_sessions=load("work_sessions.json", list),
             import_batches=load("import_batches.json", list),
+            images_registry=(
+                load(IMAGE_REGISTRY_FILE, dict) if IMAGE_REGISTRY_FILE in infos else None
+            ),
+            item_images=load(ITEM_IMAGES_FILE, list) if ITEM_IMAGES_FILE in infos else [],
+            image_files={name: raw(name) for name in infos if is_image_file(name)},
             config_normalised=config_normalised,
         )
 
@@ -187,6 +212,7 @@ def read_snapshot(path: Path) -> Snapshot:
         ("relationships", snapshot.relationships),
         ("work_sessions", snapshot.work_sessions),
         ("import_batches", snapshot.import_batches),
+        ("item_images", snapshot.item_images),
     ):
         if counts.get(name, len(rows)) != len(rows):
             raise SnapshotInvalid(f"the manifest count for {name} does not match the file")
@@ -213,6 +239,7 @@ def _check_shapes(snapshot: Snapshot) -> None:
         ("relationships", snapshot.relationships),
         ("work_sessions", snapshot.work_sessions),
         ("import_batches", snapshot.import_batches),
+        ("item_images", snapshot.item_images),
     ):
         if any(not isinstance(row, dict) for row in rows):
             problems.append(f"{name} contains an entry that is not an object")
@@ -279,6 +306,15 @@ async def import_snapshot(
             "mark): the snapshot was made by an earlier version",
         )
 
+    # FEA-0013: the images are checked now, written only when applying, before the commit
+    store = ImageStore(registry.server.data_dir / "images", target)
+    plan = plan_image_import(store, snapshot.images_registry, snapshot.image_files)
+    report.images_added = len(plan.add)
+    report.images_unchanged = plan.unchanged
+    report.images_skipped = len(plan.skipped)
+    report.warnings.extend(plan.warnings)
+    undo_images = None
+
     wrote_config = False
     try:
         if mode == "create" and apply:
@@ -289,14 +325,17 @@ async def import_snapshot(
             config_path.write_bytes(config_text.encode("utf-8"))
             wrote_config = True
             registry.register_project(load_project_config(config_path))
-        await _write_rows(session, snapshot, target, mode, conflict, report)
+        await _write_rows(session, snapshot, target, mode, conflict, report, plan)
         if apply:
+            undo_images = apply_image_plan(store, target, plan)
             await session.commit()
             report.applied = True
         else:
             await session.rollback()
     except BaseException:
         await session.rollback()
+        if undo_images is not None:
+            undo_images()
         if wrote_config:
             try:
                 registry.unregister_project(target)
@@ -394,6 +433,7 @@ async def _write_rows(
     mode: str,
     conflict: str,
     report: ImportReport,
+    plan: ImagePlan | None = None,
 ) -> None:
     existing = {
         item.local_id: item
@@ -437,7 +477,49 @@ async def _write_rows(
     await _add_relationships(session, snapshot, pk_by_local, report)
     await _add_work_sessions(session, snapshot, target, pk_by_local, report)
     await _add_import_batches(session, snapshot, target, report)
+    await _add_item_images(session, snapshot, pk_by_local, plan, report)
     await session.flush()
+
+
+async def _add_item_images(
+    session: AsyncSession,
+    snapshot: Snapshot,
+    pk_by_local: dict[str, int],
+    plan: ImagePlan | None,
+    report: ImportReport,
+) -> None:
+    """The links between items and images; only links to images that exist afterwards."""
+    if not snapshot.item_images:
+        return
+    known = plan.known_ids if plan is not None else set()
+    pks = list(pk_by_local.values())
+    present: set[tuple[int, str]] = set()
+    if pks:
+        present = {
+            (row.item_pk, row.image_id)
+            for row in (await session.execute(
+                select(ItemImage).where(ItemImage.item_pk.in_(pks))
+            )).scalars()
+        }
+    skipped = 0
+    for row in snapshot.item_images:
+        pk = pk_by_local.get(str(row.get("local_id")))
+        image_id = str(row.get("image_id"))
+        if pk is None or image_id not in known:
+            skipped += 1
+            continue
+        if (pk, image_id) in present:
+            continue
+        session.add(ItemImage(
+            item_pk=pk, image_id=image_id, created_at=str(row.get("created_at") or ""),
+        ))
+        present.add((pk, image_id))
+        report.item_images_added += 1
+    if skipped:
+        report.warnings.append(
+            f"{skipped} image link(s) were skipped because the item is not in the project "
+            "or the image was not imported",
+        )
 
 
 def _snapshot_wins(conflict: str, data: dict[str, Any], current: Item) -> bool:

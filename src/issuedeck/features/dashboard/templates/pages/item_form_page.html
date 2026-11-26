@@ -70,7 +70,7 @@
             bodyText: {{ (item.body if item and item.body else "") | tojson }},
             get renderedBody() {
               if (typeof window.renderMarkdown === "function" && this.bodyText) {
-                return window.renderMarkdown(this.bodyText);
+                return window.renderMarkdown(this.bodyText, {{ project_key | tojson }});
               }
               return "";
             }
@@ -141,6 +141,21 @@
               {{ t("common.preview") }}
             </button>
           </div>
+
+          {# Insert an image of the project store as Markdown (FEA-0013) #}
+          {% if project_images %}
+          <div x-show="!previewMode" class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <label for="insert-image" class="sr-only">{{ t("images.insert") }}</label>
+            <select id="insert-image" data-insert-image
+                    @change="if ($event.target.value) { bodyText = (bodyText && !bodyText.endsWith(String.fromCharCode(10)) ? bodyText + String.fromCharCode(10) : bodyText) + $event.target.value + String.fromCharCode(10); $event.target.value = ''; }"
+                    class="px-2 py-1 rounded-md text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200">
+              <option value="">{{ t("images.insert") }}</option>
+              {% for image in project_images %}
+                <option value="![{{ image.name | replace(']', '') | replace('[', '') }}](image:{{ image.id }})">{{ image.id }} - {{ image.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
 
           {# Edit textarea #}
           <div x-show="!previewMode">

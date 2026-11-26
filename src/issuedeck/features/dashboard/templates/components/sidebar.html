@@ -111,6 +111,23 @@
       <span>{{ t("nav.search") }}</span>
     </a>
 
+    <!-- Images (FEA-0013) -->
+    <a href="/dashboard/{{ project_key }}/images"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-md border-l-2 transition-colors
+              {% if active_page == 'images' %}
+                bg-white dark:bg-ledger-darkPanel text-gray-900 dark:text-gray-100
+                border-l-primary-600 dark:border-l-primary-300
+              {% else %}
+                text-gray-600 dark:text-gray-400
+                border-l-transparent hover:bg-white dark:hover:bg-ledger-darkPanel hover:text-gray-900 dark:hover:text-gray-100
+              {% endif %}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v13.5A1.5 1.5 0 003.75 21zm10.5-11.25h.008v.008h-.008V9.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+      </svg>
+      <span>{{ t("nav.images") }}</span>
+    </a>
+
     <!-- GitHub import -->
     {% if nav_settings.import_github %}
     <a href="/dashboard/{{ project_key }}/imports/github"

@@ -122,6 +122,10 @@ class ProjectService:
 
         self._r.unregister_project(key)
 
+        # FEA-0013: the image files go too (the backup above holds them), so that a project
+        # created later under the same key does not find the images of the deleted one
+        shutil.rmtree(server.data_dir / "images" / key, ignore_errors=True)
+
         archived: Path | None = None
         config_path = server.projects_dir / f"{key}.toml"
         if config_path.exists():
