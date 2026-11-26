@@ -217,6 +217,7 @@
                   <input id="custom-field-{{ field_key }}"
                          name="custom_field__{{ field_key }}"
                          type="{% if field_cfg.type == 'number' %}number{% elif field_cfg.type == 'url' %}url{% else %}text{% endif %}"
+                         {% if field_cfg.type == 'number' %}step="any"{% endif %}
                          value="{{ field_value if field_value is not none else '' }}"
                          {% if field_cfg.required %}required{% endif %}
                          class="w-full px-3 py-2 rounded-lg text-sm

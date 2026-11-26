@@ -9,6 +9,9 @@ versioning once public releases begin.
 
 ### Fixed
 
+- *Estimated time* and *Time spent* (and every other number custom field) accept fractional values
+  such as `0.5` on the item edit form again (BUG-0002). The form rendered the number input without
+  `step="any"`, so the browser allowed whole numbers only; the server side already stored decimals.
 - A snapshot that an earlier version exported from Windows can be imported again (IS-0011). Its
   `project.toml` could have CR CR LF line ends (the importer of 0.10.0 and 0.10.1 doubled every
   carriage return when it wrote a configuration, and the next export copied the file), which the

@@ -99,6 +99,38 @@ async def test_dashboard_item_form_renders_and_saves_custom_fields(dashboard_cli
     }
 
 
+async def test_dashboard_item_form_accepts_fractional_number_fields(dashboard_client):
+    client, Session, registry = dashboard_client
+
+    form = await client.get("/dashboard/test/items-new")
+
+    # A number input without step="any" makes the browser refuse 0.5 (BUG-0002).
+    tag = form.text.split('id="custom-field-estimate"')[1].split(">")[0]
+    assert 'type="number"' in tag
+    assert 'step="any"' in tag
+
+    response = await client.post(
+        "/dashboard/test/items-new",
+        data={
+            "kind": "feature",
+            "title": "Fractional estimate",
+            "custom_field__priority": "high",
+            "custom_field__estimate": "0.5",
+            "custom_field__estimated_time": "0.25",
+            "applies_to": "main",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+
+    async with Session() as session:
+        svc = ItemService(ItemRepo(session), registry, session)
+        item = await svc.get("test", "FEAT-0001")
+
+    assert item.custom_fields["estimate"] == 0.5
+
+
 async def test_dashboard_item_detail_shows_custom_fields(dashboard_client):
     client, _Session, _registry = dashboard_client
     await client.post(
