@@ -83,7 +83,7 @@ def test_issuedeck_version_outputs_package_version():
     )
 
     assert r.returncode == 0
-    assert "issuedeck 0.10.4" in r.stdout
+    assert "issuedeck 0.11.0" in r.stdout
 
 
 def test_migrate_help_lists_presets():

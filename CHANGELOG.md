@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-26
+
 ### Added
 
 - Images in snapshots, export, import and project deletion, phase 5 and last phase of FEAT-0013.
