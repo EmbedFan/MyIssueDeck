@@ -7,6 +7,15 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-11-26
+
+### Added
+
+- `scripts/update_test_copy.py` and the project skill `install-test-copy` update the installed test
+  copy from the current source in one run (TASK-0005): stop that folder's server, rename the folder
+  to the new version, run the installer (backup, migrations, restart), wait for `/readyz` and check
+  that the item and project counts are unchanged. Documented in `docs/installer.md`.
+
 ### Changed
 
 - The top-left box of the dashboard sidebar shows the software version (for example `V0.10.2`)
