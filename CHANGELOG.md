@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-11-26
+
 ### Added
 
 - Ctrl-S (Cmd-S on macOS) saves the item on the edit page without closing the editor (IS-0012). The
