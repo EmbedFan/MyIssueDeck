@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
+from issuedeck import __version__
 from issuedeck.core.config import ProjectConfig
 from issuedeck.features.dashboard.i18n_hu import STATUS_LABELS_HU
 from issuedeck.features.items.models import Item
@@ -40,6 +41,7 @@ def get_jinja_env() -> Environment:
         _env.globals["kind_colors"] = KIND_COLORS
         _env.globals["status_colors"] = STATUS_COLORS
         _env.globals["icon_version"] = icon_version()
+        _env.globals["app_version"] = __version__
     return _env
 
 

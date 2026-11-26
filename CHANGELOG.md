@@ -7,6 +7,12 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Changed
+
+- The top-left box of the dashboard sidebar shows the software version (for example `V0.10.2`)
+  instead of the text "ID" (IS-0013). The version comes from the installed package, so it follows
+  every version bump; the box grows to fit it.
+
 ### Fixed
 
 - *Estimated time* and *Time spent* (and every other number custom field) accept fractional values

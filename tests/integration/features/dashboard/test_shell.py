@@ -381,3 +381,14 @@ async def test_the_help_page_highlights_its_button_and_keeps_the_project_views(s
     plain = (await client.get("/dashboard/help")).text
     block = plain[plain.index("data-sidebar-help"):][:200]
     assert 'href="/dashboard/help"' in block and "?project=" not in block
+
+
+async def test_sidebar_shows_the_software_version(shell):
+    """IS-0013: the top-left box shows V<version> instead of the text "ID"."""
+    client, _app, _tmp = shell
+
+    page = await client.get("/dashboard/example/list")
+
+    assert page.status_code == 200
+    box = page.text.split("data-app-version>")[1].split("</span>")[0]
+    assert box.strip() == f"V{__version__}"
