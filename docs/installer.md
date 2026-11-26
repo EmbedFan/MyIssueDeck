@@ -162,3 +162,13 @@ they need no network and run on any system.
 An automatic check for new versions, installing Python itself, a Windows service or scheduled task
 (the start and stop scripts are used), code signing of the installer, systems other than Windows,
 and moving data between installations (use snapshots, FEA-0007, or GitHub exports, FEA-0008).
+
+## Updating the installed test copy during development (TASK-0005)
+
+After a committable change, `scripts/update_test_copy.py --target C:\Utility\MyIssueDeck_<old>`
+updates the installed test copy from the current source: it stops that folder's server, renames
+the folder to the new version, runs the installer (backup, migrations, restart) and checks that the
+item and project counts are unchanged. `--check` shows the plan only; `--no-rename` keeps the folder
+name (use it when another program has the folder open and Windows refuses the rename). The version
+must be higher than the installed one. The steps are also in the project skill
+`.claude/skills/install-test-copy`.
