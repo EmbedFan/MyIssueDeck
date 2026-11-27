@@ -94,6 +94,39 @@ claude mcp get issuedeck
 
 如果希望在所有项目里都可用，可以加 `--scope user`。
 
+## Codex
+
+Codex（命令行客户端和 IDE 扩展共用同一份配置）读取其主目录中的 `config.toml`，默认是
+`~/.codex`，或受信任项目中的 `.codex/config.toml`。文档没有给出单独的 Windows 路径。
+用命令添加服务器：
+
+```bash
+codex mcp add issuedeck --env ISSUEDECK_BASE_URL=http://127.0.0.1:8765 \
+  --env ISSUEDECK_TOKEN=replace-with-your-server-token \
+  -- uv --directory /absolute/path/to/IssueDeck run python -m issuedeck.mcp
+```
+
+或写入 `config.toml`：
+
+```toml
+[mcp_servers.issuedeck]
+command = "uv"
+args = ["--directory", "/absolute/path/to/IssueDeck", "run", "python", "-m", "issuedeck.mcp"]
+env_vars = ["ISSUEDECK_TOKEN"]
+
+[mcp_servers.issuedeck.env]
+ISSUEDECK_BASE_URL = "http://127.0.0.1:8765"
+```
+
+`env_vars` 列出 Codex 从您的环境传递的变量，因此令牌不会写入文件。用 `codex mcp list` 或终端
+界面中的 `/mcp` 检查；在 IDE 扩展中，保存后请重启扩展。Codex 在调用工具前可能会请求批准，相关
+设置（`default_tools_approval_mode`、`tools.<工具>.approval_mode`）见其文档。Codex 从
+`AGENTS.md` 读取长期指令（`~/.codex/AGENTS.md` 适用于所有项目；在项目中从项目根目录到当前
+文件夹，每个文件夹一个文件，越近的越靠后；默认总大小 32 KiB）。
+
+依据 2026-11-27 核对的 Codex 文档。描述 `env_vars`、超时和批准设置的页面只能以摘要形式读到，
+请对照您所用 Codex 版本的文档核实这些键。
+
 ## Cursor
 
 项目级工具创建 `.cursor/mcp.json`。全局工具创建 `~/.cursor/mcp.json`。
@@ -136,6 +169,19 @@ stdio server。
 当 agent 开始处理一个实质性 item 时，可以让它先调用 `start_work_session`，
 过程中用 `update_work_session` 追加进展，最后用 `finish_work_session` 收尾。
 Dashboard 会在项目总览展示活跃会话，也会在 item 详情页展示会话历史。
+
+## 教智能体如何工作
+
+连接客户端只是给了它工具。要让它按这个跟踪器期望的方式工作（先查找再创建、每个新条目都有
+预估、每个阶段都有工作会话、如实记录、未经要求不提交也不删除），请给它一个示例提示词：
+
+- [`docs/agent-prompts/claude-prompt.md`](agent-prompts/claude-prompt.md)：用于 Claude Code 和
+  Claude Desktop（放入 `CLAUDE.md`，或在对话开始时粘贴）；
+- [`docs/agent-prompts/codex-prompt.md`](agent-prompts/codex-prompt.md)：用于 Codex（放入
+  `AGENTS.md`）。
+
+两者也在内置帮助中（仪表盘的 Help 按钮：*在 Claude 中使用 MyIssueDeck* 和 *在 Codex 中使用
+MyIssueDeck*），并附有工具列表和工作方式。
 
 ## 冒烟测试提示词
 

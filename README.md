@@ -582,6 +582,12 @@ overwrite each other; every change is a new revision and the last 50 are kept.
 The MCP process reads `ISSUEDECK_BASE_URL` and `ISSUEDECK_TOKEN`, then talks to
 the REST server over HTTP. It does not access SQLite directly.
 
+To use the tracker with Claude or Codex, see the Help button of the dashboard (*Using
+MyIssueDeck with Claude*, *Using MyIssueDeck with Codex*) and
+[MCP Client Setup](docs/mcp-clients.md): each has the connection steps and an example prompt
+that teaches the agent how to work with this tracker. The prompts are also plain files:
+[Claude](docs/agent-prompts/claude-prompt.md), [Codex](docs/agent-prompts/codex-prompt.md).
+
 ## Migrate from Markdown Frontmatter
 
 ```bash

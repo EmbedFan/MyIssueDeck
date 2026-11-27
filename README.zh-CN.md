@@ -382,6 +382,11 @@ GitHub Issues、Linear、Jira 和通用表格的导出方式见
 
 客户端配置示例见 [MCP 客户端接入](docs/mcp-clients.zh-CN.md)。
 
+要在 Claude 或 Codex 中使用这个跟踪器，请看仪表盘的 Help 按钮（*在 Claude 中使用 MyIssueDeck*、
+*在 Codex 中使用 MyIssueDeck*）和 [MCP 客户端接入](docs/mcp-clients.zh-CN.md)：两处都有连接步骤，
+以及一个教智能体如何使用这个跟踪器的示例提示词。提示词也是普通文件：
+[Claude](docs/agent-prompts/claude-prompt.md)、[Codex](docs/agent-prompts/codex-prompt.md)。
+
 MCP 进程通过 REST API 与 IssueDeck 通信，不直接访问 SQLite。`create_item` 和
 `update_item` 可写入 `custom_fields`，`bulk_update_items` 可批量更新自定义字段，
 `list_items` 可使用重复的 `custom_field` 筛选条件。环境变量：

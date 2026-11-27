@@ -40,6 +40,8 @@ once at the end of the installation; it is stored in server.toml.
 
 Start and stop the server with start-myissuedeck.vbs and stop-myissuedeck.vbs in the
 installation folder. USERGUIDE.md in the installation folder explains how to connect an AI
-assistant.
+assistant (Claude, Codex and others). The Help button of the dashboard has a part for Claude
+and a part for Codex, each with an example prompt that teaches the assistant how to work with
+the tracker.
 
 Check the download: the SHA-256 of the ZIP is in the .sha256 file next to it.

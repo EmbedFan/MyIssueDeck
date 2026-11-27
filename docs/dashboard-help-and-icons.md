@@ -28,6 +28,21 @@ not recognised. (With Chinese text, write punctuation such as the full-width col
 marker: `**label**：text`, not `**label：**text`.) The tests fail when a supported language has no
 source or page, when a page is out of date, or when the languages do not have the same sections.
 
+### The Claude and Codex parts (IS-0014)
+
+The help has a part for Claude (`{#claude}` and its subsections) and one for Codex (`{#codex}`),
+each with the connection steps, the tools, the working method and an **example prompt** that
+teaches the agent how to work with the tracker. The prompts are written once, in
+`docs/agent-prompts/claude-prompt.md` and `codex-prompt.md` (the text in the code block), and
+copied verbatim into the three help sources. Tests (`tests/unit/features/dashboard/
+test_help_agents.py`) fail when a prompt differs from its file, when a tool named in the help or a
+prompt does not exist on the MCP server, when a tool of the server is missing from the tool table
+of the Claude part, or when a language lacks one of the sections. When you add or rename an MCP
+tool, update the table in all three sources. Do not name the prompt files `CLAUDE.md` or
+`AGENTS.md`: the agents would read them as standing instructions. A prompt must not contain `**`
+(the page generator refuses a bold marker it did not recognise), and the steps for the agents
+follow their own documentation, so check them again when a tool changes.
+
 To add a language, add it to `SUPPORTED_LANGS` and `LANGUAGE_NAMES` in `i18n.py`, a label to
 `CONTENTS_LABEL` in `help_build.py`, a source `help/src/<lang>.md`, and run the generator.
 The Hungarian and Chinese texts were drafted together with the English text and should be

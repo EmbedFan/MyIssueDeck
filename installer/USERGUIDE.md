@@ -161,6 +161,28 @@ If you installed with the installer, point `command` at the installed virtual en
 `C:\Utility\MyIssueDeck\.venv\Scripts\python.exe`), and keep the same `ISSUEDECK_BASE_URL` and
 token as the server there uses.
 
+### 5.6 Codex
+
+Codex reads `config.toml` in its home folder (`~/.codex` by default) or `.codex/config.toml` of a
+trusted project; the command line client and the IDE extension share it. Add the server with
+`codex mcp add issuedeck --env ISSUEDECK_BASE_URL=http://127.0.0.1:8766 --env
+ISSUEDECK_TOKEN=<token> -- <venv python> -m issuedeck.mcp`, or write it in the file:
+
+```toml
+[mcp_servers.issuedeck]
+command = 'C:\path\to\venv\Scripts\python.exe'
+args = ["-m", "issuedeck.mcp"]
+env_vars = ["ISSUEDECK_TOKEN"]
+
+[mcp_servers.issuedeck.env]
+ISSUEDECK_BASE_URL = "http://127.0.0.1:8766"
+```
+
+`env_vars` takes the token from your environment, so the value is not written in the file. Check
+with `codex mcp list` (or `/mcp` in the terminal interface); in the IDE extension restart the
+extension after saving. Codex may ask for approval before it calls a tool. These steps follow the
+Codex documentation checked on 2026-11-27; if a command is refused, read its own documentation.
+
 ## 6. Verify the connection
 
 Do these in order. Stop at the first failure and use section 10.
@@ -169,10 +191,10 @@ Do these in order. Stop at the first failure and use section 10.
 2. With a token in a variable (do not echo it):
    `curl -s -H "Authorization: Bearer $env:ISSUEDECK_TOKEN" http://127.0.0.1:<port>/api/v1/projects`
    returns the project list. A `401` means the token is wrong or lacks the scope.
-3. In the client, list the MCP tools: 18 tools named as in section 7 should appear.
+3. In the client, list the MCP tools: 29 tools named as in section 7 should appear.
 4. Call `list_projects`, then `get_project_config` for one project key.
 
-## 7. The 18 MCP tools
+## 7. The 29 MCP tools
 
 | Tool | Purpose | Key parameters |
 |---|---|---|
@@ -194,6 +216,17 @@ Do these in order. Stop at the first failure and use section 10.
 | `get_work_session` | One session with its updates. | `project_key`, `session_id` |
 | `update_work_session` | Append progress; pause or resume. | `project_key`, `session_id`, `message` |
 | `finish_work_session` | End a session as `completed` or `canceled` with a summary. | `project_key`, `session_id`, `status`, `summary` |
+| `upload_image` | Store an SVG file of this machine in the project (the MCP process reads the file). | `project_key`, `source_path` |
+| `upload_image_data` | Store an SVG given as text or base64. | `project_key`, `name`, `svg_text` or `data_base64` |
+| `list_images` | List the SVG images of a project. | `project_key` |
+| `get_image` | One image, with its SVG text if `include_content` is true. | `project_key`, `image_id`, `include_content` |
+| `delete_image` | Delete an image and its links to items. | `project_key`, `image_id` |
+| `create_document` | Store a Markdown document: its text (`body`) or one file (`source_path`). Any name; a binary file is refused. | `project_key`, `name`, `body` or `source_path`, `kind`, `title`, `replace` |
+| `get_document` | One document with its text, or an older revision with `revision`. | `project_key`, `document_id`, `revision` |
+| `list_documents` | List the documents of a project (no text). | `project_key`, `kind`, `name` |
+| `update_document` | Append text (`append_body`), or replace the text, title or kind with the `revision` you read; a stale revision fails with a conflict. | `project_key`, `document_id`, `revision`, `body`, `append_body`, `title`, `kind` |
+| `delete_document` | Delete a document and its revisions. | `project_key`, `document_id` |
+| `list_document_revisions` | The kept revisions of a document (the last 50). | `project_key`, `document_id` |
 
 `list_items` custom-field filters use `FIELD=VALUE`, `FIELD>=VALUE` and `FIELD:missing`.
 
@@ -265,5 +298,23 @@ Be honest in the notes: say what was tested and what was not.
 > sure the server answers at `/readyz`, starting it with `issuedeck serve --config server.toml`
 > from that folder if needed. Register a stdio MCP server named `issuedeck` that runs
 > `<python> -m issuedeck.mcp` with `ISSUEDECK_BASE_URL` and `ISSUEDECK_TOKEN` set. Restart the
-> client, list the tools (there should be 18), and call `list_projects`. Report what you changed
+> client, list the tools (there should be 29), and call `list_projects`. Report what you changed
 > and what you could not verify.
+
+## 12. Teach the AI how to work with this tracker
+
+Connecting the client (sections 5 and 6) only gives the AI the tools. To make it work the way this
+tracker expects (find before creating, an estimate on every new item, a work session around each
+phase, honest notes, nothing committed or deleted unless you ask), give it an **example prompt**.
+
+- The built-in help has both: open **Help** in the dashboard, sections **Using MyIssueDeck with
+  Claude** and **Using MyIssueDeck with Codex**. Each has the connection steps, the tool list, the
+  working method and a prompt to copy.
+- Claude Code reads `CLAUDE.md` in the project folder at the start of every session; Claude
+  Desktop has no such file, so paste the prompt at the start of a conversation. Codex reads
+  `AGENTS.md` (`~/.codex/AGENTS.md` for all projects).
+- Replace `<project-key>` in the prompt with your project key. Nothing else needs to change, and
+  the text works in any language you talk to the AI in.
+- The same prompts are plain files in the source repository: `docs/agent-prompts/claude-prompt.md`
+  and `docs/agent-prompts/codex-prompt.md`.
+- Never put a token in the prompt or in a file that is shared.
