@@ -7,6 +7,23 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Help and documents for working with an AI agent (IS-0014). The built-in help has a new part
+  *Using MyIssueDeck with Claude* and one *Using MyIssueDeck with Codex* (English, Hungarian and
+  Chinese): the connection steps (Claude Code, Claude Desktop, and the Codex command line client
+  and IDE extension), the 29 MCP tools by group, the working method (the item life cycle), a
+  troubleshooting list, and an **example prompt** that teaches the agent how to work with the
+  tracker on the user's side (to put in `CLAUDE.md`, or `AGENTS.md` for Codex, or to paste at the
+  start of a session). The prompts are also plain files in `docs/agent-prompts/`. `docs/mcp-clients.md`
+  (and the Chinese version) gets the Codex setup, the verified `claude mcp add` form and a section
+  that points to the prompts; the README (both languages) and the installed `USERGUIDE.md` mention
+  the new parts, and the guide now lists all 29 tools (it said 18) and has a Codex section. The setup
+  steps follow the official documentation of the tools, checked on 2026-11-27. Tests keep the
+  documents true: every tool named in the help or in a prompt exists on the MCP server, every tool
+  of the server is in the tool table, the prompt in the help is the prompt of its file, and the
+  languages have the same sections.
+
 ## [0.12.0] - 2026-11-27
 
 ### Added

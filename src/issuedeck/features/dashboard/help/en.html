@@ -1,4 +1,4 @@
-<nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="Contents" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Contents</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">Getting started</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">Projects</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">Items, kinds and statuses</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">Kanban board</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">List, search and filters</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">Overview, time and charts</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">AI agents, work sessions and live updates</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">Settings</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">Importing and exporting</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">Keyboard shortcuts</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">Connecting an AI agent</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">Troubleshooting</a></li></ul></nav>
+<nav class="mb-6 rounded-md border border-ledger-line dark:border-ledger-darkLine p-4 text-sm" aria-label="Contents" data-help-contents><p class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Contents</p><ul><li class="py-0.5"><a href="#start" class="text-primary-700 dark:text-primary-300 hover:underline">Getting started</a></li><li class="py-0.5"><a href="#projects" class="text-primary-700 dark:text-primary-300 hover:underline">Projects</a></li><li class="py-0.5"><a href="#items" class="text-primary-700 dark:text-primary-300 hover:underline">Items, kinds and statuses</a></li><li class="py-0.5"><a href="#board" class="text-primary-700 dark:text-primary-300 hover:underline">Kanban board</a></li><li class="py-0.5"><a href="#list-search" class="text-primary-700 dark:text-primary-300 hover:underline">List, search and filters</a></li><li class="py-0.5"><a href="#overview" class="text-primary-700 dark:text-primary-300 hover:underline">Overview, time and charts</a></li><li class="py-0.5"><a href="#agents" class="text-primary-700 dark:text-primary-300 hover:underline">AI agents, work sessions and live updates</a></li><li class="py-0.5"><a href="#settings" class="text-primary-700 dark:text-primary-300 hover:underline">Settings</a></li><li class="py-0.5"><a href="#import-export" class="text-primary-700 dark:text-primary-300 hover:underline">Importing and exporting</a></li><li class="py-0.5"><a href="#shortcuts" class="text-primary-700 dark:text-primary-300 hover:underline">Keyboard shortcuts</a></li><li class="py-0.5"><a href="#mcp" class="text-primary-700 dark:text-primary-300 hover:underline">Connecting an AI agent</a></li><li class="py-0.5"><a href="#claude" class="text-primary-700 dark:text-primary-300 hover:underline">Using MyIssueDeck with Claude</a></li><li class="py-0.5 pl-4"><a href="#claude-connect" class="text-primary-700 dark:text-primary-300 hover:underline">Connect Claude</a></li><li class="py-0.5 pl-4"><a href="#claude-tools" class="text-primary-700 dark:text-primary-300 hover:underline">What Claude can do</a></li><li class="py-0.5 pl-4"><a href="#claude-method" class="text-primary-700 dark:text-primary-300 hover:underline">How Claude should work</a></li><li class="py-0.5 pl-4"><a href="#claude-prompt" class="text-primary-700 dark:text-primary-300 hover:underline">Example prompt for Claude</a></li><li class="py-0.5 pl-4"><a href="#claude-problems" class="text-primary-700 dark:text-primary-300 hover:underline">If it does not work</a></li><li class="py-0.5"><a href="#codex" class="text-primary-700 dark:text-primary-300 hover:underline">Using MyIssueDeck with Codex</a></li><li class="py-0.5 pl-4"><a href="#codex-connect" class="text-primary-700 dark:text-primary-300 hover:underline">Connect Codex</a></li><li class="py-0.5 pl-4"><a href="#codex-tools" class="text-primary-700 dark:text-primary-300 hover:underline">What Codex can do</a></li><li class="py-0.5 pl-4"><a href="#codex-prompt" class="text-primary-700 dark:text-primary-300 hover:underline">Example prompt for Codex</a></li><li class="py-0.5 pl-4"><a href="#codex-problems" class="text-primary-700 dark:text-primary-300 hover:underline">If it does not work</a></li><li class="py-0.5"><a href="#troubleshooting" class="text-primary-700 dark:text-primary-300 hover:underline">Troubleshooting</a></li></ul></nav>
 <div class="md-content help-body">
 <p>MyIssueDeck is a local issue tracker for people and AI coding agents. This page explains the dashboard. Use the contents to jump to a topic; the search of your browser (Ctrl+F) finds words on this page.</p>
 <h2 id="start">Getting started</h2>
@@ -112,6 +112,171 @@
 <li>Register it in your agent's configuration (for example <code>.mcp.json</code>) as a stdio server named <code>issuedeck</code>, restart the agent, and check that the tools appear.</li>
 <li>A good routine: look up the project, create or find the item, start a work session, record progress and time spent, and ship the item when it is done.</li>
 <li>The server must be running. The <code>docs</code> folder (MCP Client Setup, Agent Work Sessions) has the details.</li>
+<li>Step-by-step guides, each with a prompt that teaches the agent how to work with this tracker: <a href="#claude">Claude</a> and <a href="#codex">Codex</a>.</li>
+</ul>
+<h2 id="claude">Using MyIssueDeck with Claude</h2>
+<p>Claude Code (the command line and the editor extensions) and Claude Desktop can work with this tracker through the MCP server. This section shows how to connect them, which tools they get, how Claude should work, and a prompt that teaches Claude the working method.</p>
+<h3 id="claude-connect">Connect Claude</h3>
+<ul>
+<li>Before you start: the server is running, and you have a token with the <code>agent</code> scope (Settings). With that scope Claude can read and write items but cannot sign in to the dashboard. You also need the command that runs the MCP server: for the installed copy <code>&lt;install folder&gt;\.venv\Scripts\python.exe -m issuedeck.mcp</code>, for a source checkout <code>uv --directory &lt;folder&gt; run python -m issuedeck.mcp</code>.</li>
+<li>Claude Code: in your project folder run <code>claude mcp add --env ISSUEDECK_BASE_URL=http://127.0.0.1:8765 --env ISSUEDECK_TOKEN=&lt;your-token&gt; --transport stdio issuedeck -- &lt;the command above&gt;</code>. Keep <code>--transport stdio</code> between the last <code>--env</code> and the name, otherwise the name is read as a variable. <code>--scope project</code> writes the server to <code>.mcp.json</code>, a file that is shared through version control: do not write the token there, write <code>&quot;ISSUEDECK_TOKEN&quot;: &quot;${ISSUEDECK_TOKEN}&quot;</code> and set that variable in your environment. <code>--scope user</code> makes the server available in all your projects.</li>
+<li>Check it: <code>claude mcp list</code> shows <code>Connected</code> for a working server, and <code>/mcp</code> inside Claude Code shows the same. A server from <code>.mcp.json</code> first waits for your approval: run <code>claude</code> in the folder and approve it. If the tools do not appear, start a new Claude Code session.</li>
+<li>Claude Desktop: open Settings, Developer, Edit Config. The file is <code>claude_desktop_config.json</code> (Windows: <code>%APPDATA%\Claude</code>, macOS: <code>~/Library/Application Support/Claude</code>, Linux: <code>~/.config/Claude</code>). Add the server under <code>mcpServers</code> with <code>command</code>, <code>args</code> and <code>env</code>, save, then quit Claude Desktop completely and start it again. An example is in <code>docs/mcp-clients.md</code>.</li>
+<li>Where the teaching prompt goes: Claude Code reads <code>CLAUDE.md</code> in the project folder at the start of every session (<code>~/.claude/CLAUDE.md</code> applies to all projects, <code>CLAUDE.local.md</code> only to you). Keep it short, about 200 lines at most. Claude Desktop has no such file: paste the prompt at the start of a conversation.</li>
+<li>These steps follow the documentation of the tools, checked on 2026-11-27. Tools change: if a command is refused, look at the tool's own documentation.</li>
+</ul>
+<h3 id="claude-tools">What Claude can do</h3>
+<p>Claude gets 29 tools from the MCP server:</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Tools</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Projects</td>
+<td><code>list_projects</code>, <code>get_project_config</code></td>
+</tr>
+<tr>
+<td>Items</td>
+<td><code>create_item</code>, <code>get_item</code>, <code>update_item</code>, <code>bulk_update_items</code>, <code>delete_item</code>, <code>list_items</code>, <code>search_items</code>, <code>append_item_event</code>, <code>ship_item</code></td>
+</tr>
+<tr>
+<td>Relationships</td>
+<td><code>add_relationship</code>, <code>remove_relationship</code></td>
+</tr>
+<tr>
+<td>Work sessions</td>
+<td><code>start_work_session</code>, <code>update_work_session</code>, <code>finish_work_session</code>, <code>get_work_session</code>, <code>list_work_sessions</code></td>
+</tr>
+<tr>
+<td>Images (SVG)</td>
+<td><code>upload_image</code>, <code>upload_image_data</code>, <code>list_images</code>, <code>get_image</code>, <code>delete_image</code></td>
+</tr>
+<tr>
+<td>Documents (Markdown)</td>
+<td><code>create_document</code>, <code>get_document</code>, <code>list_documents</code>, <code>update_document</code>, <code>delete_document</code>, <code>list_document_revisions</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="claude-method">How Claude should work</h3>
+<p>Claude should follow the life cycle of an item, so that the board and the item page always show the true state:</p>
+<ol>
+<li>Start: <code>start_work_session</code> with a goal, then set the item to <code>in_progress</code>.</li>
+<li>During: <code>update_work_session</code> for each step that matters. If it has to wait for you, set the item to <code>blocked</code> and write why.</li>
+<li>End of every phase: <code>finish_work_session</code> with a summary, then update the item with the total <code>time_spent</code> and a progress note at the end of its text.</li>
+<li>End of the last phase: set the item to <code>ready_to_ship</code>.</li>
+<li>After the change is committed and released: <code>ship_item</code>; the item becomes <code>done</code>.</li>
+</ol>
+<p>Also: look before creating an item, set <code>estimated_time</code> on every new item, link the items you mention as related, and never leave a work session active (an unfinished session keeps showing in the board widget).</p>
+<h3 id="claude-prompt">Example prompt for Claude</h3>
+<p>Copy this text into the <code>CLAUDE.md</code> of your project (or paste it at the start of a conversation) and replace <code>&lt;project-key&gt;</code> with the key of your project. It works in any language you talk to Claude in. The same text is in <code>docs/agent-prompts/claude-prompt.md</code>.</p>
+<pre><code class="language-text"># MyIssueDeck: how you track work in this project
+
+The issue tracker of this project is MyIssueDeck. You reach it through the MCP server &quot;issuedeck&quot;.
+My project key is &lt;project-key&gt;.
+
+## First steps
+1. Call list_projects, then get_project_config for &lt;project-key&gt;. Use only the kinds, statuses and tags it lists.
+2. If the issuedeck tools are missing, or a call fails with 401 (token) or 404 (project key), stop and tell me. Do not work around it.
+3. The life cycle below names the statuses proposed, in_progress, blocked, ready_to_ship and done. If the project has no status with one of these names, use the closest one it lists and tell me which.
+
+## Finding and creating items
+- Look before you create: search_items and list_items (filters: kind, status, tag). Do not create duplicates.
+- create_item: pick a kind from the project config, write a short title, put the requirement in the body, and always set the custom field estimated_time (hours).
+- When I mention another item, link it with add_relationship (related_to).
+- Never rewrite text I wrote. Add to it with append_body in update_item.
+
+## The life cycle of an item you work on
+The status changes at the moment the event happens, never afterwards.
+1. Start (of the item and of every phase): start_work_session (goal = what this phase does), then update_item with status in_progress.
+2. During: update_work_session for decisions, defects found and test results. If you must wait for me: update_item with status blocked and append why to the body; set in_progress again when it is solved.
+3. End of every phase: finish_work_session with a summary (what was done, the tests, what you did not verify); then update_item with the custom field time_spent (total hours so far) and a progress note appended to the body. Never leave a session active when you stop.
+4. End of the last phase: update_item with status ready_to_ship and a note of what is left to check.
+5. After the change is committed and released: ship_item (branch, version, commit ids). The status becomes done.
+
+## Documents and images
+- Prompts, requests and reports are kept as documents: create_document, get_document, list_documents, update_document, delete_document, list_document_revisions.
+- To change a document: get_document first, then update_document with the revision you read. On a conflict, read it again and merge; never overwrite another person's change. To add a line, use update_document with append_body.
+- SVG diagrams are kept with upload_image, list_images, get_image and delete_image. Show an image in an item text with ![name](image:IMG-0001).
+
+## Never, unless I ask you
+- Commit, tag, push, or change configuration, tokens or other projects' items.
+- Delete items, documents or images.
+- Put a token or any other secret into an item, a document or a message.
+</code></pre>
+<h3 id="claude-problems">If it does not work</h3>
+<ul>
+<li>The tools are missing: <code>claude mcp list</code> must show <code>issuedeck</code> as connected. Check the path of the command, that the server is running, and start a new Claude Code session (Claude Desktop: quit it completely and start it again).</li>
+<li>A call fails with 401: the token is wrong or has no <code>agent</code> scope. With 404 the project key is wrong.</li>
+<li>A document change fails with a conflict: someone changed it meanwhile; read it again and merge.</li>
+</ul>
+<h2 id="codex">Using MyIssueDeck with Codex</h2>
+<p>Codex (the command line client and its IDE extension) can work with this tracker through the same MCP server. The connection is written in the Codex configuration file, and Codex reads its standing instructions from <code>AGENTS.md</code>.</p>
+<h3 id="codex-connect">Connect Codex</h3>
+<ul>
+<li>Before you start: the same running server and the same <code>agent</code> token and command as for Claude.</li>
+<li>Add the server with <code>codex mcp add issuedeck --env ISSUEDECK_BASE_URL=http://127.0.0.1:8765 --env ISSUEDECK_TOKEN=&lt;your-token&gt; -- &lt;the command from the Claude section&gt;</code>, or write it in the configuration file as shown below.</li>
+<li>The file is <code>config.toml</code> in your Codex home folder (<code>~/.codex</code> by default; the documentation gives no separate Windows path), or <code>.codex/config.toml</code> of a trusted project. The command line client and the IDE extension share it. To keep the token out of the file, list its name in <code>env_vars</code> and set the variable in your environment instead of writing the value (the documentation of this key could only be read in summary).</li>
+<li>Check it: <code>codex mcp list</code>, or <code>/mcp</code> in the terminal interface. In the IDE extension, restart the extension after you save the file.</li>
+<li>Codex may ask for approval before it calls a tool. How that is set (<code>default_tools_approval_mode</code>, and <code>tools.&lt;tool&gt;.approval_mode</code> for one tool) is described in the Codex documentation.</li>
+<li>Where the teaching prompt goes: Codex reads <code>AGENTS.md</code> (<code>~/.codex/AGENTS.md</code> for all projects; in a project the files from the project root down to the current folder, one per folder, the closer ones later). The total size is limited, 32 KiB by default.</li>
+<li>These steps follow the documentation of Codex, checked on 2026-11-27. If a command is refused, look at its own documentation.</li>
+</ul>
+<pre><code class="language-toml">[mcp_servers.issuedeck]
+command = 'C:\Utility\MyIssueDeck\.venv\Scripts\python.exe'
+args = [&quot;-m&quot;, &quot;issuedeck.mcp&quot;]
+env_vars = [&quot;ISSUEDECK_TOKEN&quot;]
+
+[mcp_servers.issuedeck.env]
+ISSUEDECK_BASE_URL = &quot;http://127.0.0.1:8765&quot;
+</code></pre>
+<h3 id="codex-tools">What Codex can do</h3>
+<p>Codex gets the same 29 tools as Claude: see <a href="#claude-tools">What Claude can do</a>. It follows the same working method.</p>
+<h3 id="codex-prompt">Example prompt for Codex</h3>
+<p>Copy this text into the <code>AGENTS.md</code> of your project (or paste it at the start of a session) and replace <code>&lt;project-key&gt;</code> with the key of your project. It works in any language you talk to Codex in. The same text is in <code>docs/agent-prompts/codex-prompt.md</code>.</p>
+<pre><code class="language-text"># MyIssueDeck: how you track work in this project
+
+The issue tracker of this project is MyIssueDeck. You reach it through the MCP server &quot;issuedeck&quot;.
+My project key is &lt;project-key&gt;.
+
+## First steps
+1. Call list_projects, then get_project_config for &lt;project-key&gt;. Use only the kinds, statuses and tags it lists.
+2. If the issuedeck tools are missing, or a call fails with 401 (token) or 404 (project key), stop and tell me. Do not work around it.
+3. The life cycle below names the statuses proposed, in_progress, blocked, ready_to_ship and done. If the project has no status with one of these names, use the closest one it lists and tell me which.
+4. If a tool call waits for my approval, wait. If I refuse it, do not try the same call again; tell me what you needed.
+
+## Finding and creating items
+- Look before you create: search_items and list_items (filters: kind, status, tag). Do not create duplicates.
+- create_item: pick a kind from the project config, write a short title, put the requirement in the body, and always set the custom field estimated_time (hours).
+- When I mention another item, link it with add_relationship (related_to).
+- Never rewrite text I wrote. Add to it with append_body in update_item.
+
+## The life cycle of an item you work on
+The status changes at the moment the event happens, never afterwards.
+1. Start (of the item and of every phase): start_work_session (goal = what this phase does), then update_item with status in_progress.
+2. During: update_work_session for decisions, defects found and test results. If you must wait for me: update_item with status blocked and append why to the body; set in_progress again when it is solved.
+3. End of every phase: finish_work_session with a summary (what was done, the tests, what you did not verify); then update_item with the custom field time_spent (total hours so far) and a progress note appended to the body. Never leave a session active when you stop.
+4. End of the last phase: update_item with status ready_to_ship and a note of what is left to check.
+5. After the change is committed and released: ship_item (branch, version, commit ids). The status becomes done.
+
+## Documents and images
+- Prompts, requests and reports are kept as documents: create_document, get_document, list_documents, update_document, delete_document, list_document_revisions.
+- To change a document: get_document first, then update_document with the revision you read. On a conflict, read it again and merge; never overwrite another person's change. To add a line, use update_document with append_body.
+- SVG diagrams are kept with upload_image, list_images, get_image and delete_image. Show an image in an item text with ![name](image:IMG-0001).
+
+## Never, unless I ask you
+- Commit, tag, push, or change configuration, tokens or other projects' items.
+- Delete items, documents or images.
+- Put a token or any other secret into an item, a document or a message.
+</code></pre>
+<h3 id="codex-problems">If it does not work</h3>
+<ul>
+<li>The tools are missing: <code>codex mcp list</code> must show <code>issuedeck</code>. Check the path of the command and that the server is running; in the IDE extension restart the extension.</li>
+<li>A call fails with 401: the token is wrong or has no <code>agent</code> scope; with 404 the project key is wrong.</li>
+<li>A call waits for approval: Codex asks before it uses a tool; approve it, or change the approval setting in the configuration.</li>
 </ul>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <ul>

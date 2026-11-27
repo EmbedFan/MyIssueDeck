@@ -82,6 +82,166 @@ MyIssueDeck 是一个供人和 AI 编程代理使用的本地事项跟踪工具�
 - 在代理的配置（例如 `.mcp.json`）中把它注册为名为 `issuedeck` 的 stdio 服务器，重启代理，并检查工具是否出现。
 - 推荐流程：查看项目，创建或查找事项，启动工作会话，记录进展和已用时间，完成后发布事项。
 - 服务器必须处于运行状态。详细信息见 `docs` 文件夹（MCP Client Setup、Agent Work Sessions）。
+- 分步指南，每一份都带有一个提示词，教智能体如何使用这个跟踪器：[Claude](#claude) 和 [Codex](#codex)。
+
+## 在 Claude 中使用 MyIssueDeck {#claude}
+
+Claude Code（命令行和编辑器扩展）和 Claude Desktop 都可以通过 MCP 服务器使用这个跟踪器。本节说明如何连接、它们能获得哪些工具、Claude 应该如何工作，并给出一个教 Claude 工作方式的提示词。
+
+### 连接 Claude {#claude-connect}
+
+- 开始之前：服务器正在运行，并且您有一个 `agent` 权限范围的令牌（在设置中）。有了这个权限，Claude 可以读写条目，但不能登录仪表盘。您还需要运行 MCP 服务器的命令：已安装的副本用 `<安装文件夹>\.venv\Scripts\python.exe -m issuedeck.mcp`，源码目录用 `uv --directory <文件夹> run python -m issuedeck.mcp`。
+- Claude Code：在项目文件夹中运行 `claude mcp add --env ISSUEDECK_BASE_URL=http://127.0.0.1:8765 --env ISSUEDECK_TOKEN=<您的令牌> --transport stdio issuedeck -- <上面的命令>`。`--transport stdio` 要放在最后一个 `--env` 和名称之间，否则名称会被当作变量。`--scope project` 会把服务器写入 `.mcp.json`，这个文件会通过版本控制共享：不要把令牌写在里面，请写成 `"ISSUEDECK_TOKEN": "${ISSUEDECK_TOKEN}"`，并在环境中设置该变量。`--scope user` 让服务器在您所有的项目中可用。
+- 检查：`claude mcp list` 对正常工作的服务器显示 `Connected`，在 Claude Code 中用 `/mcp` 也能看到。来自 `.mcp.json` 的服务器要先等您批准：在该文件夹中运行 `claude` 并批准。如果工具没有出现，请开始一个新的 Claude Code 会话。
+- Claude Desktop：打开 Settings、Developer、Edit Config。文件是 `claude_desktop_config.json`（Windows：`%APPDATA%\Claude`，macOS：`~/Library/Application Support/Claude`，Linux：`~/.config/Claude`）。在 `mcpServers` 下添加服务器，包含 `command`、`args` 和 `env`，保存后完全退出 Claude Desktop 再重新启动。示例见 `docs/mcp-clients.md`。
+- 教学提示词放在哪里：Claude Code 在每个会话开始时读取项目文件夹中的 `CLAUDE.md`（`~/.claude/CLAUDE.md` 适用于所有项目，`CLAUDE.local.md` 只对您自己有效）。请保持简短，最多约 200 行。Claude Desktop 没有这样的文件：请在对话开始时粘贴提示词。
+- 这些步骤依据各工具的文档，核对日期为 2026-11-27。工具会变化：如果某个命令被拒绝，请查看该工具自己的文档。
+
+### Claude 能做什么 {#claude-tools}
+
+Claude 从 MCP 服务器获得 29 个工具：
+
+| 分组 | 工具 |
+|---|---|
+| 项目 | `list_projects`, `get_project_config` |
+| 条目 | `create_item`, `get_item`, `update_item`, `bulk_update_items`, `delete_item`, `list_items`, `search_items`, `append_item_event`, `ship_item` |
+| 关联 | `add_relationship`, `remove_relationship` |
+| 工作会话 | `start_work_session`, `update_work_session`, `finish_work_session`, `get_work_session`, `list_work_sessions` |
+| 图片（SVG） | `upload_image`, `upload_image_data`, `list_images`, `get_image`, `delete_image` |
+| 文档（Markdown） | `create_document`, `get_document`, `list_documents`, `update_document`, `delete_document`, `list_document_revisions` |
+
+### Claude 应该如何工作 {#claude-method}
+
+Claude 应该遵循条目的生命周期，使看板和条目页面始终显示真实状态：
+
+1. 开始：用 `start_work_session` 写明目标，然后把条目设为 `in_progress`。
+2. 进行中：每个重要步骤都用 `update_work_session`。如果必须等您，就把条目设为 `blocked` 并写明原因。
+3. 每个阶段结束：用 `finish_work_session` 写总结，然后更新条目的累计 `time_spent`，并在条目正文末尾追加进度说明。
+4. 最后一个阶段结束：把条目设为 `ready_to_ship`。
+5. 变更提交并发布之后：用 `ship_item`，条目变为 `done`。
+
+另外：创建条目之前先查找，每个新条目都设置 `estimated_time`，把提到的条目关联为 related，并且绝不留下未结束的工作会话（未结束的会话会一直显示在看板组件中）。
+
+### 给 Claude 的示例提示词 {#claude-prompt}
+
+把这段文字复制到您项目的 `CLAUDE.md` 中（或者在对话开始时粘贴），并把 `<project-key>` 替换为您项目的键。无论您用哪种语言与 Claude 交流，它都有效。同样的文字也在 `docs/agent-prompts/claude-prompt.md` 中。
+
+```text
+# MyIssueDeck: how you track work in this project
+
+The issue tracker of this project is MyIssueDeck. You reach it through the MCP server "issuedeck".
+My project key is <project-key>.
+
+## First steps
+1. Call list_projects, then get_project_config for <project-key>. Use only the kinds, statuses and tags it lists.
+2. If the issuedeck tools are missing, or a call fails with 401 (token) or 404 (project key), stop and tell me. Do not work around it.
+3. The life cycle below names the statuses proposed, in_progress, blocked, ready_to_ship and done. If the project has no status with one of these names, use the closest one it lists and tell me which.
+
+## Finding and creating items
+- Look before you create: search_items and list_items (filters: kind, status, tag). Do not create duplicates.
+- create_item: pick a kind from the project config, write a short title, put the requirement in the body, and always set the custom field estimated_time (hours).
+- When I mention another item, link it with add_relationship (related_to).
+- Never rewrite text I wrote. Add to it with append_body in update_item.
+
+## The life cycle of an item you work on
+The status changes at the moment the event happens, never afterwards.
+1. Start (of the item and of every phase): start_work_session (goal = what this phase does), then update_item with status in_progress.
+2. During: update_work_session for decisions, defects found and test results. If you must wait for me: update_item with status blocked and append why to the body; set in_progress again when it is solved.
+3. End of every phase: finish_work_session with a summary (what was done, the tests, what you did not verify); then update_item with the custom field time_spent (total hours so far) and a progress note appended to the body. Never leave a session active when you stop.
+4. End of the last phase: update_item with status ready_to_ship and a note of what is left to check.
+5. After the change is committed and released: ship_item (branch, version, commit ids). The status becomes done.
+
+## Documents and images
+- Prompts, requests and reports are kept as documents: create_document, get_document, list_documents, update_document, delete_document, list_document_revisions.
+- To change a document: get_document first, then update_document with the revision you read. On a conflict, read it again and merge; never overwrite another person's change. To add a line, use update_document with append_body.
+- SVG diagrams are kept with upload_image, list_images, get_image and delete_image. Show an image in an item text with ![name](image:IMG-0001).
+
+## Never, unless I ask you
+- Commit, tag, push, or change configuration, tokens or other projects' items.
+- Delete items, documents or images.
+- Put a token or any other secret into an item, a document or a message.
+```
+
+### 如果不起作用 {#claude-problems}
+
+- 工具缺失：`claude mcp list` 必须显示 `issuedeck` 已连接。检查命令的路径和服务器是否在运行，并开始一个新的 Claude Code 会话（Claude Desktop：完全退出后重新启动）。
+- 调用返回 401：令牌错误或没有 `agent` 权限；返回 404 表示项目键错误。
+- 修改文档时出现冲突：期间有人改动了它；请重新读取并合并。
+
+## 在 Codex 中使用 MyIssueDeck {#codex}
+
+Codex（命令行客户端及其 IDE 扩展）可以通过同一个 MCP 服务器使用这个跟踪器。连接写在 Codex 的配置文件中，Codex 从 `AGENTS.md` 读取长期指令。
+
+### 连接 Codex {#codex-connect}
+
+- 开始之前：与 Claude 相同的运行中的服务器、相同的 `agent` 令牌和相同的命令。
+- 用 `codex mcp add issuedeck --env ISSUEDECK_BASE_URL=http://127.0.0.1:8765 --env ISSUEDECK_TOKEN=<您的令牌> -- <Claude 部分中的命令>` 添加服务器，或者按下面所示写入配置文件。
+- 文件是 Codex 主目录中的 `config.toml`（默认为 `~/.codex`；文档没有给出单独的 Windows 路径），或者受信任项目中的 `.codex/config.toml`。命令行客户端和 IDE 扩展共用它。为了不把令牌写进文件，请在 `env_vars` 中列出它的名称，并在环境中设置该变量，而不是写入值（这个键的文档只能以摘要形式读到）。
+- 检查：`codex mcp list`，或在终端界面中用 `/mcp`。在 IDE 扩展中，保存文件后请重启扩展。
+- Codex 在调用工具之前可能会请求批准。如何设置（`default_tools_approval_mode`，以及单个工具的 `tools.<工具>.approval_mode`）在 Codex 文档中有说明。
+- 教学提示词放在哪里：Codex 读取 `AGENTS.md`（`~/.codex/AGENTS.md` 适用于所有项目；在项目中从项目根目录到当前文件夹，每个文件夹一个文件，越近的越靠后）。总大小有限制，默认 32 KiB。
+- 这些步骤依据 Codex 的文档，核对日期为 2026-11-27。如果某个命令被拒绝，请查看它自己的文档。
+
+```toml
+[mcp_servers.issuedeck]
+command = 'C:\Utility\MyIssueDeck\.venv\Scripts\python.exe'
+args = ["-m", "issuedeck.mcp"]
+env_vars = ["ISSUEDECK_TOKEN"]
+
+[mcp_servers.issuedeck.env]
+ISSUEDECK_BASE_URL = "http://127.0.0.1:8765"
+```
+
+### Codex 能做什么 {#codex-tools}
+
+Codex 获得与 Claude 相同的 29 个工具：见[Claude 能做什么](#claude-tools)。它遵循相同的工作方式。
+
+### 给 Codex 的示例提示词 {#codex-prompt}
+
+把这段文字复制到您项目的 `AGENTS.md` 中（或者在会话开始时粘贴），并把 `<project-key>` 替换为您项目的键。无论您用哪种语言与 Codex 交流，它都有效。同样的文字也在 `docs/agent-prompts/codex-prompt.md` 中。
+
+```text
+# MyIssueDeck: how you track work in this project
+
+The issue tracker of this project is MyIssueDeck. You reach it through the MCP server "issuedeck".
+My project key is <project-key>.
+
+## First steps
+1. Call list_projects, then get_project_config for <project-key>. Use only the kinds, statuses and tags it lists.
+2. If the issuedeck tools are missing, or a call fails with 401 (token) or 404 (project key), stop and tell me. Do not work around it.
+3. The life cycle below names the statuses proposed, in_progress, blocked, ready_to_ship and done. If the project has no status with one of these names, use the closest one it lists and tell me which.
+4. If a tool call waits for my approval, wait. If I refuse it, do not try the same call again; tell me what you needed.
+
+## Finding and creating items
+- Look before you create: search_items and list_items (filters: kind, status, tag). Do not create duplicates.
+- create_item: pick a kind from the project config, write a short title, put the requirement in the body, and always set the custom field estimated_time (hours).
+- When I mention another item, link it with add_relationship (related_to).
+- Never rewrite text I wrote. Add to it with append_body in update_item.
+
+## The life cycle of an item you work on
+The status changes at the moment the event happens, never afterwards.
+1. Start (of the item and of every phase): start_work_session (goal = what this phase does), then update_item with status in_progress.
+2. During: update_work_session for decisions, defects found and test results. If you must wait for me: update_item with status blocked and append why to the body; set in_progress again when it is solved.
+3. End of every phase: finish_work_session with a summary (what was done, the tests, what you did not verify); then update_item with the custom field time_spent (total hours so far) and a progress note appended to the body. Never leave a session active when you stop.
+4. End of the last phase: update_item with status ready_to_ship and a note of what is left to check.
+5. After the change is committed and released: ship_item (branch, version, commit ids). The status becomes done.
+
+## Documents and images
+- Prompts, requests and reports are kept as documents: create_document, get_document, list_documents, update_document, delete_document, list_document_revisions.
+- To change a document: get_document first, then update_document with the revision you read. On a conflict, read it again and merge; never overwrite another person's change. To add a line, use update_document with append_body.
+- SVG diagrams are kept with upload_image, list_images, get_image and delete_image. Show an image in an item text with ![name](image:IMG-0001).
+
+## Never, unless I ask you
+- Commit, tag, push, or change configuration, tokens or other projects' items.
+- Delete items, documents or images.
+- Put a token or any other secret into an item, a document or a message.
+```
+
+### 如果不起作用 {#codex-problems}
+
+- 工具缺失：`codex mcp list` 必须列出 `issuedeck`。检查命令的路径和服务器是否在运行；在 IDE 扩展中请重启扩展。
+- 调用返回 401：令牌错误或没有 `agent` 权限；返回 404 表示项目键错误。
+- 调用在等待批准：Codex 使用工具前会询问；请批准，或在配置中更改批准设置。
 
 ## 故障排除 {#troubleshooting}
 
