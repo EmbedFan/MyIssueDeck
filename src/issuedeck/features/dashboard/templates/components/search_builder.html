@@ -1,0 +1,173 @@
+{# ── The advanced search dialog (FEA-0010) ──
+   Alpine component `searchBuilder` (static/js/search_builder.js) edits the search; the form sends
+   it as the JSON in the field `query` with GET, so the page can be bookmarked.
+   Variables: project_key, query_data, builder_kinds, builder_statuses.
+#}
+
+{% set field_class = "rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-gray-100 px-2 py-1" %}
+{% set icon_button = "p-1 rounded text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30" %}
+
+{% macro blocks(list, allow_group) %}
+  <template x-for="(node, index) in {{ list }}" :key="node.id">
+    <div class="space-y-2">
+      {# the operator that joins this block to the one above #}
+      <div x-show="index > 0" class="flex items-center gap-2">
+        <select x-model="node.op" class="{{ field_class }} font-semibold"
+                aria-label="{{ t('search.advanced.and') }} / {{ t('search.advanced.or') }}">
+          <option value="and">{{ t("search.advanced.and") }}</option>
+          <option value="or">{{ t("search.advanced.or") }}</option>
+        </select>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 space-y-2
+                  bg-gray-50 dark:bg-gray-800/40">
+        <div class="flex items-start justify-between gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                x-text="node.type === 'text' ? '{{ t('search.advanced.add_text') }}'
+                        : node.type === 'kind' ? '{{ t('search.advanced.add_kind') }}'
+                        : node.type === 'status' ? '{{ t('search.advanced.add_status') }}'
+                        : '{{ t('search.advanced.group') }}'"></span>
+          <span class="flex items-center gap-1">
+            <button type="button" class="{{ icon_button }}" :disabled="index === 0"
+                    @click="move({{ list }}, index, -1)"
+                    title="{{ t('search.advanced.move_up') }}"
+                    aria-label="{{ t('search.advanced.move_up') }}">&uarr;</button>
+            <button type="button" class="{{ icon_button }}"
+                    :disabled="index === {{ list }}.length - 1"
+                    @click="move({{ list }}, index, 1)"
+                    title="{{ t('search.advanced.move_down') }}"
+                    aria-label="{{ t('search.advanced.move_down') }}">&darr;</button>
+            <button type="button" class="{{ icon_button }}"
+                    @click="remove({{ list }}, index)"
+                    title="{{ t('search.advanced.remove') }}"
+                    aria-label="{{ t('search.advanced.remove') }}">&times;</button>
+          </span>
+        </div>
+
+        {# text block #}
+        <div x-show="node.type === 'text'" class="space-y-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <select x-model="node.mode" class="{{ field_class }}">
+              <option value="simple">{{ t("search.advanced.words") }}</option>
+              <option value="regex">{{ t("search.advanced.regex") }}</option>
+            </select>
+            <input type="text" x-model="node.value" maxlength="500"
+                   placeholder="{{ t('search.advanced.text_placeholder') }}"
+                   class="{{ field_class }} flex-1 min-w-[12rem]"
+                   :class="node.mode === 'regex' ? 'font-mono' : ''">
+          </div>
+          <div class="flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
+            <label class="inline-flex items-center gap-1">
+              <input type="checkbox" x-model="node.title"> {{ t("search.advanced.field_title") }}
+            </label>
+            <label class="inline-flex items-center gap-1">
+              <input type="checkbox" x-model="node.body"> {{ t("search.advanced.field_body") }}
+            </label>
+            <label class="inline-flex items-center gap-1" x-show="node.mode === 'regex'">
+              <input type="checkbox" x-model="node.caseSensitive">
+              {{ t("search.advanced.case_sensitive") }}
+            </label>
+          </div>
+          <p x-show="node.mode === 'simple'" class="text-xs text-gray-500 dark:text-gray-400">
+            {{ t("search.advanced.stem_hint") }}
+          </p>
+        </div>
+
+        {# kind and status blocks #}
+        <div x-show="node.type === 'kind' || node.type === 'status'" class="space-y-1">
+          <p class="text-xs text-gray-500 dark:text-gray-400"
+             x-text="node.type === 'kind' ? '{{ t('search.advanced.kind_is') }}'
+                     : '{{ t('search.advanced.status_is') }}'"></p>
+          <div class="flex flex-wrap gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <template x-for="option in options(node)" :key="option.key">
+              <label class="inline-flex items-center gap-1">
+                <input type="checkbox" :checked="node.values.includes(option.key)"
+                       @change="toggleValue(node, option.key)">
+                <span x-text="option.label"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        {# a group: its own list of blocks, one level only #}
+        {% if allow_group %}
+        <div x-show="node.type === 'group'"
+             class="space-y-2 border-l-2 border-primary-300 dark:border-primary-700 pl-3">
+          {{ blocks("node.group", false) }}
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
+                    @click="addBlock(node.group, 'text')">+ {{ t("search.advanced.add_text") }}</button>
+            <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
+                    @click="addBlock(node.group, 'kind')">+ {{ t("search.advanced.add_kind") }}</button>
+            <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
+                    @click="addBlock(node.group, 'status')">+ {{ t("search.advanced.add_status") }}</button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </template>
+{% endmacro %}
+
+<div x-data='searchBuilder({{ (query_data or {}) | tojson }}, {{ builder_kinds | tojson }}, {{ builder_statuses | tojson }})'
+     @keydown.escape.window="open = false"
+     class="contents">
+  <button type="button" @click="open = true"
+          class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20
+                 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+          data-advanced-search-open>
+    {{ t("search.advanced.open") }}
+  </button>
+
+  <div x-show="open" x-cloak
+       class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto
+              bg-black/40 p-4 sm:p-8"
+       role="dialog" aria-modal="true" aria-labelledby="advanced-search-title">
+    <form method="get" action="/dashboard/{{ project_key }}/search"
+          @click.outside="open = false"
+          class="w-full max-w-3xl rounded-xl bg-white dark:bg-gray-900 shadow-xl
+                 border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 id="advanced-search-title"
+            class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          {{ t("search.advanced.title") }}
+        </h2>
+        <button type="button" class="{{ icon_button }}" @click="open = false"
+                aria-label="{{ t('search.advanced.close') }}">&times;</button>
+      </div>
+
+      <div class="space-y-2">
+        {{ blocks("items", true) }}
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+                text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'text')">
+          + {{ t("search.advanced.add_text") }}</button>
+        <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+                text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'kind')">
+          + {{ t("search.advanced.add_kind") }}</button>
+        <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+                text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'status')">
+          + {{ t("search.advanced.add_status") }}</button>
+        <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+                text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'group')">
+          + {{ t("search.advanced.add_group") }}</button>
+      </div>
+
+      <input type="hidden" name="query" :value="json()">
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" @click="open = false"
+                class="px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-200
+                       hover:bg-gray-100 dark:hover:bg-gray-800">
+          {{ t("search.advanced.close") }}</button>
+        <button type="submit" :disabled="isEmpty()"
+                class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600
+                       hover:bg-primary-700 disabled:opacity-40">
+          {{ t("search.advanced.run") }}</button>
+      </div>
+    </form>
+  </div>
+</div>

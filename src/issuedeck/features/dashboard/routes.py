@@ -27,6 +27,7 @@ from issuedeck.core.auth import (
 from issuedeck.core.config import ProjectConfig
 from issuedeck.core.errors import (
     ConfigError,
+    InvalidSearch,
     IssueDeckError,
     ProjectDeletionBlocked,
     ProjectDeletionNotConfirmed,
@@ -2529,11 +2530,38 @@ async def search_page(
     q: str = "",
     limit: int = 50,
     after: str | None = None,
+    query: str = "",
 ):
     items = []
     next_cursor = None
+    description = ""
+    partial = False
+    notes: list[str] = []
+    query_error = ""
+    query_data = None
 
-    if q.strip():
+    if query.strip():
+        # the advanced search (FEA-0010): the query is JSON in the address, so that the page can
+        # be bookmarked and the back button works
+        try:
+            query_data = json.loads(query)
+        except ValueError:
+            query_error = _t_request(request, "search.advanced.bad_json")
+        else:
+            svc, session = _search_svc(request)
+            try:
+                found = await svc.search_query(
+                    project_key, query_data, limit=limit, after=after)
+                items = found.items
+                next_cursor = found.next_cursor
+                description = found.description
+                partial = found.partial
+                notes = found.notes
+            except InvalidSearch as exc:
+                query_error = str(exc)
+            finally:
+                await session.close()
+    elif q.strip():
         svc, session = _search_svc(request)
         try:
             result = await svc.search(project_key, q.strip(), limit=limit, after=after)
@@ -2553,7 +2581,29 @@ async def search_page(
         items=items,
         next_cursor=next_cursor,
         active_page="search",
+        advanced=bool(query.strip()),
+        query_json=query if query.strip() else "",
+        query_data=query_data,
+        query_error=query_error,
+        description=description,
+        partial=partial,
+        notes=notes,
+        builder_kinds=_builder_options(project_key, request, "kinds"),
+        builder_statuses=_builder_options(project_key, request, "statuses"),
     )
+
+
+def _t_request(request: Request, key: str) -> str:
+    return make_translator(language_from_request(request))(key)
+
+
+def _builder_options(project_key: str, request: Request, what: str) -> list[dict[str, str]]:
+    """The kinds or statuses of a project as ``{key, label}`` for the builder of the dialog."""
+    project = request.app.state.registry.project(project_key)
+    lang = language_from_request(request)
+    if what == "kinds":
+        return [{"key": k, "label": kind_label(k, project)} for k in project.kinds]
+    return [{"key": s, "label": status_label(s, project, lang=lang)} for s in project.statuses]
 
 
 # ---------------------------------------------------------------------------

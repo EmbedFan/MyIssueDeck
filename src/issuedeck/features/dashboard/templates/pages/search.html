@@ -2,6 +2,10 @@
 
 {% block title %}{{ t("page.search.title") }} — {{ project.name }} — IssueDeck{% endblock %}
 
+{% block scripts %}
+<script src="/dashboard/static/js/search_builder.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="space-y-6">
   {# ── Page header ── #}
@@ -92,6 +96,11 @@
       });
     </script>
   </form>
+
+  {# ── Advanced search: dialog with the query builder (FEA-0010) ── #}
+  <div class="flex items-center gap-3">
+    {% include "components/search_builder.html" %}
+  </div>
 
   {# ── Results section ── #}
   <div id="search-results">

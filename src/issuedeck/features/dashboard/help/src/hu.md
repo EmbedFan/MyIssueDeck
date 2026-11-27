@@ -32,6 +32,7 @@ A MyIssueDeck egy helyi hibakövető emberek és MI-alapú programozó ügynök�
 
 - A **Lista** táblázatban mutatja az elemeket. A szűrőkhöz nyomja meg az `f` billentyűt (állapot, fajta, címke, kiegészítő mezők). A szűrők projektenként menthetők.
 - A **Keresés** szavakat keres a címekben és a tartalomban. A `/` billentyű a keresőmezőre ugrik.
+- Az **Összetett keresés** (a Keresés oldal gombja) blokkokból épít keresést: szavak vagy reguláris kifejezés, fajták és állapotok, ÉS/VAGY kapcsolattal és csoportokkal. Az ÉS erősebben köt, mint a VAGY; ezen csoporttal lehet változtatni. A szavak töve alapján keres (az `import` megtalálja az `importing`-ot), és minden szónak szerepelnie kell. A túl lassú reguláris kifejezést leállítja, és az oldal jelzi, hogy az eredmény hiányos. A keresés a címben van, ezért könyvjelzőzhető.
 - A listán több elemet kijelölve egy lépésben módosíthatja az állapotukat, címkéiket vagy ágaikat, illetve törölheti vagy visszaállíthatja őket.
 
 ## Áttekintés, idő és diagramok {#overview}

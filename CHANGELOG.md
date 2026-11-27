@@ -9,6 +9,18 @@ versioning once public releases begin.
 
 ### Added
 
+- The advanced search in the dashboard, phase 3 of FEAT-0010. The Search page has an
+  **Advanced search** button that opens a dialog for building a search from blocks: words or a
+  regular expression (title and/or body, case sensitivity for expressions), kinds and statuses
+  taken from the project, groups, AND/OR between blocks, and arrows to reorder them. Blocks that
+  are still empty are not sent. The search is sent as `?query=<json>` (bookmarkable, back button
+  works), the dialog opens with the search that was run, and the result page shows the search in
+  words, an amber notice with the reasons when a regular expression did not finish, a message
+  instead of an error page when the search is refused (with the path of the fault), and *Load more*
+  keeps the search. The dialog and the notices are translated (English, Hungarian, Chinese);
+  `search_builder.js` is new, the dashboard CSS is rebuilt, the help and `docs/advanced-search.md`
+  describe it. The text search (`?q=`) is unchanged.
+
 - The advanced search through the API and MCP, phase 2 of FEAT-0010.
   `POST /api/v1/projects/{key}/search` takes `{"query": {...}, "limit": 50, "after": cursor}`
   (the search as data of phase 1) and answers with the usual list plus `description` (the search

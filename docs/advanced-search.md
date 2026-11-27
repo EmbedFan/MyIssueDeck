@@ -55,6 +55,17 @@ did not finish matches nothing. Only the newest 50,000 items and the first 50,00
 field are looked at (a note says so). A repeat inside an unbounded repeat, such as `(a+)+`, is
 refused at once. A search without a regular expression starts no process.
 
+## Dashboard
+
+On the Search page the button **Advanced search** opens a dialog with the same blocks: text (words
+or a regular expression, title and/or body, case sensitivity for expressions), kind and status
+(tick the values), and groups, each block joined to the one above by AND or OR (and the arrows
+move a block). Empty blocks are left out when the search is sent. The search goes into the address
+(`?query=<json>`), so the result page can be bookmarked and the back button works; the dialog opens
+with the search that was run. The result shows the search in words, a notice with the reasons when
+it is incomplete, and *Load more* keeps the search. The builder offers one level of groups, as the
+limit says.
+
 ## API
 
 ```
