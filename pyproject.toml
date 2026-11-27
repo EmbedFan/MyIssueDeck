@@ -1,6 +1,6 @@
 [project]
 name = "myissuedeck"
-version = "0.12.0"
+version = "0.13.0"
 description = "Local-first issue deck for AI coding agents and human developers"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-27
+
 ### Added
 
 - A document block in the advanced search, phase 5 of FEAT-0010. A search block of type `document`
@@ -79,8 +81,6 @@ versioning once public releases begin.
   Only the newest 50,000 items are given to the expressions. `describe()` writes a query in words
   with explicit brackets for the dialog.
 
-### Added
-
 - Help and documents for working with an AI agent (IS-0014). The built-in help has a new part
   *Using MyIssueDeck with Claude* and one *Using MyIssueDeck with Codex* (English, Hungarian and
   Chinese): the connection steps (Claude Code, Claude Desktop, and the Codex command line client
@@ -95,6 +95,14 @@ versioning once public releases begin.
   documents true: every tool named in the help or in a prompt exists on the MCP server, every tool
   of the server is in the tool table, the prompt in the help is the prompt of its file, and the
   languages have the same sections.
+
+### Changed
+
+- Compatibility: a snapshot (audit bundle) or GitHub export of a project that has saved searches
+  contains `searches.json`; an earlier version refuses such a snapshot because of an unexpected
+  file. Snapshots of earlier versions import as before. There is no database migration in this
+  release (the saved searches are files under `data/searches/`, which the installer's backup of
+  the data folder already copies).
 
 ## [0.12.0] - 2026-11-27
 
