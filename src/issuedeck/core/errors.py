@@ -173,6 +173,11 @@ class DocumentConflict(IssueDeckError):
     http_status = 409
 
 
+class InvalidSearch(IssueDeckError):
+    code = "invalid_search"
+    http_status = 422
+
+
 class Unauthorized(IssueDeckError):
     code = "unauthorized"
     http_status = 401
