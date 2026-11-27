@@ -7,6 +7,85 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- Documents linked to items, phase 5 and last phase of FEAT-0012. An item can link documents of
+  the project's document store (new table `item_documents`, migration 0009), like images. The item
+  page has a *Documents* section with the linked documents (open, remove the link) and a list of the
+  other documents of the project to link. The API has `GET/POST /api/v1/projects/{key}/items/{id}/
+  documents` and `DELETE .../documents/{document_id}`; every link change is written to the item's
+  activity (`document_linked`, `document_unlinked`), and linking twice is harmless. Deleting a
+  document (API, dashboard, MCP) removes the links to it first, and the activity of those items says
+  so. The documents page shows how many items link each document and names that number in the delete
+  confirmation; the page of a document lists the items that link it. The snapshot and the GitHub
+  export carry the links in `item_documents.json` (only when the project has documents); the import
+  adds a link only when its item is in the project and its document was imported, and says how many
+  it skipped. Deleting a project removes its link rows.
+
+- Documents in snapshots, the GitHub export and the deletion of a project, phase 4 of FEAT-0012.
+  A snapshot (audit bundle, and the files of the GitHub export) now carries the project's documents:
+  `documents.json` (the ids that exist and the next free number) and `documents/DOC-0001.json`, ...
+  (one file per document with its kept revisions, exactly as stored), only when the project has
+  documents, so a project without documents exports the files it did before. The import (dashboard,
+  CLI, GitHub import) checks every document on its own: valid JSON, the id of its file name, a clean
+  name, text that is not a binary, the SHA-256 of the text and of every kept revision, at most 50
+  revisions. A document that fails is skipped and named in a warning, and the rest of the import goes
+  on. Only the listed documents are imported, so the file of a document that was deleted (an export
+  only adds and changes files in the repository folder) does not bring it back. Documents are
+  matched by id: the same id with the same name and text is unchanged, the same id with other content
+  is skipped (the project's own document is kept), a name that another document already uses is
+  skipped, a free id and name is added; the next free number never goes down. The files are written
+  just before the commit and taken back if it fails; a snapshot made by this software is restored byte
+  for byte and exports the same files again. The preview, the result and the CLI show the number of
+  documents added. Deleting a project removes its documents folder (the backup holds them, so
+  importing it restores them).
+
+- MCP tools for the document store, phase 3 of FEAT-0012 (29 tools now): `create_document`,
+  `get_document`, `list_documents`, `update_document`, `delete_document` and
+  `list_document_revisions`. `create_document` takes the text (`body`) or one file
+  (`source_path`): the MCP process reads the file, so a local folder or a network share works and
+  the server never looks at a path; no folders. The name is free text and defaults to the file
+  name; a binary file is refused before anything is sent; a name that is already used is an
+  error that names the document, or with `replace=True` a new revision. `update_document`
+  appends (`append_body`, no revision needed) or replaces the text, title or kind and then needs
+  the `revision` that was read: a stale one fails with a conflict that names the current revision
+  and writes nothing. `get_document` can also return the text of an older revision. The client
+  maps the document errors to their own exceptions, and now passes the details of every error
+  (for example `existing_id`, `current_revision`) on to them. A running MCP process has to be
+  restarted to list the new tools.
+
+- Documents page, phase 2 of FEAT-0012: a new *Documents* entry in the sidebar opens
+  `/dashboard/<project>/documents` with the list of the project's Markdown documents (name, kind,
+  updated, revision, size) and an upload form for several files at once (any file name; a binary
+  file is refused with the reason and the other files are still stored; a kind can be chosen).
+  A file whose name is already used becomes a new revision of that document only after the user
+  confirms it by name; without the confirmation the server refuses the file and never replaces
+  silently. A document opens as rendered Markdown (the same safe renderer as the items, images
+  through `image:IMG-0001`), has an edit page with a preview, and a history page that lists the
+  kept revisions (the last 50) and opens, downloads or restores any of them. A save made on an old
+  revision is refused with a message that names the new revision, keeps the typed text and lets the
+  user save again on purpose. Documents and revisions download as Markdown files named like the
+  document; delete asks first. The pages use the session cookie and the same service and safe
+  headers as the API. Translated into English, Hungarian and Chinese. A double quote in a file name
+  arrives as `%22` (browsers write it so in an upload).
+
+- Document store, phase 1 of FEAT-0012: a project can keep Markdown documents (prompts,
+  descriptions, requests, reports) in the software's own data files, one JSON file per document
+  in `data/documents/<project>/` (`DOC-0001.json`, ...; `documents.json` holds only the next
+  number, so an id is never reused). There is no rule about the name or the extension of a
+  document: it is free text that is only made safe (a folder part, control characters and the
+  spaces at both ends are removed) and is never used as a file name. The one rule about the
+  content is that it is a text file, not a binary (a NUL byte or bytes that are not valid UTF-8
+  are refused); there is no size limit. Every save is a revision: the earlier texts are kept in
+  the document file, **50 revisions at most** (the oldest are dropped, the current text never).
+  Replacing a text needs the revision that was read, and a different current one gives 409
+  (`document_conflict`), so two agents cannot overwrite each other; appending text needs no
+  revision. API under `/api/v1/projects/{key}/documents`: create (a name that is used gives 409,
+  or with `replace` a new revision), list (filter by `kind` or `name`), read, replace, append,
+  delete, the text as Markdown (`/content`, `?download=true` to save it as a file) and the
+  revisions (list, read, restore). Files are written atomically in one stable form. The
+  dashboard pages, the MCP tools and the export/import follow in later phases.
+
 ## [0.11.0] - 2026-11-26
 
 ### Added

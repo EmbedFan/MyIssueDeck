@@ -40,6 +40,22 @@ content is unchanged, the same id with other content is skipped and the project'
 kept, a free id is added. Deleting a project removes its image folder; the backup in
 `data/deleted-projects/` keeps the images, so importing it restores them.
 
+- `documents.json` and `documents/DOC-0001.json`, ...: the project's Markdown documents (one file
+  per document, exactly as the store wrote it, with its kept revisions) and the list of the ids
+  that exist with the next free number, and `item_documents.json`: the links between items and
+  documents. Written only when the project has documents.
+
+On import every document is checked on its own: valid JSON, the id of its file name, a clean name,
+text that is text and not a binary, the SHA-256 of the text and of every kept revision, and at most
+50 revisions. A document that fails is skipped and named in a warning; the rest goes on. Only the
+documents named in `documents.json` are imported, so a file left behind by a deleted document is
+ignored. A link is imported only when its item is in the project and its document was imported.
+Documents are matched by id: the same id with the same name and text is unchanged, the same
+id with other content is skipped (the project's own document is kept), and a name that another
+document of the project already uses is skipped. The files are written just before the commit and
+taken back if it fails. Deleting a project removes its documents; the backup in
+`data/deleted-projects/` keeps them, so importing it restores them.
+
 Exporting is read-only and does not mutate project data.
 
 ## Importing a Snapshot

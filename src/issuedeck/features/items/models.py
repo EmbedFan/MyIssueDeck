@@ -138,6 +138,24 @@ class ItemImage(Base):
     __table_args__ = (Index("ix_item_images_image", "image_id"),)
 
 
+class ItemDocument(Base):
+    """A document of the project document store (FEA-0012) linked to an item.
+
+    ``document_id`` is the id of a file in ``data/documents/<project>/`` (for example DOC-0001);
+    the document itself is not in the database.
+    """
+
+    __tablename__ = "item_documents"
+
+    item_pk: Mapped[int] = mapped_column(
+        Integer, ForeignKey("items.pk", ondelete="CASCADE"), primary_key=True,
+    )
+    document_id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    created_at: Mapped[str] = mapped_column(String(40), nullable=False)
+
+    __table_args__ = (Index("ix_item_documents_document", "document_id"),)
+
+
 class ShipRecord(Base):
     __tablename__ = "ship_records"
 

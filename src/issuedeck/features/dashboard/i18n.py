@@ -305,6 +305,78 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nav.list": "List",
         "nav.search": "Search",
         "nav.images": "Images",
+        "nav.documents": "Documents",
+        "documents.title": "Documents",
+        "documents.description": (
+            "Markdown documents of this project: prompts, descriptions, requests and "
+            "reports. Every save is kept as a revision (the last 50)."
+        ),
+        "documents.stored": "Stored: {names}",
+        "documents.deleted": "Deleted {name}.",
+        "documents.refused": "Not stored - {name}: {message}",
+        "documents.exists": (
+            "Not stored - {name}: a document with this name exists. "
+            "Upload again and confirm the replacement."
+        ),
+        "documents.no_file": "Choose at least one file.",
+        "documents.replace_confirm": (
+            "A document named {names} exists. Replace it with a new revision?"
+        ),
+        "documents.choose": "Choose Markdown files",
+        "documents.kind": "Kind",
+        "documents.kind_prompt": "Prompt",
+        "documents.kind_description": "Description",
+        "documents.kind_request": "Request",
+        "documents.kind_report": "Report",
+        "documents.kind_other": "Other",
+        "documents.upload": "Upload",
+        "documents.upload_hint": (
+            "Any Markdown file; its file name becomes the document name. "
+            "A file that is not text (a binary) is refused."
+        ),
+        "documents.usage": "{count} document(s)",
+        "documents.empty": "No documents yet.",
+        "documents.name": "Name",
+        "documents.updated": "Updated",
+        "documents.revision": "Revision",
+        "documents.size": "Size",
+        "documents.actor": "By",
+        "documents.edit": "Edit",
+        "documents.download": "Download",
+        "documents.delete": "Delete",
+        "documents.delete_confirm": (
+            "Delete {name}? All its revisions are deleted too. This cannot be undone."
+        ),
+        "documents.back": "Back to documents",
+        "documents.history": "History",
+        "documents.history_title": "History of {name}",
+        "documents.open": "Open",
+        "documents.restore": "Restore",
+        "documents.current": "current",
+        "documents.view_current": "Open the current text",
+        "documents.old_revision": "This is revision {number}. The current revision is {current}.",
+        "documents.empty_text": "This document is empty.",
+        "documents.title_label": "Title (optional)",
+        "documents.write": "Write",
+        "documents.revisions_kept": "The last 50 revisions are kept.",
+        "documents.item_title": "Documents",
+        "documents.none_linked": "No documents linked.",
+        "documents.none_available": "The project has no documents yet.",
+        "documents.all_linked": "Every document of the project is linked.",
+        "documents.choose_to_link": "Link a document of the project",
+        "documents.link": "Link",
+        "documents.unlink": "Remove link",
+        "documents.linked_to": "Linked to {count} item(s)",
+        "documents.linked_items": "Items that link this document",
+        "documents.no_linked_items": "No item links this document.",
+        "documents.delete_confirm_linked": (
+            "Delete {name}? Its links to {count} item(s) are removed and all its revisions "
+            "are deleted. This cannot be undone."
+        ),
+        "documents.conflict": (
+            "{name} was changed by someone else (now revision {revision}). "
+            "Your text is kept below; saving replaces the newer text."
+        ),
         "images.title": "Images",
         "images.description": "SVG images of this project: upload, download and delete them.",
         "images.upload": "Upload",
@@ -635,6 +707,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "snapshot.relationships_added": "Relationships added",
         "snapshot.images_added": "Images added",
         "snapshot.item_images_added": "Image links added",
+        "snapshot.documents_added": "Documents added",
+        "snapshot.item_documents_added": "Document links added",
         "snapshot.work_sessions_added": "Work sessions added",
         "snapshot.import_batches_added": "Import batches added",
         "snapshot.error.options": "The options are not valid.",
@@ -907,6 +981,8 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "snapshot.relationships_added": "新增关联",
         "snapshot.images_added": "新增图片",
         "snapshot.item_images_added": "新增图片关联",
+        "snapshot.documents_added": "新增文档",
+        "snapshot.item_documents_added": "新增文档关联",
         "snapshot.work_sessions_added": "新增工作会话",
         "snapshot.import_batches_added": "新增导入批次",
         "snapshot.error.options": "选项无效。",
@@ -1082,6 +1158,70 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "nav.list": "列表",
         "nav.search": "搜索",
         "nav.images": "图片",
+        "nav.documents": "文档",
+        "documents.title": "文档",
+        "documents.description": (
+            "本项目的 Markdown 文档：提示词、说明、需求和报告。"
+            "每次保存都会保留为一个修订版本（最近 50 个）。"
+        ),
+        "documents.stored": "已保存：{names}",
+        "documents.deleted": "已删除 {name}。",
+        "documents.refused": "未保存 - {name}：{message}",
+        "documents.exists": "未保存 - {name}：已存在同名文档。请重新上传并确认替换。",
+        "documents.no_file": "请至少选择一个文件。",
+        "documents.replace_confirm": "已存在名为 {names} 的文档。要用新的修订版本替换它吗？",
+        "documents.choose": "选择 Markdown 文件",
+        "documents.kind": "类型",
+        "documents.kind_prompt": "提示词",
+        "documents.kind_description": "说明",
+        "documents.kind_request": "需求",
+        "documents.kind_report": "报告",
+        "documents.kind_other": "其他",
+        "documents.upload": "上传",
+        "documents.upload_hint": (
+            "任何 Markdown 文件；文件名即文档名。不是文本的文件（二进制）会被拒绝。"
+        ),
+        "documents.usage": "{count} 个文档",
+        "documents.empty": "还没有文档。",
+        "documents.name": "名称",
+        "documents.updated": "更新时间",
+        "documents.revision": "修订",
+        "documents.size": "大小",
+        "documents.actor": "操作者",
+        "documents.edit": "编辑",
+        "documents.download": "下载",
+        "documents.delete": "删除",
+        "documents.delete_confirm": "删除 {name}？它的所有修订版本也会被删除。此操作无法撤销。",
+        "documents.back": "返回文档",
+        "documents.history": "历史",
+        "documents.history_title": "{name} 的历史",
+        "documents.open": "打开",
+        "documents.restore": "恢复",
+        "documents.current": "当前",
+        "documents.view_current": "打开当前文本",
+        "documents.old_revision": "这是第 {number} 个修订版本，当前是第 {current} 个。",
+        "documents.empty_text": "此文档为空。",
+        "documents.title_label": "标题（可选）",
+        "documents.write": "编写",
+        "documents.revisions_kept": "保留最近 50 个修订版本。",
+        "documents.item_title": "文档",
+        "documents.none_linked": "没有关联的文档。",
+        "documents.none_available": "项目还没有文档。",
+        "documents.all_linked": "项目的所有文档都已关联。",
+        "documents.choose_to_link": "关联项目中的文档",
+        "documents.link": "关联",
+        "documents.unlink": "取消关联",
+        "documents.linked_to": "已关联 {count} 个条目",
+        "documents.linked_items": "关联此文档的条目",
+        "documents.no_linked_items": "没有条目关联此文档。",
+        "documents.delete_confirm_linked": (
+            "删除 {name}？它与 {count} 个条目的关联将被移除，所有修订版本也会被删除。"
+            "此操作无法撤销。"
+        ),
+        "documents.conflict": (
+            "{name} 已被他人修改（现为第 {revision} 个修订版本）。"
+            "您的文本保留在下方；保存将替换较新的文本。"
+        ),
         "images.title": "图片",
         "images.description": "本项目的 SVG 图片：上传、下载和删除。",
         "images.upload": "上传",

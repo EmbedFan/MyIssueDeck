@@ -29,6 +29,15 @@ from sqlalchemy.orm import selectinload
 from issuedeck.core import events as live_events
 from issuedeck.core.config import ConfigRegistry, ProjectConfig, load_project_config
 from issuedeck.core.errors import ProjectNotFound, SnapshotConflict, SnapshotInvalid
+from issuedeck.features.documents.bundle import (
+    DOCUMENTS_REGISTRY_FILE,
+    ITEM_DOCUMENTS_FILE,
+    DocumentPlan,
+    apply_document_plan,
+    is_document_file,
+    plan_document_import,
+)
+from issuedeck.features.documents.repo import DocumentStore
 from issuedeck.features.images.bundle import (
     IMAGE_REGISTRY_FILE,
     ITEM_IMAGES_FILE,
@@ -42,6 +51,7 @@ from issuedeck.features.items.models import (
     ImportBatch,
     Item,
     ItemApplyTo,
+    ItemDocument,
     ItemEvent,
     ItemExternalLink,
     ItemImage,
@@ -67,7 +77,10 @@ _REQUIRED = (
     "work_sessions.json",
     "import_batches.json",
 )
-_ALLOWED = (*_REQUIRED, "project.toml", IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE)
+_ALLOWED = (
+    *_REQUIRED, "project.toml", IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE,
+    DOCUMENTS_REGISTRY_FILE, ITEM_DOCUMENTS_FILE,
+)
 _MAX_LISTED_PROBLEMS = 10
 
 
@@ -84,6 +97,10 @@ class Snapshot:
     images_registry: dict[str, Any] | None = None
     image_files: dict[str, bytes] = field(default_factory=dict)
     item_images: list[dict[str, Any]] = field(default_factory=list)
+    # FEA-0012: the document store of the project (absent in older snapshots)
+    documents_registry: dict[str, Any] | None = None
+    document_files: dict[str, bytes] = field(default_factory=dict)
+    item_documents: list[dict[str, Any]] = field(default_factory=list)
     # project.toml had other line endings than LF, or a byte order mark, and was brought to one
     # form (IS-0011); the importer says so in its report
     config_normalised: bool = False
@@ -111,6 +128,10 @@ class ImportReport:
     images_unchanged: int = 0
     images_skipped: int = 0
     item_images_added: int = 0
+    documents_added: int = 0
+    documents_unchanged: int = 0
+    documents_skipped: int = 0
+    item_documents_added: int = 0
     warnings: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
@@ -142,7 +163,8 @@ def read_snapshot(path: Path) -> Snapshot:
     with bundle:
         infos = {info.filename: info for info in bundle.infolist()}
         unexpected = sorted(
-            name for name in infos if name not in _ALLOWED and not is_image_file(name)
+            name for name in infos
+            if name not in _ALLOWED and not is_image_file(name) and not is_document_file(name)
         )
         if unexpected:
             raise SnapshotInvalid(
@@ -203,6 +225,13 @@ def read_snapshot(path: Path) -> Snapshot:
             ),
             item_images=load(ITEM_IMAGES_FILE, list) if ITEM_IMAGES_FILE in infos else [],
             image_files={name: raw(name) for name in infos if is_image_file(name)},
+            documents_registry=(
+                load(DOCUMENTS_REGISTRY_FILE, dict) if DOCUMENTS_REGISTRY_FILE in infos else None
+            ),
+            document_files={name: raw(name) for name in infos if is_document_file(name)},
+            item_documents=(
+                load(ITEM_DOCUMENTS_FILE, list) if ITEM_DOCUMENTS_FILE in infos else []
+            ),
             config_normalised=config_normalised,
         )
 
@@ -213,9 +242,14 @@ def read_snapshot(path: Path) -> Snapshot:
         ("work_sessions", snapshot.work_sessions),
         ("import_batches", snapshot.import_batches),
         ("item_images", snapshot.item_images),
+        ("item_documents", snapshot.item_documents),
     ):
         if counts.get(name, len(rows)) != len(rows):
             raise SnapshotInvalid(f"the manifest count for {name} does not match the file")
+    listed = (snapshot.documents_registry or {}).get("ids")
+    present = len(listed) if isinstance(listed, list) else len(snapshot.document_files)
+    if counts.get("documents", present) != present:
+        raise SnapshotInvalid("the manifest count for documents does not match the files")
     _check_shapes(snapshot)
     return snapshot
 
@@ -240,6 +274,7 @@ def _check_shapes(snapshot: Snapshot) -> None:
         ("work_sessions", snapshot.work_sessions),
         ("import_batches", snapshot.import_batches),
         ("item_images", snapshot.item_images),
+        ("item_documents", snapshot.item_documents),
     ):
         if any(not isinstance(row, dict) for row in rows):
             problems.append(f"{name} contains an entry that is not an object")
@@ -315,6 +350,16 @@ async def import_snapshot(
     report.warnings.extend(plan.warnings)
     undo_images = None
 
+    # FEA-0012: the documents are checked the same way
+    document_store = DocumentStore(registry.server.data_dir / "documents", target)
+    document_plan = plan_document_import(
+        document_store, snapshot.documents_registry, snapshot.document_files)
+    report.documents_added = len(document_plan.add)
+    report.documents_unchanged = document_plan.unchanged
+    report.documents_skipped = len(document_plan.skipped)
+    report.warnings.extend(document_plan.warnings)
+    undo_documents = None
+
     wrote_config = False
     try:
         if mode == "create" and apply:
@@ -325,15 +370,19 @@ async def import_snapshot(
             config_path.write_bytes(config_text.encode("utf-8"))
             wrote_config = True
             registry.register_project(load_project_config(config_path))
-        await _write_rows(session, snapshot, target, mode, conflict, report, plan)
+        await _write_rows(
+            session, snapshot, target, mode, conflict, report, plan, document_plan)
         if apply:
             undo_images = apply_image_plan(store, target, plan)
+            undo_documents = apply_document_plan(document_store, target, document_plan)
             await session.commit()
             report.applied = True
         else:
             await session.rollback()
     except BaseException:
         await session.rollback()
+        if undo_documents is not None:
+            undo_documents()
         if undo_images is not None:
             undo_images()
         if wrote_config:
@@ -434,6 +483,7 @@ async def _write_rows(
     conflict: str,
     report: ImportReport,
     plan: ImagePlan | None = None,
+    document_plan: DocumentPlan | None = None,
 ) -> None:
     existing = {
         item.local_id: item
@@ -478,7 +528,49 @@ async def _write_rows(
     await _add_work_sessions(session, snapshot, target, pk_by_local, report)
     await _add_import_batches(session, snapshot, target, report)
     await _add_item_images(session, snapshot, pk_by_local, plan, report)
+    await _add_item_documents(session, snapshot, pk_by_local, document_plan, report)
     await session.flush()
+
+
+async def _add_item_documents(
+    session: AsyncSession,
+    snapshot: Snapshot,
+    pk_by_local: dict[str, int],
+    plan: DocumentPlan | None,
+    report: ImportReport,
+) -> None:
+    """The links between items and documents; only links to documents that exist afterwards."""
+    if not snapshot.item_documents:
+        return
+    known = plan.known_ids if plan is not None else set()
+    pks = list(pk_by_local.values())
+    present: set[tuple[int, str]] = set()
+    if pks:
+        present = {
+            (row.item_pk, row.document_id)
+            for row in (await session.execute(
+                select(ItemDocument).where(ItemDocument.item_pk.in_(pks))
+            )).scalars()
+        }
+    skipped = 0
+    for row in snapshot.item_documents:
+        pk = pk_by_local.get(str(row.get("local_id")))
+        document_id = str(row.get("document_id"))
+        if pk is None or document_id not in known:
+            skipped += 1
+            continue
+        if (pk, document_id) in present:
+            continue
+        session.add(ItemDocument(
+            item_pk=pk, document_id=document_id, created_at=str(row.get("created_at") or ""),
+        ))
+        present.add((pk, document_id))
+        report.item_documents_added += 1
+    if skipped:
+        report.warnings.append(
+            f"{skipped} document link(s) were skipped because the item is not in the project "
+            "or the document was not imported",
+        )
 
 
 async def _add_item_images(

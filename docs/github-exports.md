@@ -57,6 +57,9 @@ Each project gets its own folder, named with the project key, inside the configu
                        images.json            (only when the project has images)
                        item_images.json       (the same)
                        images/IMG-0001.svg    (one file per image, as stored)
+                       documents.json         (only when the project has documents: ids, next_id)
+                       documents/DOC-0001.json (one file per document, as stored)
+                       item_documents.json    (the links between items and documents)
 ```
 
 These are the files of a snapshot (an audit bundle, see [Audit Bundles](audit-bundles.md)),
@@ -65,7 +68,9 @@ are written in a stable order and format, so the same data always gives the same
 
 Image files are uploaded only when they changed, like every other file. An image that is deleted
 in the project stays in the repository folder (an export only adds and changes files), but
-`images.json` no longer lists it, so an import ignores it.
+`images.json` no longer lists it, so an import ignores it. The same holds for documents:
+`documents.json` lists the ids that exist, and an import takes only those, so a deleted document
+whose file is still in the folder does not come back.
 
 **What makes them stable (IS-0010).** The files never carry the numeric row ids of the database
 a project lives in (events, relationships, work sessions and their updates, import batches,

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t("documents.history") }} {{ document.name }} - IssueDeck{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl">
+  <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}"
+     class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+    &larr; {{ document.name }}
+  </a>
+  <div>
+    <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100 break-words">
+      {{ t("documents.history_title", name=document.name) }}
+    </h1>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ t("documents.revisions_kept") }}</p>
+  </div>
+
+  <div class="overflow-x-auto rounded-md border border-ledger-line dark:border-ledger-darkLine bg-white dark:bg-ledger-darkPanel">
+    <table class="min-w-full text-sm" data-history-table>
+      <thead class="text-left text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <tr>
+          <th class="px-3 py-2">{{ t("documents.revision") }}</th>
+          <th class="px-3 py-2">{{ t("documents.updated") }}</th>
+          <th class="px-3 py-2">{{ t("documents.actor") }}</th>
+          <th class="px-3 py-2">{{ t("documents.size") }}</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-ledger-line dark:divide-ledger-darkLine">
+        {% for row in revisions %}
+          <tr data-revision="{{ row.revision }}">
+            <td class="px-3 py-2 font-mono">r{{ row.revision }}
+              {% if row.current %}<span class="ml-1 text-xs text-green-700 dark:text-green-300">{{ t("documents.current") }}</span>{% endif %}
+            </td>
+            <td class="px-3 py-2 whitespace-nowrap">{{ row.time[:16] | replace("T", " ") }}</td>
+            <td class="px-3 py-2">{{ row.actor }}</td>
+            <td class="px-3 py-2 whitespace-nowrap">{{ human_size(row.size) }}</td>
+            <td class="px-3 py-2">
+              <div class="flex flex-wrap items-center gap-2 justify-end">
+                <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/revisions/{{ row.revision }}"
+                   class="px-2 py-1 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.open") }}</a>
+                <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/revisions/{{ row.revision }}/file?download=true"
+                   class="px-2 py-1 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.download") }}</a>
+                {% if not row.current %}
+                <form method="post" action="/dashboard/{{ project_key }}/documents/{{ document.id }}/restore/{{ row.revision }}" class="inline">
+                  <button type="submit" class="px-2 py-1 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.restore") }}</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

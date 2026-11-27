@@ -22,7 +22,7 @@ def test_upgrade_head_creates_all_tables(tmp_path):
         "items", "item_tags", "item_applies_to",
         "ship_records", "ship_commits", "item_relationships", "item_events",
         "item_external_links", "work_sessions", "work_session_updates",
-        "import_batches",
+        "import_batches", "item_images", "item_documents",
         "items_fts", "alembic_version",
     }
     assert expected.issubset(names)

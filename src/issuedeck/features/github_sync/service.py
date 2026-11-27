@@ -27,6 +27,7 @@ from issuedeck.core.config import ConfigRegistry
 from issuedeck.core.errors import GitHubConfigError, GitHubError, SnapshotInvalid
 from issuedeck.core.github_settings import parse_repository
 from issuedeck.core.runtime_settings import RuntimeSettings
+from issuedeck.features.documents.bundle import is_snapshot_document_name
 from issuedeck.features.export.md_bundle import export_audit_bundle
 from issuedeck.features.export.snapshot_import import (
     MAX_UNCOMPRESSED_BYTES,
@@ -45,6 +46,12 @@ REQUIRED_FILES = (
     "import_batches.json",
 )
 SNAPSHOT_FILES = (*REQUIRED_FILES, "project.toml")
+
+
+def _optional_file(name: str) -> bool:
+    """The image files (FEA-0013) and the document files (FEA-0012) of a snapshot."""
+    return is_snapshot_image_name(name) or is_snapshot_document_name(name)
+
 _REVISION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$")
 
 #: ``progress("step_key", **details)`` is called as the work moves on, so that a caller
@@ -213,7 +220,7 @@ async def _snapshot_files(
             present = set(bundle.namelist())
             # the fixed files in their fixed order, then the image files (FEA-0013) by name
             names = [name for name in SNAPSHOT_FILES if name in present]
-            names += sorted(name for name in present if is_snapshot_image_name(name))
+            names += sorted(name for name in present if _optional_file(name))
             files = {name: bundle.read(name) for name in names}
     return files, report.items_written
 
@@ -375,7 +382,7 @@ async def fetch_snapshot(
             for entry in await client.tree(head.tree_sha)
             if entry.type == "blob" and entry.path.startswith(prefix)
             and (entry.path[len(prefix):] in SNAPSHOT_FILES
-                 or is_snapshot_image_name(entry.path[len(prefix):]))
+                 or _optional_file(entry.path[len(prefix):]))
         }
         missing = [name for name in REQUIRED_FILES if name not in wanted]
         if missing:

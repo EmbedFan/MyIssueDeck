@@ -11,6 +11,7 @@ from issuedeck.features.items.models import (
     ImportBatch,
     Item,
     ItemApplyTo,
+    ItemDocument,
     ItemEvent,
     ItemExternalLink,
     ItemImage,
@@ -100,7 +101,8 @@ class ProjectRepo:
         )
         await self._s.execute(delete(ShipCommit).where(ShipCommit.ship_record_id.in_(record_ids)))
         await self._s.execute(delete(ShipRecord).where(ShipRecord.item_pk.in_(item_pks)))
-        for model in (ItemTag, ItemApplyTo, ItemExternalLink, ItemEvent, ItemImage):
+        for model in (ItemTag, ItemApplyTo, ItemExternalLink, ItemEvent, ItemImage,
+                      ItemDocument):
             await self._s.execute(delete(model).where(model.item_pk.in_(item_pks)))
         await self._s.execute(delete(Item).where(Item.project_key == project_key))
 

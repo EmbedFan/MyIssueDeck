@@ -153,6 +153,26 @@ class ImageDuplicate(IssueDeckError):
     http_status = 409
 
 
+class InvalidDocument(IssueDeckError):
+    code = "invalid_document"
+    http_status = 422
+
+
+class DocumentNotFound(IssueDeckError):
+    code = "document_not_found"
+    http_status = 404
+
+
+class DocumentExists(IssueDeckError):
+    code = "document_exists"
+    http_status = 409
+
+
+class DocumentConflict(IssueDeckError):
+    code = "document_conflict"
+    http_status = 409
+
+
 class Unauthorized(IssueDeckError):
     code = "unauthorized"
     http_status = 401

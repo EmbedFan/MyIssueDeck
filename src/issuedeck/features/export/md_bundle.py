@@ -15,11 +15,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from issuedeck.core.config import ConfigRegistry
+from issuedeck.features.documents.bundle import DOCUMENTS_REGISTRY_FILE, ITEM_DOCUMENTS_FILE
+from issuedeck.features.documents.repo import DocumentStore, json_text
 from issuedeck.features.images.bundle import IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE
 from issuedeck.features.images.repo import ImageStore, registry_text
 from issuedeck.features.items.models import (
     ImportBatch,
     Item,
+    ItemDocument,
     ItemImage,
     ItemRelationship,
     ShipRecord,
@@ -41,6 +44,8 @@ class AuditBundleReport:
     import_batches_written: int
     images_written: int = 0
     item_images_written: int = 0
+    documents_written: int = 0
+    item_documents_written: int = 0
 
 
 async def export_md_bundle(
@@ -136,6 +141,20 @@ async def export_audit_bundle(
             key=lambda row: (row["local_id"], row["image_id"]),
         )
     has_images = bool(image_doc["images"] or item_links or int(image_doc["next_id"]) > 1)
+    # FEA-0012: the document store of the project, when there are documents
+    document_next_id, document_files = _documents_of_project(registry, project_key)
+    document_links: list[dict[str, str]] = []
+    if item_pks:
+        link_rows = (await session.execute(
+            select(ItemDocument.item_pk, ItemDocument.document_id, ItemDocument.created_at)
+            .where(ItemDocument.item_pk.in_(item_pks))
+        )).all()
+        document_links = sorted(
+            ({"document_id": document_id, "local_id": item_pk_to_local_id[pk],
+              "created_at": created} for pk, document_id, created in link_rows),
+            key=lambda row: (row["local_id"], row["document_id"]),
+        )
+    has_documents = bool(document_files or document_links) or document_next_id > 1
 
     bundle_path = _audit_bundle_path(out_path, project_key)
     bundle_path.parent.mkdir(parents=True, exist_ok=True)
@@ -164,6 +183,12 @@ async def export_audit_bundle(
         manifest["counts"]["images"] = len(image_doc["images"])
         manifest["counts"]["item_images"] = len(item_links)
         manifest["files"].extend([IMAGE_REGISTRY_FILE, *sorted(image_files), ITEM_IMAGES_FILE])
+
+    if has_documents:
+        manifest["counts"]["documents"] = len(document_files)
+        manifest["counts"]["item_documents"] = len(document_links)
+        manifest["files"].extend(
+            [DOCUMENTS_REGISTRY_FILE, *sorted(document_files), ITEM_DOCUMENTS_FILE])
 
     project_toml = registry.server.projects_dir / f"{project_key}.toml"
     if project_toml.exists():
@@ -209,6 +234,15 @@ async def export_audit_bundle(
             for name in sorted(image_files):
                 bundle.writestr(name, image_files[name])  # the file, byte for byte
             _write_json(bundle, ITEM_IMAGES_FILE, item_links)
+        if has_documents:
+            listing = {
+                "ids": sorted(name[len("documents/"):-len(".json")] for name in document_files),
+                "next_id": document_next_id,
+            }
+            bundle.writestr(DOCUMENTS_REGISTRY_FILE, json_text(listing))
+            for name in sorted(document_files):
+                bundle.writestr(name, document_files[name])  # the file, byte for byte
+            _write_json(bundle, ITEM_DOCUMENTS_FILE, document_links)
 
     return AuditBundleReport(
         bundle_path=bundle_path,
@@ -218,7 +252,22 @@ async def export_audit_bundle(
         import_batches_written=len(import_batches),
         images_written=len(image_files),
         item_images_written=len(item_links),
+        documents_written=len(document_files),
+        item_documents_written=len(document_links),
     )
+
+
+def _documents_of_project(
+    registry: ConfigRegistry, project_key: str,
+) -> tuple[int, dict[str, bytes]]:
+    """The next free document number and the document files (by snapshot name), as stored."""
+    store = DocumentStore(registry.server.data_dir / "documents", project_key)
+    files: dict[str, bytes] = {}
+    for document_id in store.ids():
+        data = store.read_bytes(document_id)
+        if data is not None:
+            files[f"documents/{document_id}.json"] = data
+    return store.next_id(), files
 
 
 def _images_of_project(

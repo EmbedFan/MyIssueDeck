@@ -58,6 +58,8 @@ from issuedeck.features.dashboard.saved_filters import (
     save_dashboard_filter,
     saved_filter_href,
 )
+from issuedeck.features.documents.routes import link_service as document_link_service
+from issuedeck.features.documents.service import DocumentService
 from issuedeck.features.export.md_bundle import export_audit_bundle
 from issuedeck.features.images.routes import link_service
 from issuedeck.features.images.service import ImageService
@@ -2254,6 +2256,21 @@ async def item_detail(project_key: str, local_id: str, request: Request):
     linked = {image["id"] for image in item_images}
     project_images = _project_images(request, project_key)
 
+    # FEA-0012: the documents linked to this item, and the other documents of the project
+    item_documents: list[dict] = []
+    project_documents: list[dict] = []
+    if hasattr(request.app.state, "documents_dir"):
+        project_documents = DocumentService(
+            request.app.state.documents_dir, request.app.state.registry,
+        ).list(project_key)
+        if not item.deleted_at:
+            doc_links, session = document_link_service(request)
+            try:
+                item_documents = await doc_links.list(project_key, local_id)
+            finally:
+                await session.close()
+    linked_documents = {document["id"] for document in item_documents}
+
     work_svc, session = _work_session_svc(request)
     try:
         work_sessions = await work_svc.list_sessions(
@@ -2270,6 +2287,9 @@ async def item_detail(project_key: str, local_id: str, request: Request):
         item=item,
         work_sessions=work_sessions.sessions,
         item_images=item_images,
+        item_documents=item_documents,
+        unlinked_documents=[d for d in project_documents if d["id"] not in linked_documents],
+        project_documents=project_documents,
         unlinked_images=[image for image in project_images if image["id"] not in linked],
         project_images=project_images,
         active_page="detail",

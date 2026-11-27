@@ -298,6 +298,78 @@ MESSAGES_HU: dict[str, str] = {
     "nav.list": "Lista",
     "nav.search": "Keresés",
     "nav.images": "Képek",
+    "nav.documents": "Dokumentumok",
+    "documents.title": "Dokumentumok",
+    "documents.description": (
+        "A projekt Markdown dokumentumai: promptok, leírások, kérések és jelentések. "
+        "Minden mentés változatként megmarad (az utolsó 50)."
+    ),
+    "documents.stored": "Tárolva: {names}",
+    "documents.deleted": "{name} törölve.",
+    "documents.refused": "Nem lett tárolva - {name}: {message}",
+    "documents.exists": (
+        "Nem lett tárolva - {name}: már van ilyen nevű dokumentum. "
+        "Töltse fel újra, és erősítse meg a cserét."
+    ),
+    "documents.no_file": "Válasszon ki legalább egy fájlt.",
+    "documents.replace_confirm": (
+        "Már van {names} nevű dokumentum. Lecseréli egy új változattal?"
+    ),
+    "documents.choose": "Markdown fájlok kiválasztása",
+    "documents.kind": "Fajta",
+    "documents.kind_prompt": "Prompt",
+    "documents.kind_description": "Leírás",
+    "documents.kind_request": "Kérés",
+    "documents.kind_report": "Jelentés",
+    "documents.kind_other": "Egyéb",
+    "documents.upload": "Feltöltés",
+    "documents.upload_hint": (
+        "Bármilyen Markdown fájl; a fájlneve lesz a dokumentum neve. "
+        "A nem szöveges (bináris) fájlt elutasítjuk."
+    ),
+    "documents.usage": "{count} dokumentum",
+    "documents.empty": "Még nincs dokumentum.",
+    "documents.name": "Név",
+    "documents.updated": "Módosítva",
+    "documents.revision": "Változat",
+    "documents.size": "Méret",
+    "documents.actor": "Ki",
+    "documents.edit": "Szerkesztés",
+    "documents.download": "Letöltés",
+    "documents.delete": "Törlés",
+    "documents.delete_confirm": (
+        "Törli a(z) {name} dokumentumot? Minden változata is törlődik. Ez nem vonható vissza."
+    ),
+    "documents.back": "Vissza a dokumentumokhoz",
+    "documents.history": "Előzmények",
+    "documents.history_title": "{name} előzményei",
+    "documents.open": "Megnyitás",
+    "documents.restore": "Visszaállítás",
+    "documents.current": "jelenlegi",
+    "documents.view_current": "A jelenlegi szöveg megnyitása",
+    "documents.old_revision": "Ez a(z) {number}. változat. A jelenlegi a(z) {current}.",
+    "documents.empty_text": "Ez a dokumentum üres.",
+    "documents.title_label": "Cím (nem kötelező)",
+    "documents.write": "Írás",
+    "documents.revisions_kept": "Az utolsó 50 változat marad meg.",
+    "documents.item_title": "Dokumentumok",
+    "documents.none_linked": "Nincs hozzákapcsolt dokumentum.",
+    "documents.none_available": "A projektnek még nincs dokumentuma.",
+    "documents.all_linked": "A projekt minden dokumentuma hozzá van kapcsolva.",
+    "documents.choose_to_link": "A projekt egy dokumentumának hozzákapcsolása",
+    "documents.link": "Hozzákapcsolás",
+    "documents.unlink": "Kapcsolat törlése",
+    "documents.linked_to": "{count} elemhez kapcsolva",
+    "documents.linked_items": "A dokumentumot hivatkozó elemek",
+    "documents.no_linked_items": "Egy elem sem hivatkozza ezt a dokumentumot.",
+    "documents.delete_confirm_linked": (
+        "Törli a(z) {name} dokumentumot? A(z) {count} elemhez fűződő kapcsolatai megszűnnek, "
+        "és minden változata is törlődik. Ez nem vonható vissza."
+    ),
+    "documents.conflict": (
+        "A(z) {name} dokumentumot valaki más módosította (most a(z) {revision}. változat). "
+        "A szövege lent megmaradt; a mentés felülírja az újabb szöveget."
+    ),
     "images.title": "Képek",
     "images.description": "A projekt SVG képei: feltöltés, letöltés és törlés.",
     "images.upload": "Feltöltés",
@@ -629,6 +701,8 @@ MESSAGES_HU: dict[str, str] = {
     "snapshot.relationships_added": "Hozzáadott kapcsolatok",
     "snapshot.images_added": "Hozzáadott képek",
     "snapshot.item_images_added": "Hozzáadott képkapcsolatok",
+    "snapshot.documents_added": "Hozzáadott dokumentumok",
+    "snapshot.item_documents_added": "Hozzáadott dokumentumkapcsolatok",
     "snapshot.work_sessions_added": "Hozzáadott munkamenetek",
     "snapshot.import_batches_added": "Hozzáadott importcsomagok",
     "snapshot.error.options": "A beállítások érvénytelenek.",

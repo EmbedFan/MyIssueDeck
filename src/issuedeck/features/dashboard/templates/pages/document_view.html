@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.name }} - {{ t("documents.title") }} - IssueDeck{% endblock %}
+
+{% block content %}
+{% set shown_body = revision.body if revision else document.body %}
+<div class="space-y-6 max-w-5xl">
+  <a href="/dashboard/{{ project_key }}/documents"
+     class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+    &larr; {{ t("documents.back") }}
+  </a>
+
+  <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <div class="min-w-0">
+      <h1 class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100 break-words" data-document-name>
+        {{ document.name }}
+      </h1>
+      {% if document.title %}<p class="mt-1 text-gray-700 dark:text-gray-200">{{ document.title }}</p>{% endif %}
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <span class="font-mono">{{ document.id }}</span> ·
+        {{ t("documents.kind_" ~ document.kind) }} ·
+        {% if revision %}
+          {{ t("documents.revision") }} r{{ revision.revision }} ·
+          {{ revision.time[:16] | replace("T", " ") }} · {{ revision.actor }} ·
+          {{ human_size(revision.size) }}
+        {% else %}
+          {{ t("documents.revision") }} r{{ document.revision }} ·
+          {{ document.updated_at[:16] | replace("T", " ") }} · {{ document.actor }} ·
+          {{ human_size(document.size) }}
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      {% if revision %}
+        <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}"
+           class="px-3 py-2 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.view_current") }}</a>
+        <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/revisions/{{ revision.revision }}/file?download=true"
+           class="px-3 py-2 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.download") }}</a>
+        {% if not revision.current %}
+        <form method="post" action="/dashboard/{{ project_key }}/documents/{{ document.id }}/restore/{{ revision.revision }}" class="inline">
+          <button type="submit" class="px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700">{{ t("documents.restore") }}</button>
+        </form>
+        {% endif %}
+      {% else %}
+        <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/edit"
+           class="px-3 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700">{{ t("documents.edit") }}</a>
+        <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/history"
+           class="px-3 py-2 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.history") }}</a>
+        <a href="/dashboard/{{ project_key }}/documents/{{ document.id }}/file?download=true"
+           class="px-3 py-2 rounded-md border border-ledger-line dark:border-ledger-darkLine text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">{{ t("documents.download") }}</a>
+        <form method="post" action="/dashboard/{{ project_key }}/documents/{{ document.id }}/delete" class="inline">
+          <button type="submit"
+                  data-confirm="{{ t('documents.delete_confirm', name=document.name) }}"
+                  onclick="return confirm(this.dataset.confirm)"
+                  class="px-3 py-2 rounded-md border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950">{{ t("documents.delete") }}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if revision and not revision.current %}
+    <div role="status" data-old-revision
+         class="rounded-md border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+      {{ t("documents.old_revision", number=revision.revision, current=document.revision) }}
+    </div>
+  {% endif %}
+
+  {% if not revision %}
+  <div class="text-sm" data-linked-items>
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ t("documents.linked_items") }}</h2>
+    {% if linked_items %}
+      <ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+        {% for linked in linked_items %}
+          <li><a href="/dashboard/{{ project_key }}/items/{{ linked.local_id }}"
+                 class="text-primary-700 dark:text-primary-300 hover:underline"><span class="font-mono">{{ linked.local_id }}</span> {{ linked.title }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-1 text-gray-400 dark:text-gray-600 italic">{{ t("documents.no_linked_items") }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm px-5 py-4">
+    {% if shown_body %}
+      {# The Markdown source as JSON: tojson escapes it for HTML, and JSON.parse gives back
+         exactly the original text. renderMarkdown neutralises raw HTML and unsafe links. #}
+      <script type="application/json" id="md-source">{{ shown_body | tojson }}</script>
+      <div id="md-rendered" class="md-content"></div>
+    {% else %}
+      <p class="text-sm text-gray-400 dark:text-gray-600 italic" data-document-empty>{{ t("documents.empty_text") }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var sourceEl = document.getElementById('md-source');
+  var renderEl = document.getElementById('md-rendered');
+  if (sourceEl && renderEl) {
+    renderEl.innerHTML = window.renderMarkdown(JSON.parse(sourceEl.textContent), {{ project_key | tojson }});
+  }
+});
+</script>
+{% endblock %}
