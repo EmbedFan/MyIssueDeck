@@ -78,7 +78,9 @@ Project snapshots are covered in
   import mappings.
 - Starter project templates plus dashboard/CLI-installable local template-pack
   examples for support queues, content calendars, and research workflows.
-- Full-text search via SQLite FTS5.
+- Full-text search via SQLite FTS5, and an advanced search that combines text (plain words or a
+  regular expression), kinds and statuses with AND/OR in groups (API and MCP; see
+  [Advanced Search](docs/advanced-search.md)).
 - Bidirectional relationships (`blocks`/`blocked_by`, `related_to`).
 - External links for GitHub issues, pull requests, commits, and other review context.
 - GitHub URL helper to create linked IssueDeck items from issue, pull request,

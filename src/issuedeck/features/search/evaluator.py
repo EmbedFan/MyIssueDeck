@@ -39,6 +39,7 @@ class SearchResult:
     pks: list[int]  # newest first
     partial: bool = False
     notes: list[str] = field(default_factory=list)
+    updated: dict[int, str] = field(default_factory=dict)  # pk -> updated_at of every match
 
 
 def fts_match(words: str, fields: tuple[str, ...]) -> str:
@@ -61,12 +62,15 @@ def _blocks(items) -> list[Text | Kind | Status]:
 
 async def run_query(
     session: AsyncSession, project_key: str, query: Query, *,
-    seconds: float = REGEX_SECONDS, max_rows: int = REGEX_MAX_ROWS,
+    seconds: float | None = None, max_rows: int | None = None,
 ) -> SearchResult:
+    # read at the call, so that a test or a setting can change them
+    seconds = REGEX_SECONDS if seconds is None else seconds
+    max_rows = REGEX_MAX_ROWS if max_rows is None else max_rows
     blocks = _blocks(query.items)
     regex_blocks = [b for b in blocks if isinstance(b, Text) and b.mode == "regex"]
 
-    columns = [Item.pk, Item.kind, Item.status]
+    columns = [Item.pk, Item.kind, Item.status, Item.updated_at]
     if regex_blocks:
         columns += [Item.title, Item.body]
     rows = (await session.execute(
@@ -74,16 +78,17 @@ async def run_query(
         .where(Item.project_key == project_key, Item.deleted_at.is_(None))
         .order_by(Item.updated_at.desc(), Item.pk.desc())
     )).all()
-    order = [row[0] for row in rows]
+    order = [row.pk for row in rows]
+    updated = {row.pk: row.updated_at for row in rows}
     universe = set(order)
     result = SearchResult(pks=[])
 
     sets: dict[int, set[int]] = {}
     for block in blocks:
         if isinstance(block, Kind):
-            sets[id(block)] = {row[0] for row in rows if row[1] in block.values}
+            sets[id(block)] = {row.pk for row in rows if row.kind in block.values}
         elif isinstance(block, Status):
-            sets[id(block)] = {row[0] for row in rows if row[2] in block.values}
+            sets[id(block)] = {row.pk for row in rows if row.status in block.values}
         elif block.mode == "simple":
             sets[id(block)] = await _full_text(session, block) & universe
 
@@ -92,7 +97,7 @@ async def run_query(
             (index, block.value, 0 if block.case_sensitive else re.IGNORECASE, block.fields)
             for index, block in enumerate(regex_blocks)
         ]
-        candidates: list[Row] = [(r[0], r[3], r[4]) for r in rows[:max_rows]]
+        candidates: list[Row] = [(r.pk, r.title, r.body) for r in rows[:max_rows]]
         if len(rows) > max_rows:
             result.partial = True
             result.notes.append(
@@ -120,6 +125,7 @@ async def run_query(
 
     matching = evaluate(query.items)
     result.pks = [pk for pk in order if pk in matching]
+    result.updated = {pk: updated[pk] for pk in result.pks}
     return result
 
 

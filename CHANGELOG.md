@@ -9,6 +9,18 @@ versioning once public releases begin.
 
 ### Added
 
+- The advanced search through the API and MCP, phase 2 of FEAT-0010.
+  `POST /api/v1/projects/{key}/search` takes `{"query": {...}, "limit": 50, "after": cursor}`
+  (the search as data of phase 1) and answers with the usual list plus `description` (the search
+  in words with explicit brackets), `partial` and `notes`; it is paged newest first like the other
+  lists and refuses a bad search with `422` `invalid_search` and the path of the fault (also a bad
+  `after` cursor, which the older lists answer with an error). Although it is a POST, it only reads,
+  so a token with the `read` scope may use it (a `read` token still cannot write). The MCP tool
+  `search_items` gets an optional `query` object (and `after`) next to `q`; exactly one of them
+  must be given, and a refused query is reported with its path. `GET .../search?q=` is unchanged.
+  New `docs/advanced-search.md` describes the format, the limits, the word matching (stemming) and
+  the time budget of regular expressions; the user guide lists the new parameters.
+
 - The query model of the advanced search, phase 1 of FEAT-0010 (no page or API uses it yet).
   `features/search/query.py` checks a search given as JSON: blocks `text` (mode `simple` or
   `regex`, fields title and body, case sensitivity for regular expressions), `kind` and `status`,

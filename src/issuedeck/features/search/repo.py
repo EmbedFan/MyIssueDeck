@@ -13,6 +13,22 @@ class SearchRepo:
     def __init__(self, session: AsyncSession):
         self._s = session
 
+    async def items_by_pks(self, pks: list[int]) -> list[Item]:
+        """The items with these pks, in the order of ``pks``."""
+        if not pks:
+            return []
+        items = (await self._s.execute(
+            select(Item)
+            .where(Item.pk.in_(pks))
+            .options(
+                selectinload(Item.tags),
+                selectinload(Item.applies_to),
+                selectinload(Item.external_links),
+            )
+        )).scalars().all()
+        order = {pk: i for i, pk in enumerate(pks)}
+        return sorted(items, key=lambda x: order[x.pk])
+
     async def match(
         self, project_key: str, query: str, *, limit: int,
         after_updated_at: str | None = None, after_pk: int | None = None,

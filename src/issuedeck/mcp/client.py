@@ -18,6 +18,7 @@ from issuedeck.core.errors import (
     InvalidDocument,
     InvalidImage,
     InvalidKind,
+    InvalidSearch,
     InvalidStatus,
     InvalidTransition,
     IssueDeckError,
@@ -51,6 +52,7 @@ _ERROR_MAP: dict[str, type[IssueDeckError]] = {
     DocumentNotFound.code: DocumentNotFound,
     DocumentExists.code: DocumentExists,
     DocumentConflict.code: DocumentConflict,
+    InvalidSearch.code: InvalidSearch,
 }
 
 
@@ -156,6 +158,11 @@ class IssueDeckClient:
         return await self._request(
             "GET", f"/api/v1/projects/{key}/search", params=params,
         )
+
+    async def search_items_query(
+        self, key: str, body: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._request("POST", f"/api/v1/projects/{key}/search", json=body)
 
     async def add_relationship(
         self, key: str, from_local_id: str, body: dict[str, Any],

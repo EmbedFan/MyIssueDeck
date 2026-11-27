@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import re
 import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -16,6 +17,9 @@ from starlette.responses import JSONResponse, RedirectResponse
 DASHBOARD_SESSION_COOKIE = "issuedeck_dashboard_session"
 DASHBOARD_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+#: POST requests that only read (a search whose query is too big for an address): they need the
+#: ``read`` scope, not ``agent``.
+READ_ONLY_POSTS = (re.compile(r"^/api/v1/projects/[^/]+/search/?$"),)
 
 
 def sha256_hex(value: str) -> str:
@@ -174,6 +178,8 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         if self._is_dashboard_path(request.url.path):
             return "admin"
         if request.method in SAFE_METHODS:
+            return "read"
+        if request.method == "POST" and any(p.match(request.url.path) for p in READ_ONLY_POSTS):
             return "read"
         if request.url.path.startswith("/api/"):
             return "agent"

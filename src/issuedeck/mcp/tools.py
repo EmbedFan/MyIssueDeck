@@ -6,7 +6,7 @@ import binascii
 from pathlib import Path
 from typing import Any
 
-from issuedeck.core.errors import ImageTooLarge, InvalidDocument, InvalidImage
+from issuedeck.core.errors import ImageTooLarge, InvalidDocument, InvalidImage, InvalidSearch
 from issuedeck.features.documents.text import decode_upload
 from issuedeck.mcp.client import get_client
 
@@ -193,13 +193,29 @@ async def list_items(
 
 async def search_items(
     project_key: str,
-    q: str,
+    q: str | None = None,
     limit: int = 20,
+    query: dict[str, Any] | None = None,
+    after: str | None = None,
 ) -> dict[str, Any]:
-    """Full-text search items using FTS5 MATCH syntax."""
-    return await get_client().search_items(
-        project_key, {"q": q, "limit": limit},
-    )
+    """Search items: with ``q`` the text is FTS5 MATCH syntax; with ``query`` a structured search.
+
+    Give exactly one of ``q`` and ``query``. A ``query`` is an object
+    ``{"items": [block, {"op": "and"|"or", ...block}, ...]}``. A block is
+    ``{"type": "text", "mode": "simple"|"regex", "value": "...", "fields": ["title", "body"]}``
+    (simple: all the words must occur, matched by stem; regex: Python syntax, ``case_sensitive``
+    allowed), ``{"type": "kind", "values": [...]}``, ``{"type": "status", "values": [...]}``, or a
+    ``{"group": [blocks]}`` of blocks with their own ``op``. ``and`` binds tighter than ``or``;
+    groups nest one level. The answer has ``items``, ``next_cursor`` (pass it as ``after`` for the
+    next page), ``description`` of the search in words, ``partial`` and ``notes`` (a regular
+    expression that did not finish in time is reported there).
+    """
+    if (q is None) == (query is None):
+        raise InvalidSearch("give exactly one of q and query", details={"path": ""})
+    if query is None:
+        return await get_client().search_items(project_key, {"q": q, "limit": limit})
+    body = _drop_none({"query": query, "limit": limit, "after": after})
+    return await get_client().search_items_query(project_key, body)
 
 
 async def add_relationship(
