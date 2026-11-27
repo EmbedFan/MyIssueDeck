@@ -264,3 +264,88 @@ def test_describe_shows_the_search_in_words_with_brackets():
     sensitive = parse({"items": [{"type": "text", "mode": "regex", "value": "X",
                                   "case_sensitive": True}]})
     assert describe(sensitive).endswith(", case sensitive")
+
+
+# ------------------------------------------------------------------ phase 5: the document block
+
+
+def document(**extra):
+    return {"type": "document", "value": "rollback", **extra}
+
+
+def test_a_document_block_is_read_with_the_defaults_of_a_text_block():
+    from issuedeck.features.search.query import Document
+
+    query = parse({"items": [document()]})
+
+    node = query.items[0].node
+    assert isinstance(node, Document)
+    assert (node.mode, node.value, node.fields, node.case_sensitive, node.kinds) == (
+        "simple", "rollback", ("title", "body"), False, ())
+
+
+def test_a_document_block_with_everything_given():
+    query = parse({"items": [document(
+        mode="regex", value="roll(ed)?back", fields=["body"], case_sensitive=True,
+        kinds=["request", "report"])]})
+
+    node = query.items[0].node
+    assert (node.mode, node.fields, node.case_sensitive, node.kinds) == (
+        "regex", ("body",), True, ("request", "report"))
+
+
+def test_a_document_block_counts_as_a_block_and_may_be_in_a_group():
+    data = {"items": [
+        {"group": [document(), {"op": "or", **document(value="other")}]},
+        {"op": "and", "type": "kind", "values": ["bug"]},
+    ]}
+    assert isinstance(parse(data).items[0].node, Group)
+
+    three = {"items": [document(), {"op": "and", **document()}, {"op": "and", **document()}]}
+    refused(three, "at most 2 blocks", max_blocks=2)
+
+
+@pytest.mark.parametrize(("extra", "message"), [
+    ({"kinds": ["epic"]}, "unknown document kind 'epic'"),
+    ({"kinds": []}, "non-empty list of document kinds"),
+    ({"kinds": "report"}, "non-empty list of document kinds"),
+    ({"kinds": ["report", "report"]}, "listed twice"),
+    ({"case_sensitive": True}, "works only with mode 'regex'"),
+    ({"fields": ["name"]}, "'fields' must be a non-empty list"),
+    ({"mode": "fuzzy"}, "'mode' must be one of"),
+    ({"value": " "}, "'value' must be a text that is not empty"),
+    ({"mode": "regex", "value": "(a+)+$"}, "repeat inside a repeat"),
+    ({"mode": "regex", "value": "("}, "not valid"),
+    ({"extra": 1}, "unknown keys"),
+    ({"values": ["x"]}, "unknown keys"),
+])
+def test_a_bad_document_block_is_refused_with_its_path(extra, message):
+    error = refused({"items": [{"type": "kind", "values": ["bug"]},
+                               {"op": "and", **document(**extra)}]}, message)
+
+    assert error.details["path"] == "items[1]"
+
+
+def test_the_document_kinds_can_be_given_by_the_caller():
+    parse({"items": [document(kinds=["memo"])]}, document_kinds=["memo", "note"])
+    error = refused({"items": [document(kinds=["request"])]}, "unknown document kind",
+                    document_kinds=["memo"])
+
+    assert error.details["allowed"] == ["memo"]
+
+
+def test_the_unknown_block_type_message_names_the_document_block():
+    refused({"items": [{"type": "tag", "values": ["x"]}]}, "text, document, kind or status")
+
+
+def test_a_document_block_is_described_in_words():
+    query = parse({"items": [
+        document(fields=["title"], kinds=["request", "report"]),
+        {"op": "or", **document(value="a.*b", mode="regex", case_sensitive=True)},
+        {"op": "and", "type": "kind", "values": ["bug"]},
+    ]})
+
+    assert describe(query) == (
+        'a linked document: name+title match words "rollback" '
+        "(document kind is request or report) OR "
+        '(a linked document: name+title+body match regex "a.*b", case sensitive AND kind is bug)')

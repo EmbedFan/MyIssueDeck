@@ -60,6 +60,7 @@ from issuedeck.features.dashboard.saved_filters import (
     saved_filter_href,
 )
 from issuedeck.features.documents.routes import link_service as document_link_service
+from issuedeck.features.documents.service import KINDS as DOCUMENT_KINDS
 from issuedeck.features.documents.service import DocumentService
 from issuedeck.features.export.md_bundle import export_audit_bundle
 from issuedeck.features.images.routes import link_service
@@ -2612,6 +2613,7 @@ async def search_page(
         notes=notes,
         builder_kinds=_builder_options(project_key, request, "kinds"),
         builder_statuses=_builder_options(project_key, request, "statuses"),
+        builder_document_kinds=[{"key": k, "label": k} for k in DOCUMENT_KINDS],
         **_saved_context(request, project_key, store, query_data, saved_name, notice, notice_name),
     )
 

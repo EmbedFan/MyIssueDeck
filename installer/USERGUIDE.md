@@ -208,7 +208,7 @@ Do these in order. Stop at the first failure and use section 10.
 | `delete_item` | Soft-delete an item (it can be restored). | `project_key`, `local_id` |
 | `get_item` | One item with body, relationships, events, ship records. | `project_key`, `local_id` |
 | `list_items` | Filter by status, kind, tag, branch, custom field, date; paged. | `project_key`, `status`, `kind`, `tag`, `custom_field`, `limit`, `after` |
-| `search_items` | Full-text search: `q` is SQLite FTS5 syntax; or a structured search `query` (text blocks as plain words or regular expressions, kinds, statuses, joined by `and`/`or`, in groups); the answer has `items`, `next_cursor`, `description`, `partial` and `notes`. | `project_key`, `q` or `query`, `limit`, `after` |
+| `search_items` | Full-text search: `q` is SQLite FTS5 syntax; or a structured search `query` (text and document blocks as plain words or regular expressions, kinds, statuses, joined by `and`/`or`, in groups); the answer has `items`, `next_cursor`, `description`, `partial` and `notes`. | `project_key`, `q` or `query`, `limit`, `after` |
 | `add_relationship` | Link two items: `blocks` or `related_to`. | `project_key`, `from_local_id`, `to_local_id`, `relation_type` |
 | `remove_relationship` | Remove a link and its inverse. | `project_key`, `rel_id` (returned by `add_relationship`) |
 | `start_work_session` | Record that an agent starts work on an item. | `project_key`, `local_id`, `agent_name`, `goal`, `branch` |

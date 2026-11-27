@@ -862,6 +862,14 @@ MESSAGES_HU: dict[str, str] = {
     "search.advanced.notice_invalid": (
         "A keresés nem menthető: üres, nincs érvényes neve, vagy nem érvényes keresés."
     ),
+    "search.advanced.add_document": "Dokumentum",
+    "search.advanced.field_doc_title": "Név és cím",
+    "search.advanced.document_hint": (
+        "Azokat az elemeket találja meg, amelyekhez van egyező, hozzákapcsolt dokumentum. "
+        "A szavakat úgy keresi, ahogy le vannak írva, kis- és nagybetű nélkül, és mindnek "
+        "szerepelnie kell (tővezetés nélkül)."
+    ),
+    "search.advanced.document_kinds": "A dokumentum fajtája (ha egy sincs kijelölve: bármelyik)",
     "saved_filters.delete": "Mentett szűrő törlése",
     "saved_filters.delete_named": "{name} mentett szűrő törlése",
     "saved_filters.name_placeholder": "Szűrő neve",

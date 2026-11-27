@@ -4,7 +4,7 @@
  * into the hidden field `query` of the form. The server checks the search; this script only
  * keeps the form from sending blocks that are still empty.
  */
-function searchBuilder(initial, kinds, statuses, savedNames) {
+function searchBuilder(initial, kinds, statuses, savedNames, documentKinds) {
   let counter = 0;
 
   function fromJson(block) {
@@ -12,13 +12,14 @@ function searchBuilder(initial, kinds, statuses, savedNames) {
     node.op = block.op || "and";
     if (block.group) {
       node.group = block.group.map((child) => fromJson(child));
-    } else if (node.type === "text") {
+    } else if (node.type === "text" || node.type === "document") {
       node.mode = block.mode || "simple";
       node.value = block.value || "";
       const fields = block.fields || ["title", "body"];
       node.title = fields.includes("title");
       node.body = fields.includes("body");
       node.caseSensitive = !!block.case_sensitive;
+      if (node.type === "document") node.values = (block.kinds || []).slice();
     } else {
       node.values = (block.values || []).slice();
     }
@@ -38,14 +39,15 @@ function searchBuilder(initial, kinds, statuses, savedNames) {
       const group = clean(node.group);
       if (!group.length) return null;
       out = { group: group };
-    } else if (node.type === "text") {
+    } else if (node.type === "text" || node.type === "document") {
       if (!node.value.trim()) return null;
       const fields = [];
       if (node.title) fields.push("title");
       if (node.body) fields.push("body");
       if (!fields.length) return null;
-      out = { type: "text", mode: node.mode, value: node.value, fields: fields };
+      out = { type: node.type, mode: node.mode, value: node.value, fields: fields };
       if (node.mode === "regex" && node.caseSensitive) out.case_sensitive = true;
+      if (node.type === "document" && node.values.length) out.kinds = node.values.slice();
     } else {
       if (!node.values.length) return null;
       out = { type: node.type, values: node.values.slice() };
@@ -72,6 +74,7 @@ function searchBuilder(initial, kinds, statuses, savedNames) {
     kinds: kinds,
     statuses: statuses,
     savedNames: savedNames || [],
+    documentKinds: documentKinds || [],
     open: false,
     maxDepth: 2,
 
@@ -86,7 +89,10 @@ function searchBuilder(initial, kinds, statuses, savedNames) {
       const at = node.values.indexOf(value);
       if (at >= 0) node.values.splice(at, 1); else node.values.push(value);
     },
-    options(node) { return node.type === "kind" ? this.kinds : this.statuses; },
+    options(node) {
+      if (node.type === "document") return this.documentKinds;
+      return node.type === "kind" ? this.kinds : this.statuses;
+    },
 
     json() {
       const blocks = clean(this.items);

@@ -82,7 +82,10 @@ class SearchService:
         project = self._reg.project(project_key)
         query = parse_query(data, list(project.kinds), list(project.statuses))
         limit = max(1, min(limit, 500))
-        result = await run_query(self._s, project_key, query)
+        result = await run_query(
+            self._s, project_key, query,
+            documents_dir=self._reg.server.data_dir / "documents",
+        )
 
         pks = result.pks
         if after:

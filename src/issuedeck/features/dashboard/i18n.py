@@ -868,6 +868,13 @@ _MESSAGES: dict[str, dict[str, str]] = {
             "The search could not be saved: it is empty, has no valid name "
             "or is not a valid search."
         ),
+        "search.advanced.add_document": "Document",
+        "search.advanced.field_doc_title": "Name and title",
+        "search.advanced.document_hint": (
+            "Finds items that have a linked document that matches. Words are found as "
+            "written, ignoring case, and all must occur (no stemming)."
+        ),
+        "search.advanced.document_kinds": "Kind of the document (none ticked: every kind)",
         "saved_filters.delete": "Delete saved filter",
         "saved_filters.delete_named": "Delete saved filter {name}",
         "saved_filters.name_placeholder": "Filter name",
@@ -1466,6 +1473,13 @@ _MESSAGES: dict[str, dict[str, str]] = {
         "search.advanced.notice_exists": "已存在名为 {name} 的已保存搜索。",
         "search.advanced.notice_not_found": "没有名为 {name} 的已保存搜索。",
         "search.advanced.notice_invalid": "无法保存：搜索为空、名称无效或不是有效的搜索。",
+        "search.advanced.add_document": "文档",
+        "search.advanced.field_doc_title": "名称和标题",
+        "search.advanced.document_hint": (
+            "查找关联了匹配文档的事项。词语按原样查找，不区分大小写，"
+            "所有词都必须出现（不做词干匹配）。"
+        ),
+        "search.advanced.document_kinds": "文档类型（都不勾选：任何类型）",
         "saved_filters.delete": "删除已保存筛选",
         "saved_filters.delete_named": "删除已保存筛选 {name}",
         "saved_filters.name_placeholder": "筛选名称",

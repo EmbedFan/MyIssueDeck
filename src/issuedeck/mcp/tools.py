@@ -204,8 +204,10 @@ async def search_items(
     ``{"items": [block, {"op": "and"|"or", ...block}, ...]}``. A block is
     ``{"type": "text", "mode": "simple"|"regex", "value": "...", "fields": ["title", "body"]}``
     (simple: all the words must occur, matched by stem; regex: Python syntax, ``case_sensitive``
-    allowed), ``{"type": "kind", "values": [...]}``, ``{"type": "status", "values": [...]}``, or a
-    ``{"group": [blocks]}`` of blocks with their own ``op``. ``and`` binds tighter than ``or``;
+    allowed), ``{"type": "document", ...same keys..., "kinds": [document kinds]}`` (items that have
+    a linked document that matches; words as written, no stemming), ``{"type": "kind", "values":
+    [...]}``, ``{"type": "status", "values": [...]}``, or a ``{"group": [blocks]}`` of blocks with
+    their own ``op``. ``and`` binds tighter than ``or``;
     groups nest one level. The answer has ``items``, ``next_cursor`` (pass it as ``after`` for the
     next page), ``description`` of the search in words, ``partial`` and ``notes`` (a regular
     expression that did not finish in time is reported there).

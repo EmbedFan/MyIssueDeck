@@ -314,3 +314,93 @@ def test_the_builder_knows_which_saved_names_are_taken():
     )
 
     assert result == [True, True, False, False, False]
+
+
+# ------------------------------------------------------------------ phase 5: the document block
+
+
+async def test_the_dialog_offers_the_document_block_with_the_kinds_of_documents(world):
+    client, _admin = world
+
+    html = (await client.get(PAGE)).text
+
+    assert "addBlock(items, 'document')" in html
+    assert "addBlock(node.group, 'document')" in html
+    assert "Name and title" in html
+    for kind_ in ("prompt", "description", "request", "report", "other"):
+        assert f'"key": "{kind_}"' in html
+
+
+async def test_a_document_search_lists_the_items_with_the_matching_document(world):
+    client, admin = world
+    found_doc = await client.post(f"{API}/documents", headers=admin, json={
+        "name": "plan.md", "body": "How to rollback the release", "kind": "request"})
+    items = (await client.get(f"{API}/items", headers=admin)).json()["items"]
+    target = next(i["local_id"] for i in items if i["title"] == "Search is slow")
+    await client.post(f"{API}/items/{target}/documents", headers=admin,
+                      json={"document_id": found_doc.json()["id"]})
+
+    response = await client.get(url(
+        {"type": "document", "mode": "simple", "value": "rollback", "kinds": ["request"]}))
+
+    assert response.status_code == 200
+    assert titles_in(response.text) == ["Search is slow"]
+    assert 'a linked document: name+title+body match words "rollback"' in unescape(response.text)
+    assert "(document kind is request)" in unescape(response.text)
+    assert "role=\"alert\"" not in response.text
+
+
+async def test_a_refused_document_block_shows_the_fault(world):
+    client, _admin = world
+
+    response = await client.get(url({"type": "document", "value": "x", "kinds": ["epic"]}))
+
+    assert response.status_code == 200
+    assert 'role="alert"' in response.text and "unknown document kind" in response.text
+
+
+async def test_the_document_texts_are_translated(world):
+    client, _admin = world
+    client.cookies.set(DASHBOARD_LANG_COOKIE, "hu")
+    hungarian = await client.get(PAGE)
+    client.cookies.set(DASHBOARD_LANG_COOKIE, "zh-CN")
+    chinese = await client.get(PAGE)
+
+    assert "Név és cím" in hungarian.text and "Dokumentum" in hungarian.text
+    assert "名称和标题" in chinese.text and "文档" in chinese.text
+
+
+@pytest.mark.skipif(NODE is None, reason="Node is not installed")
+def test_the_builder_round_trips_a_document_block():
+    start = {"items": [
+        {"type": "document", "mode": "regex", "value": "roll(ed)?back", "fields": ["body"],
+         "case_sensitive": True, "kinds": ["request", "report"]},
+        {"op": "or", "group": [
+            {"type": "document", "mode": "simple", "value": "plan", "fields": ["title", "body"]},
+        ]},
+    ]}
+
+    result = run_builder(
+        f"const b = searchBuilder({json.dumps(start)}, [], [], [], []);"
+        "console.log(b.json());"
+    )
+
+    assert result == start
+
+
+@pytest.mark.skipif(NODE is None, reason="Node is not installed")
+def test_a_new_document_block_has_no_kinds_until_some_are_ticked():
+    result = run_builder(
+        "const docs = [{key: 'request', label: 'request'}, {key: 'report', label: 'report'}];"
+        "const b = searchBuilder({}, [], [], [], docs);"
+        "b.items = []; b.addBlock(b.items, 'document'); b.items[0].value = 'x';"
+        "const plain = JSON.parse(b.json());"
+        "b.toggleValue(b.items[0], 'report');"
+        "const ticked = JSON.parse(b.json());"
+        "console.log(JSON.stringify({plain, ticked, options: b.options(b.items[0]).length}));"
+    )
+
+    assert result["plain"] == {"items": [
+        {"type": "document", "mode": "simple", "value": "x", "fields": ["title", "body"]}]}
+    assert result["ticked"]["items"][0]["kinds"] == ["report"]
+    assert result["options"] == 2

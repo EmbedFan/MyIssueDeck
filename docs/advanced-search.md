@@ -24,6 +24,7 @@ This means: the text matches the regular expression AND the kind is `bug` AND (t
 | Block | Keys | Meaning |
 |---|---|---|
 | text | `mode` (`simple` default, or `regex`), `value`, `fields` (`title`, `body`; both by default), `case_sensitive` (regex only) | `simple`: all the words must occur, in any order. `regex`: Python `re` syntax, case-insensitive unless `case_sensitive` is true. |
+| document | the keys of `text`, and `kinds` (kinds of documents; none: every kind) | The item has a **linked document** that matches (see below). `fields` `title` means the name and the title of the document. |
 | kind | `values` | The item has one of these kinds of the project. |
 | status | `values` | The item has one of these statuses of the project. |
 | group | a list of blocks | A box of blocks with their own operators; it counts as one block of the list above. |
@@ -44,6 +45,27 @@ word such as `OR`, `NOT`, `*`, a quote or a SQL command is only a word and canno
 error. This is not the raw FTS5 syntax of the older `q` search. **The index stems words:** `import`
 also finds `importing` and `importer`. The index ignores case, so `case_sensitive` is refused for
 plain words.
+
+## Documents (`document`)
+
+The documents of a project (Markdown files, see the documents feature) are files and have no index,
+so a `document` block reads them and gives the **items that have a matching document linked**
+(the link of an item to a document, as in the item's *Documents* list). A document that is linked
+to no item is not found by it, and neither is an item that was deleted.
+
+- `simple`: every word must occur in the chosen fields together, ignoring case, **as written** (a
+  word is also found inside a longer word, and there is no stemming: `roll` finds `rollback`,
+  `rolling` does not).
+- `regex`: the same as for text, in the same stopped process; the budget (2 seconds) is counted for
+  the expressions of the documents separately from the expressions of the items.
+- `fields`: `title` is the file name and the title of the document together, `body` its text.
+- `kinds`: only documents of these kinds (`prompt`, `description`, `request`, `report`, `other`).
+- At most the first 5,000 documents are read; the answer says so in `notes` and is `partial` when
+  there are more.
+
+```json
+{"type": "document", "mode": "simple", "value": "rollback", "kinds": ["request"]}
+```
 
 ## Regular expressions (`regex`)
 

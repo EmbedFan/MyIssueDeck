@@ -24,6 +24,7 @@
         <div class="flex items-start justify-between gap-2">
           <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
                 x-text="node.type === 'text' ? '{{ t('search.advanced.add_text') }}'
+                        : node.type === 'document' ? '{{ t('search.advanced.add_document') }}'
                         : node.type === 'kind' ? '{{ t('search.advanced.add_kind') }}'
                         : node.type === 'status' ? '{{ t('search.advanced.add_status') }}'
                         : '{{ t('search.advanced.group') }}'"></span>
@@ -44,8 +45,8 @@
           </span>
         </div>
 
-        {# text block #}
-        <div x-show="node.type === 'text'" class="space-y-2">
+        {# text block, and the document block that has the same options #}
+        <div x-show="node.type === 'text' || node.type === 'document'" class="space-y-2">
           <div class="flex flex-wrap items-center gap-2">
             <select x-model="node.mode" class="{{ field_class }}">
               <option value="simple">{{ t("search.advanced.words") }}</option>
@@ -58,7 +59,9 @@
           </div>
           <div class="flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-300">
             <label class="inline-flex items-center gap-1">
-              <input type="checkbox" x-model="node.title"> {{ t("search.advanced.field_title") }}
+              <input type="checkbox" x-model="node.title">
+              <span x-text="node.type === 'document' ? '{{ t('search.advanced.field_doc_title') }}'
+                            : '{{ t('search.advanced.field_title') }}'"></span>
             </label>
             <label class="inline-flex items-center gap-1">
               <input type="checkbox" x-model="node.body"> {{ t("search.advanced.field_body") }}
@@ -68,9 +71,28 @@
               {{ t("search.advanced.case_sensitive") }}
             </label>
           </div>
-          <p x-show="node.mode === 'simple'" class="text-xs text-gray-500 dark:text-gray-400">
+          <p x-show="node.mode === 'simple' && node.type === 'text'"
+             class="text-xs text-gray-500 dark:text-gray-400">
             {{ t("search.advanced.stem_hint") }}
           </p>
+          <p x-show="node.type === 'document'" class="text-xs text-gray-500 dark:text-gray-400">
+            {{ t("search.advanced.document_hint") }}
+          </p>
+        </div>
+
+        {# the kinds of the documents (none ticked: every kind) #}
+        <div x-show="node.type === 'document'" class="space-y-1">
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            {{ t("search.advanced.document_kinds") }}</p>
+          <div class="flex flex-wrap gap-3 text-sm text-gray-700 dark:text-gray-200">
+            <template x-for="option in documentKinds" :key="option.key">
+              <label class="inline-flex items-center gap-1">
+                <input type="checkbox" :checked="node.values.includes(option.key)"
+                       @change="toggleValue(node, option.key)">
+                <span x-text="option.label"></span>
+              </label>
+            </template>
+          </div>
         </div>
 
         {# kind and status blocks #}
@@ -98,6 +120,8 @@
             <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
                     @click="addBlock(node.group, 'text')">+ {{ t("search.advanced.add_text") }}</button>
             <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
+                    @click="addBlock(node.group, 'document')">+ {{ t("search.advanced.add_document") }}</button>
+            <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
                     @click="addBlock(node.group, 'kind')">+ {{ t("search.advanced.add_kind") }}</button>
             <button type="button" class="text-xs text-primary-600 dark:text-primary-400"
                     @click="addBlock(node.group, 'status')">+ {{ t("search.advanced.add_status") }}</button>
@@ -109,7 +133,7 @@
   </template>
 {% endmacro %}
 
-<div x-data='searchBuilder({{ (builder_start or {}) | tojson }}, {{ builder_kinds | tojson }}, {{ builder_statuses | tojson }}, {{ saved_names | tojson }})'
+<div x-data='searchBuilder({{ (builder_start or {}) | tojson }}, {{ builder_kinds | tojson }}, {{ builder_statuses | tojson }}, {{ saved_names | tojson }}, {{ builder_document_kinds | tojson }})'
      @keydown.escape.window="open = false"
      class="contents">
   <button type="button" @click="open = true"
@@ -145,6 +169,9 @@
         <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
                 text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'text')">
           + {{ t("search.advanced.add_text") }}</button>
+        <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
+                text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'document')">
+          + {{ t("search.advanced.add_document") }}</button>
         <button type="button" class="px-2 py-1 rounded border border-gray-300 dark:border-gray-600
                 text-sm text-gray-700 dark:text-gray-200" @click="addBlock(items, 'kind')">
           + {{ t("search.advanced.add_kind") }}</button>

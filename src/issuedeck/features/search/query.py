@@ -5,6 +5,8 @@ A search is plain data (JSON), the same in the dialog, the API, MCP and the save
     {"items": [
       {"type": "text", "mode": "regex", "value": "import(ing)?\\b", "fields": ["title", "body"]},
       {"op": "and", "type": "kind", "values": ["bug"]},
+      {"op": "and", "type": "document", "mode": "simple", "value": "rollback",
+       "kinds": ["request"]},
       {"op": "and", "group": [
         {"type": "status", "values": ["proposed"]},
         {"op": "or", "type": "status", "values": ["in_progress"]}
@@ -16,6 +18,10 @@ Every item after the first has the operator ``and`` or ``or`` that joins it to t
 binds tighter than ``or``. Lists nest at most ``MAX_DEPTH`` levels (the top list and one level of
 groups), and the number is a parameter, not a constant of the code, so that deeper nesting can be
 allowed later.
+
+A ``document`` block (phase 5) has the keys of a ``text`` block and the optional ``kinds`` of the
+documents; it matches the items that have a linked document whose name and title (``title``) or
+text (``body``) match.
 
 ``parse_query`` checks everything a client can get wrong and raises ``InvalidSearch`` with the path
 of the fault (``items[2].group[0]``). Nothing here touches the database.
@@ -39,6 +45,7 @@ MODES = ("simple", "regex")
 OPERATORS = ("and", "or")
 
 _TEXT_KEYS = {"type", "op", "mode", "value", "fields", "case_sensitive"}
+_DOCUMENT_KEYS = _TEXT_KEYS | {"kinds"}
 _VALUES_KEYS = {"type", "op", "values"}
 _GROUP_KEYS = {"group", "op"}
 
@@ -49,6 +56,18 @@ class Text:
     value: str
     fields: tuple[str, ...]
     case_sensitive: bool
+
+
+@dataclass(frozen=True, eq=False)
+class Document:
+    """Items that have a linked document whose name and title (``title``) or text (``body``) match;
+    ``kinds`` limits the documents (empty: every kind)."""
+
+    mode: str
+    value: str
+    fields: tuple[str, ...]
+    case_sensitive: bool
+    kinds: tuple[str, ...]
 
 
 @dataclass(frozen=True, eq=False)
@@ -64,7 +83,7 @@ class Status:
 @dataclass(frozen=True, eq=False)
 class Item:
     op: str | None  # how it joins the item above; None for the first item of a list
-    node: Text | Kind | Status | Group
+    node: Text | Document | Kind | Status | Group
 
 
 @dataclass(frozen=True, eq=False)
@@ -132,10 +151,14 @@ def parse_query(
     *,
     max_depth: int = MAX_DEPTH,
     max_blocks: int = MAX_BLOCKS,
+    document_kinds: Iterable[str] | None = None,
 ) -> Query:
     """Check a search given as JSON data and return it as a ``Query``."""
     allowed_kinds = tuple(kinds)
     allowed_statuses = tuple(statuses)
+    if document_kinds is None:
+        from issuedeck.features.documents.service import KINDS as document_kinds
+    allowed_document_kinds = tuple(document_kinds)
     counter = {"blocks": 0}
 
     def parse_values(raw: Any, allowed: tuple[str, ...], path: str, what: str) -> tuple[str, ...]:
@@ -205,7 +228,7 @@ def parse_query(
                 if depth + 1 > max_depth:
                     raise _fail(here, f"groups can be nested {max_depth} levels at most "
                                       "(the list and one level of groups)")
-                node: Text | Kind | Status | Group = Group(
+                node: Text | Document | Kind | Status | Group = Group(
                     parse_list(entry["group"], f"{here}.group", depth + 1))
             else:
                 counter["blocks"] += 1
@@ -216,6 +239,14 @@ def parse_query(
                     if set(entry) - _TEXT_KEYS:
                         raise _fail(here, f"unknown keys: {sorted(set(entry) - _TEXT_KEYS)}")
                     node = parse_text(entry, here)
+                elif kind == "document":
+                    if set(entry) - _DOCUMENT_KEYS:
+                        raise _fail(here, f"unknown keys: {sorted(set(entry) - _DOCUMENT_KEYS)}")
+                    text = parse_text({k: v for k, v in entry.items() if k != "kinds"}, here)
+                    of_kinds = (parse_values(entry["kinds"], allowed_document_kinds, here,
+                                             "document kind") if "kinds" in entry else ())
+                    node = Document(text.mode, text.value, text.fields, text.case_sensitive,
+                                    of_kinds)
                 elif kind in ("kind", "status"):
                     if set(entry) - _VALUES_KEYS:
                         raise _fail(here, f"unknown keys: {sorted(set(entry) - _VALUES_KEYS)}")
@@ -225,7 +256,8 @@ def parse_query(
                         node = Status(parse_values(
                             entry.get("values"), allowed_statuses, here, "status"))
                 else:
-                    raise _fail(here, f"unknown block type {kind!r}; use text, kind or status")
+                    raise _fail(
+                        here, f"unknown block type {kind!r}; use text, document, kind or status")
             items.append(Item(op, node))
         return tuple(items)
 
@@ -251,7 +283,13 @@ def terms(items: tuple[Item, ...]) -> list[list[Item]]:
 def describe(query: Query) -> str:
     """The search in words with explicit brackets, so a user sees what will be searched."""
 
-    def node_text(node: Text | Kind | Status | Group) -> str:
+    def node_text(node: Text | Document | Kind | Status | Group) -> str:
+        if isinstance(node, Document):
+            what = "+".join("name+title" if f == "title" else f for f in node.fields)
+            kind = "regex" if node.mode == "regex" else "words"
+            case = ", case sensitive" if node.case_sensitive else ""
+            of_kinds = f" (document kind is {' or '.join(node.kinds)})" if node.kinds else ""
+            return f'a linked document: {what} match {kind} "{node.value}"{case}{of_kinds}'
         if isinstance(node, Text):
             what = "+".join(node.fields)
             kind = "regex" if node.mode == "regex" else "words"

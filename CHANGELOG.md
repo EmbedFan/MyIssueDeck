@@ -9,6 +9,20 @@ versioning once public releases begin.
 
 ### Added
 
+- A document block in the advanced search, phase 5 of FEAT-0010. A search block of type `document`
+  finds the items that have a linked document (FEAT-0012) whose name and title (`fields` `title`)
+  or text (`body`) match plain words or a regular expression, optionally only for some kinds of
+  document (`prompt`, `description`, `request`, `report`, `other`). The documents are files without
+  an index, so they are read and matched when the search runs: words must all occur, ignoring case,
+  as written (no stemming); expressions run in the same stopped process, with a budget of their own;
+  at most the first 5,000 documents are read (the answer is then `partial` and says so). Deleted
+  items and documents that are linked to no item are never found by it. It works in the API
+  (`POST .../search`), in the MCP tool `search_items`, in groups, in saved searches and in the
+  dialog (a *Document* button with the same options and the kinds of documents; texts in English,
+  Hungarian and Chinese). A refused block names its path as for the other blocks. The description of
+  a search says "a linked document: name+title+body match words ...". `docs/advanced-search.md`,
+  the help and the user guide are updated.
+
 - Saved searches, phase 4 of FEAT-0010. Every advanced search that is run is kept as the latest
   search of its project, and the Search page offers it again (the dialog starts with it, and a
   link runs it). In the dialog a search can be saved under a name, run, renamed and deleted: names
