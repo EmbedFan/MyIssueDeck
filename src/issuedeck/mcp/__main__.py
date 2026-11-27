@@ -31,6 +31,12 @@ for fn in (
     tools.list_images,
     tools.get_image,
     tools.delete_image,
+    tools.create_document,
+    tools.get_document,
+    tools.list_documents,
+    tools.update_document,
+    tools.delete_document,
+    tools.list_document_revisions,
 ):
     mcp_server.tool()(fn)
 

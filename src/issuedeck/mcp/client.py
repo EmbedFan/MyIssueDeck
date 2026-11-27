@@ -8,10 +8,14 @@ import httpx
 
 from issuedeck.core.errors import (
     ConfigError,
+    DocumentConflict,
+    DocumentExists,
+    DocumentNotFound,
     ImageDuplicate,
     ImageNotFound,
     ImageTooLarge,
     InvalidBranch,
+    InvalidDocument,
     InvalidImage,
     InvalidKind,
     InvalidStatus,
@@ -43,6 +47,10 @@ _ERROR_MAP: dict[str, type[IssueDeckError]] = {
     ImageTooLarge.code: ImageTooLarge,
     ImageNotFound.code: ImageNotFound,
     ImageDuplicate.code: ImageDuplicate,
+    InvalidDocument.code: InvalidDocument,
+    DocumentNotFound.code: DocumentNotFound,
+    DocumentExists.code: DocumentExists,
+    DocumentConflict.code: DocumentConflict,
 }
 
 
@@ -56,7 +64,7 @@ def _raise_for_error(response: httpx.Response) -> None:
     code = envelope.get("code", "internal_error")
     message = envelope.get("message", response.text or "issuedeck error")
     exc_cls = _ERROR_MAP.get(code, IssueDeckError)
-    raise exc_cls(message)
+    raise exc_cls(message, envelope.get("details") or None)
 
 
 class IssueDeckClient:
@@ -225,6 +233,42 @@ class IssueDeckClient:
 
     async def delete_image(self, key: str, image_id: str) -> dict[str, Any]:
         return await self._request("DELETE", f"/api/v1/projects/{key}/images/{image_id}")
+
+    async def create_document(self, key: str, body: dict[str, Any]) -> dict[str, Any]:
+        return await self._request("POST", f"/api/v1/projects/{key}/documents", json=body)
+
+    async def list_documents(self, key: str, params: dict[str, Any]) -> dict[str, Any]:
+        return await self._request("GET", f"/api/v1/projects/{key}/documents", params=params)
+
+    async def get_document(self, key: str, document_id: str) -> dict[str, Any]:
+        return await self._request("GET", f"/api/v1/projects/{key}/documents/{document_id}")
+
+    async def get_document_revision(
+        self, key: str, document_id: str, number: int,
+    ) -> dict[str, Any]:
+        return await self._request(
+            "GET", f"/api/v1/projects/{key}/documents/{document_id}/revisions/{number}",
+        )
+
+    async def replace_document(
+        self, key: str, document_id: str, body: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._request(
+            "PUT", f"/api/v1/projects/{key}/documents/{document_id}", json=body,
+        )
+
+    async def append_document(self, key: str, document_id: str, text: str) -> dict[str, Any]:
+        return await self._request(
+            "PATCH", f"/api/v1/projects/{key}/documents/{document_id}", json={"text": text},
+        )
+
+    async def delete_document(self, key: str, document_id: str) -> dict[str, Any]:
+        return await self._request("DELETE", f"/api/v1/projects/{key}/documents/{document_id}")
+
+    async def list_document_revisions(self, key: str, document_id: str) -> dict[str, Any]:
+        return await self._request(
+            "GET", f"/api/v1/projects/{key}/documents/{document_id}/revisions",
+        )
 
 
 _client: IssueDeckClient | None = None

@@ -6,7 +6,8 @@ import binascii
 from pathlib import Path
 from typing import Any
 
-from issuedeck.core.errors import ImageTooLarge, InvalidImage
+from issuedeck.core.errors import ImageTooLarge, InvalidDocument, InvalidImage
+from issuedeck.features.documents.text import decode_upload
 from issuedeck.mcp.client import get_client
 
 # The MCP process reads the file itself, so it never reads more than this from the disk. The
@@ -368,3 +369,98 @@ async def delete_image(project_key: str, image_id: str) -> dict[str, Any]:
     """Delete an image of a project."""
     await get_client().delete_image(project_key, image_id)
     return {"deleted": image_id}
+
+
+async def create_document(
+    project_key: str,
+    name: str | None = None,
+    body: str | None = None,
+    source_path: str | None = None,
+    kind: str = "other",
+    title: str = "",
+    replace: bool = False,
+) -> dict[str, Any]:
+    """Store a Markdown document in a project: its text, or one file read from this machine.
+
+    Give exactly one of ``body`` (the text) and ``source_path`` (one file; the MCP process
+    reads it, so a local folder or a network share works; no folders). ``name`` is free text; it
+    defaults to the file name. A binary file is refused. ``kind`` is prompt, description,
+    request, report or other. A name that is already used gives an error, or with
+    ``replace=True`` a new revision of that document. Returns the document with its id
+    (for example DOC-0001).
+    """
+    if (body is None) == (source_path is None):
+        raise InvalidDocument("give exactly one of body and source_path",
+                              details={"reason": "source"})
+    if source_path is not None:
+        path = Path(source_path).expanduser()
+        if not path.is_file():
+            raise InvalidDocument(f"{path} is not a file", details={"reason": "not_a_file"})
+        body = decode_upload(path.read_bytes())  # a binary file is refused here
+        name = name or path.name
+    if not name:
+        raise InvalidDocument("a document needs a name", details={"reason": "name"})
+    return await get_client().create_document(project_key, {
+        "name": name, "body": body, "kind": kind, "title": title, "replace": replace,
+    })
+
+
+async def list_documents(
+    project_key: str, kind: str | None = None, name: str | None = None,
+) -> dict[str, Any]:
+    """List the documents of a project (id, name, kind, title, revision, size), without text."""
+    return await get_client().list_documents(project_key, _drop_none({"kind": kind, "name": name}))
+
+
+async def get_document(
+    project_key: str, document_id: str, revision: int | None = None,
+) -> dict[str, Any]:
+    """Return a document with its text; with ``revision`` the text of that older revision."""
+    if revision is None:
+        return await get_client().get_document(project_key, document_id)
+    document = await get_client().get_document(project_key, document_id)
+    old = await get_client().get_document_revision(project_key, document_id, revision)
+    return {**document, "requested_revision": old}
+
+
+async def update_document(
+    project_key: str,
+    document_id: str,
+    revision: int | None = None,
+    body: str | None = None,
+    append_body: str | None = None,
+    title: str | None = None,
+    kind: str | None = None,
+) -> dict[str, Any]:
+    """Change a document: append text, or replace its text, title or kind.
+
+    ``append_body`` adds text at the end and needs no ``revision``. Replacing (``body``, ``title``
+    or ``kind``) needs the ``revision`` you read; if the document has changed since, the call
+    fails with a conflict that names the current revision, and nothing is written. Every change of
+    the text is a new revision (the last 50 are kept).
+    """
+    if append_body is not None:
+        if body is not None or title is not None or kind is not None:
+            raise InvalidDocument("append_body cannot be combined with body, title or kind",
+                                  details={"reason": "mode"})
+        return await get_client().append_document(project_key, document_id, append_body)
+    if revision is None:
+        raise InvalidDocument("give the revision you read (to replace), or append_body",
+                              details={"reason": "revision"})
+    if body is None:
+        body = (await get_client().get_document(project_key, document_id))["body"]
+    return await get_client().replace_document(
+        project_key, document_id,
+        _drop_none({"body": body, "revision": revision, "title": title, "kind": kind}),
+    )
+
+
+async def delete_document(project_key: str, document_id: str) -> dict[str, Any]:
+    """Delete a document and all its revisions."""
+    await get_client().delete_document(project_key, document_id)
+    return {"deleted": document_id}
+
+
+async def list_document_revisions(project_key: str, document_id: str) -> dict[str, Any]:
+    """List the kept revisions of a document, newest first (the last 50 are kept)."""
+    return await get_client().list_document_revisions(project_key, document_id)

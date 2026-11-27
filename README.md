@@ -557,12 +557,14 @@ Generic stdio config:
 > `ISSUEDECK_API_TOKEN`. They may hold the same value but the env var names
 > differ by design (client/server are separate processes).
 
-23 tools: `list_projects`, `get_project_config`, `create_item`, `update_item`,
+29 tools: `list_projects`, `get_project_config`, `create_item`, `update_item`,
 `bulk_update_items`, `ship_item`, `append_item_event`, `delete_item`,
 `get_item`, `list_items`, `search_items`, `add_relationship`, `remove_relationship`,
 `start_work_session`, `list_work_sessions`, `get_work_session`,
 `update_work_session`, `finish_work_session`, `upload_image`, `upload_image_data`,
-`list_images`, `get_image`, `delete_image`. `create_item` and `update_item`
+`list_images`, `get_image`, `delete_image`, `create_document`, `get_document`,
+`list_documents`, `update_document`, `delete_document`, `list_document_revisions`.
+`create_item` and `update_item`
 accept `custom_fields`; `bulk_update_items` can update custom fields across
 many items; `list_items` accepts repeated `custom_field` filters.
 
@@ -570,6 +572,12 @@ The image tools keep SVG images in a project. `upload_image` takes a path on the
 where the MCP process runs (a local folder or a network share): the MCP process reads the
 `.svg` file and uploads it, so the server needs no access to that path. `upload_image_data`
 takes the SVG as base64 or as text. The server refuses anything that is not a safe SVG.
+
+The document tools keep Markdown documents (prompts, descriptions, requests, reports) in a
+project. `create_document` takes the text (`body`) or one file (`source_path`, read by the MCP
+process; no folders), with any name; a binary file is refused. `update_document` appends
+(`append_body`) or replaces the text and needs the `revision` you read, so two agents cannot
+overwrite each other; every change is a new revision and the last 50 are kept.
 
 The MCP process reads `ISSUEDECK_BASE_URL` and `ISSUEDECK_TOKEN`, then talks to
 the REST server over HTTP. It does not access SQLite directly.
