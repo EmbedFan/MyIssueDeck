@@ -7,6 +7,8 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-27
+
 ### Added
 
 - Documents linked to items, phase 5 and last phase of FEAT-0012. An item can link documents of
