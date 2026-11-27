@@ -9,6 +9,21 @@ versioning once public releases begin.
 
 ### Added
 
+- Saved searches, phase 4 of FEAT-0010. Every advanced search that is run is kept as the latest
+  search of its project, and the Search page offers it again (the dialog starts with it, and a
+  link runs it). In the dialog a search can be saved under a name, run, renamed and deleted: names
+  are unique per project ignoring case (80 characters, 50 searches), saving over a name and deleting
+  ask first, and the page says what was done (also in Hungarian and Chinese). A refused search or a
+  later result page does not replace the latest search. Each project has `data/searches/<key>.json`,
+  written atomically in one stable form; a damaged file reads as empty and bad entries are left out.
+  The saved searches travel with the project: the snapshot (audit bundle) and the GitHub export
+  carry `searches.json` (only when there are any; counted in the manifest), an import adds the
+  names that are free, keeps the project's own search when a name is taken (with a warning) and
+  takes the latest search only when the project has none, a project that is deleted loses them and
+  its backup restores them. The CLI and the dashboard import reports show the number added.
+  `docs/advanced-search.md`, `docs/audit-bundles.md`, `docs/github-exports.md` and the help are
+  updated. Saved searches are not available through the API or MCP yet.
+
 - The advanced search in the dashboard, phase 3 of FEAT-0010. The Search page has an
   **Advanced search** button that opens a dialog for building a search from blocks: words or a
   regular expression (title and/or body, case sensitivity for expressions), kinds and statuses

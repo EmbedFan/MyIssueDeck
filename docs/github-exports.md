@@ -60,6 +60,7 @@ Each project gets its own folder, named with the project key, inside the configu
                        documents.json         (only when the project has documents: ids, next_id)
                        documents/DOC-0001.json (one file per document, as stored)
                        item_documents.json    (the links between items and documents)
+                       searches.json          (only when the project has saved searches)
 ```
 
 These are the files of a snapshot (an audit bundle, see [Audit Bundles](audit-bundles.md)),

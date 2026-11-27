@@ -62,6 +62,13 @@ from issuedeck.features.items.models import (
     WorkSession,
     WorkSessionUpdate,
 )
+from issuedeck.features.search.saved import (
+    SEARCHES_FILE,
+    SavedSearchStore,
+    apply_search_plan,
+    check_snapshot_file,
+    plan_search_import,
+)
 
 BUNDLE_FORMAT = "issuedeck.audit_bundle.v1"
 PROJECT_KEY_RE = re.compile(r"^[a-z][a-z0-9_-]{0,62}$")
@@ -79,7 +86,7 @@ _REQUIRED = (
 )
 _ALLOWED = (
     *_REQUIRED, "project.toml", IMAGE_REGISTRY_FILE, ITEM_IMAGES_FILE,
-    DOCUMENTS_REGISTRY_FILE, ITEM_DOCUMENTS_FILE,
+    DOCUMENTS_REGISTRY_FILE, ITEM_DOCUMENTS_FILE, SEARCHES_FILE,
 )
 _MAX_LISTED_PROBLEMS = 10
 
@@ -100,6 +107,7 @@ class Snapshot:
     # FEA-0012: the document store of the project (absent in older snapshots)
     documents_registry: dict[str, Any] | None = None
     document_files: dict[str, bytes] = field(default_factory=dict)
+    searches: dict[str, Any] | None = None
     item_documents: list[dict[str, Any]] = field(default_factory=list)
     # project.toml had other line endings than LF, or a byte order mark, and was brought to one
     # form (IS-0011); the importer says so in its report
@@ -129,6 +137,9 @@ class ImportReport:
     images_skipped: int = 0
     item_images_added: int = 0
     documents_added: int = 0
+    searches_added: int = 0
+    searches_unchanged: int = 0
+    searches_skipped: int = 0
     documents_unchanged: int = 0
     documents_skipped: int = 0
     item_documents_added: int = 0
@@ -232,6 +243,7 @@ def read_snapshot(path: Path) -> Snapshot:
             item_documents=(
                 load(ITEM_DOCUMENTS_FILE, list) if ITEM_DOCUMENTS_FILE in infos else []
             ),
+            searches=load(SEARCHES_FILE, dict) if SEARCHES_FILE in infos else None,
             config_normalised=config_normalised,
         )
 
@@ -246,6 +258,11 @@ def read_snapshot(path: Path) -> Snapshot:
     ):
         if counts.get(name, len(rows)) != len(rows):
             raise SnapshotInvalid(f"the manifest count for {name} does not match the file")
+    if snapshot.searches is not None:
+        check_snapshot_file(snapshot.searches)
+        listed_searches = snapshot.searches.get("searches")
+        if counts.get("searches", len(listed_searches or [])) != len(listed_searches or []):
+            raise SnapshotInvalid("the manifest count for searches does not match the file")
     listed = (snapshot.documents_registry or {}).get("ids")
     present = len(listed) if isinstance(listed, list) else len(snapshot.document_files)
     if counts.get("documents", present) != present:
@@ -360,6 +377,15 @@ async def import_snapshot(
     report.warnings.extend(document_plan.warnings)
     undo_documents = None
 
+    # FEA-0010: the saved searches are checked the same way
+    search_store = SavedSearchStore(registry.server.data_dir, target)
+    search_plan = plan_search_import(search_store, snapshot.searches)
+    report.searches_added = len(search_plan.add)
+    report.searches_unchanged = search_plan.unchanged
+    report.searches_skipped = len(search_plan.skipped)
+    report.warnings.extend(search_plan.warnings)
+    undo_searches = None
+
     wrote_config = False
     try:
         if mode == "create" and apply:
@@ -375,12 +401,15 @@ async def import_snapshot(
         if apply:
             undo_images = apply_image_plan(store, target, plan)
             undo_documents = apply_document_plan(document_store, target, document_plan)
+            undo_searches = apply_search_plan(search_store, search_plan)
             await session.commit()
             report.applied = True
         else:
             await session.rollback()
     except BaseException:
         await session.rollback()
+        if undo_searches is not None:
+            undo_searches()
         if undo_documents is not None:
             undo_documents()
         if undo_images is not None:

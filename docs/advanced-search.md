@@ -66,6 +66,24 @@ with the search that was run. The result shows the search in words, a notice wit
 it is incomplete, and *Load more* keeps the search. The builder offers one level of groups, as the
 limit says.
 
+## Saved searches
+
+Every search that is run in the dashboard is kept as the **latest search** of the project. Opening
+the Search page shows it again: the dialog starts with it, and a link *Run the latest search*
+runs it. A search can also be saved under a **name** (in the dialog, *Saved searches*): the name is
+unique in the project ignoring case, at most 80 characters, and at most 50 searches are kept. Saving
+over a name asks first; a saved search can be run, renamed and deleted (deleting asks first; the
+search stays as the latest one). The page shows a message for what was done.
+
+Each project has its own file, `data/searches/<project key>.json`, written in one stable form. The
+saved searches are part of the project's snapshot and GitHub export (`searches.json`, only when
+there are any), are restored by an import (see [Audit Bundles](audit-bundles.md)) and are removed
+when the project is deleted. They are not available through the API or MCP in this version: an
+agent sends the search itself.
+
+A saved search is checked when it is run, not when it is stored, so a search that names a status
+the project no longer has is shown with the reason instead of failing the page.
+
 ## API
 
 ```

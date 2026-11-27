@@ -36,6 +36,7 @@ from issuedeck.features.export.snapshot_import import (
 )
 from issuedeck.features.github_sync.client import GitHubClient, git_blob_sha
 from issuedeck.features.images.bundle import is_snapshot_image_name
+from issuedeck.features.search.saved import is_snapshot_searches_name
 
 REQUIRED_FILES = (
     "manifest.json",
@@ -49,8 +50,13 @@ SNAPSHOT_FILES = (*REQUIRED_FILES, "project.toml")
 
 
 def _optional_file(name: str) -> bool:
-    """The image files (FEA-0013) and the document files (FEA-0012) of a snapshot."""
-    return is_snapshot_image_name(name) or is_snapshot_document_name(name)
+    """The image files (FEA-0013), the document files (FEA-0012) and the saved searches
+    (FEA-0010) of a snapshot."""
+    return (
+        is_snapshot_image_name(name)
+        or is_snapshot_document_name(name)
+        or is_snapshot_searches_name(name)
+    )
 
 _REVISION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,199}$")
 

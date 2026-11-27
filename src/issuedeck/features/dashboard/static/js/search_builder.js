@@ -4,7 +4,7 @@
  * into the hidden field `query` of the form. The server checks the search; this script only
  * keeps the form from sending blocks that are still empty.
  */
-function searchBuilder(initial, kinds, statuses) {
+function searchBuilder(initial, kinds, statuses, savedNames) {
   let counter = 0;
 
   function fromJson(block) {
@@ -71,6 +71,7 @@ function searchBuilder(initial, kinds, statuses) {
     items: items.length ? items : [blank("text")],
     kinds: kinds,
     statuses: statuses,
+    savedNames: savedNames || [],
     open: false,
     maxDepth: 2,
 
@@ -92,6 +93,11 @@ function searchBuilder(initial, kinds, statuses) {
       return blocks.length ? JSON.stringify({ items: blocks }) : "";
     },
     isEmpty() { return this.json() === ""; },
+    // is this name already a saved search? (the server decides in the end; this only asks first)
+    taken(name) {
+      const wanted = String(name || "").trim().replace(/\s+/g, " ").toLowerCase();
+      return this.savedNames.some((saved) => saved.toLowerCase() === wanted);
+    },
   };
 }
 

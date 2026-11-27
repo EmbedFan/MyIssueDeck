@@ -98,9 +98,22 @@
   </form>
 
   {# ── Advanced search: dialog with the query builder (FEA-0010) ── #}
-  <div class="flex items-center gap-3">
+  <div class="flex flex-wrap items-center gap-3">
     {% include "components/search_builder.html" %}
+    {% if latest_search and not advanced and not q %}
+      <a href="/dashboard/{{ project_key }}/search?query={{ latest_search.query | tojson | urlencode }}"
+         class="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+         data-latest-search>
+        {{ t("search.advanced.run_latest") }}{% if latest_search_text %}:
+        <span class="font-mono text-gray-600 dark:text-gray-300">{{ latest_search_text }}</span>{% endif %}
+      </a>
+    {% endif %}
   </div>
+  {% if notice_text %}
+    <p class="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50
+              dark:bg-blue-900/20 px-3 py-2 text-sm text-blue-800 dark:text-blue-200"
+       role="status" data-search-notice>{{ notice_text }}</p>
+  {% endif %}
 
   {# ── Results section ── #}
   <div id="search-results">

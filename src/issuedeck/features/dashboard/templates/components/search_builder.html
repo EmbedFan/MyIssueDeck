@@ -109,7 +109,7 @@
   </template>
 {% endmacro %}
 
-<div x-data='searchBuilder({{ (query_data or {}) | tojson }}, {{ builder_kinds | tojson }}, {{ builder_statuses | tojson }})'
+<div x-data='searchBuilder({{ (builder_start or {}) | tojson }}, {{ builder_kinds | tojson }}, {{ builder_statuses | tojson }}, {{ saved_names | tojson }})'
      @keydown.escape.window="open = false"
      class="contents">
   <button type="button" @click="open = true"
@@ -124,10 +124,10 @@
        class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto
               bg-black/40 p-4 sm:p-8"
        role="dialog" aria-modal="true" aria-labelledby="advanced-search-title">
-    <form method="get" action="/dashboard/{{ project_key }}/search"
-          @click.outside="open = false"
-          class="w-full max-w-3xl rounded-xl bg-white dark:bg-gray-900 shadow-xl
-                 border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+    <div @click.outside="open = false"
+         class="w-full max-w-3xl rounded-xl bg-white dark:bg-gray-900 shadow-xl
+                border border-gray-200 dark:border-gray-700 p-5 space-y-5">
+    <form method="get" action="/dashboard/{{ project_key }}/search" class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 id="advanced-search-title"
             class="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -169,5 +169,72 @@
           {{ t("search.advanced.run") }}</button>
       </div>
     </form>
+
+    {# ── Saved searches of the project (FEA-0010, phase 4) ── #}
+    <section class="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4"
+             aria-labelledby="saved-searches-title" data-saved-searches>
+      <h3 id="saved-searches-title"
+          class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {{ t("search.advanced.saved_title") }}
+      </h3>
+
+      <form method="post" action="/dashboard/{{ project_key }}/search/saved"
+            class="flex flex-wrap items-center gap-2"
+            data-confirm-overwrite="{{ t('search.advanced.confirm_overwrite') }}"
+            x-data="{ name: {{ (saved_name or '') | tojson }}, overwrite: '' }"
+            @submit="if (taken(name)) {
+                       if (!confirm($el.dataset.confirmOverwrite.replace('{name}', name))) {
+                         $event.preventDefault(); return;
+                       }
+                       overwrite = '1';
+                     }">
+        <input type="text" name="name" x-model="name" maxlength="80" required
+               placeholder="{{ t('search.advanced.save_name_placeholder') }}"
+               aria-label="{{ t('search.advanced.save_name_placeholder') }}"
+               class="{{ field_class }} flex-1 min-w-[10rem]">
+        <input type="hidden" name="query" :value="json()">
+        <input type="hidden" name="overwrite" :value="overwrite">
+        <button type="submit" :disabled="isEmpty()"
+                class="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-primary-600
+                       hover:bg-primary-700 disabled:opacity-40">
+          {{ t("search.advanced.save") }}</button>
+      </form>
+
+      {% if saved_searches %}
+        <ul class="divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+          {% for entry in saved_searches %}
+            <li class="py-2 flex flex-wrap items-center gap-2 justify-between">
+              <a href="/dashboard/{{ project_key }}/search?saved={{ entry.name | urlencode }}"
+                 class="font-medium text-primary-600 dark:text-primary-400 hover:underline">
+                {{ entry.name }}
+              </a>
+              <span class="flex flex-wrap items-center gap-2">
+                <form method="post" action="/dashboard/{{ project_key }}/search/saved/rename"
+                      class="flex items-center gap-1">
+                  <input type="hidden" name="name" value="{{ entry.name }}">
+                  <input type="text" name="new_name" maxlength="80" required
+                         placeholder="{{ t('search.advanced.rename_placeholder') }}"
+                         aria-label="{{ t('search.advanced.rename_named', name=entry.name) }}"
+                         class="{{ field_class }} w-36">
+                  <button type="submit" class="{{ icon_button }} text-xs">
+                    {{ t("search.advanced.rename") }}</button>
+                </form>
+                <form method="post" action="/dashboard/{{ project_key }}/search/saved/delete">
+                  <input type="hidden" name="name" value="{{ entry.name }}">
+                  <button type="submit" class="{{ icon_button }} text-xs"
+                          data-confirm="{{ t('search.advanced.confirm_delete', name=entry.name) }}"
+                          onclick="return confirm(this.dataset.confirm)"
+                          aria-label="{{ t('search.advanced.delete_named', name=entry.name) }}">
+                    {{ t("search.advanced.delete") }}</button>
+                </form>
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ t("search.advanced.saved_none") }}</p>
+      {% endif %}
+    </section>
+    </div>
   </div>
 </div>

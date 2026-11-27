@@ -28,6 +28,7 @@ from issuedeck.features.items.models import (
     ShipRecord,
     WorkSession,
 )
+from issuedeck.features.search.saved import SEARCHES_FILE, SavedSearchStore
 
 
 @dataclass
@@ -45,6 +46,7 @@ class AuditBundleReport:
     images_written: int = 0
     item_images_written: int = 0
     documents_written: int = 0
+    searches_written: int = 0
     item_documents_written: int = 0
 
 
@@ -155,6 +157,9 @@ async def export_audit_bundle(
             key=lambda row: (row["local_id"], row["document_id"]),
         )
     has_documents = bool(document_files or document_links) or document_next_id > 1
+    # FEA-0010: the saved searches of the project, when there are any
+    search_store = SavedSearchStore(registry.server.data_dir, project_key)
+    search_bytes = search_store.read_bytes()
 
     bundle_path = _audit_bundle_path(out_path, project_key)
     bundle_path.parent.mkdir(parents=True, exist_ok=True)
@@ -189,6 +194,10 @@ async def export_audit_bundle(
         manifest["counts"]["item_documents"] = len(document_links)
         manifest["files"].extend(
             [DOCUMENTS_REGISTRY_FILE, *sorted(document_files), ITEM_DOCUMENTS_FILE])
+
+    if search_bytes is not None:
+        manifest["counts"]["searches"] = len(search_store.read()["searches"])
+        manifest["files"].append(SEARCHES_FILE)
 
     project_toml = registry.server.projects_dir / f"{project_key}.toml"
     if project_toml.exists():
@@ -243,6 +252,8 @@ async def export_audit_bundle(
             for name in sorted(document_files):
                 bundle.writestr(name, document_files[name])  # the file, byte for byte
             _write_json(bundle, ITEM_DOCUMENTS_FILE, document_links)
+        if search_bytes is not None:
+            bundle.writestr(SEARCHES_FILE, search_bytes)  # the file, byte for byte
 
     return AuditBundleReport(
         bundle_path=bundle_path,
@@ -253,6 +264,7 @@ async def export_audit_bundle(
         images_written=len(image_files),
         item_images_written=len(item_links),
         documents_written=len(document_files),
+        searches_written=len(search_store.read()["searches"]) if search_bytes else 0,
         item_documents_written=len(document_links),
     )
 

@@ -1566,7 +1566,8 @@ async def _cmd_import_audit_bundle(
         f"import_batches={report.import_batches_added}, "
         f"images={report.images_added}, image_links={report.item_images_added}, "
         f"documents={report.documents_added}, "
-        f"document_links={report.item_documents_added}",
+        f"document_links={report.item_documents_added}, "
+        f"searches={report.searches_added}",
         file=sys.stderr,
     )
     for warning in report.warnings:
@@ -1706,7 +1707,8 @@ async def _cmd_github_import(
         f"work_sessions={report.work_sessions_added}, "
         f"images={report.images_added}, image_links={report.item_images_added}, "
         f"documents={report.documents_added}, "
-        f"document_links={report.item_documents_added}",
+        f"document_links={report.item_documents_added}, "
+        f"searches={report.searches_added}",
         file=sys.stderr,
     )
     for warning in report.warnings:

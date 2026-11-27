@@ -303,3 +303,14 @@ def test_blocks_can_be_moved_and_removed():
     )
 
     assert result == {"moved": ["status", "kind"], "left": ["kind"]}
+
+
+@pytest.mark.skipif(NODE is None, reason="Node is not installed")
+def test_the_builder_knows_which_saved_names_are_taken():
+    result = run_builder(
+        "const b = searchBuilder({}, [], [], ['Open bugs', 'Árvíz']);"
+        "console.log(JSON.stringify([b.taken('open   BUGS'), b.taken(' Árvíz'), b.taken('x'),"
+        " b.taken(''), searchBuilder({}, [], []).taken('open bugs')]));"
+    )
+
+    assert result == [True, True, False, False, False]

@@ -106,7 +106,13 @@ from issuedeck.features.projects.project_templates import (
 from issuedeck.features.projects.service import ProjectService
 from issuedeck.features.relationships.repo import RelationshipRepo
 from issuedeck.features.relationships.service import RelationshipService
+from issuedeck.features.search.query import describe, parse_query
 from issuedeck.features.search.repo import SearchRepo
+from issuedeck.features.search.saved import (
+    SavedSearchExists,
+    SavedSearchNotFound,
+    SavedSearchStore,
+)
 from issuedeck.features.search.service import SearchService
 from issuedeck.features.work_sessions.repo import WorkSessionRepo
 from issuedeck.features.work_sessions.service import WorkSessionService
@@ -2531,7 +2537,20 @@ async def search_page(
     limit: int = 50,
     after: str | None = None,
     query: str = "",
+    saved: str = "",
+    notice: str = "",
+    notice_name: str = "",
 ):
+    store = SavedSearchStore(request.app.state.registry.server.data_dir, project_key)
+    saved_name = ""
+    if saved.strip() and not query.strip():
+        # a saved search is run by its name; from here on it is an ordinary query
+        try:
+            entry = store.get(saved)
+            query = json.dumps(entry["query"], ensure_ascii=False)
+            saved_name = entry["name"]
+        except SavedSearchNotFound:
+            notice, notice_name = "not_found", saved
     items = []
     next_cursor = None
     description = ""
@@ -2557,6 +2576,9 @@ async def search_page(
                 description = found.description
                 partial = found.partial
                 notes = found.notes
+                if not after:
+                    # the latest search is kept by itself, under no name or the saved one
+                    store.set_active(query_data, saved_name or None)
             except InvalidSearch as exc:
                 query_error = str(exc)
             finally:
@@ -2590,7 +2612,123 @@ async def search_page(
         notes=notes,
         builder_kinds=_builder_options(project_key, request, "kinds"),
         builder_statuses=_builder_options(project_key, request, "statuses"),
+        **_saved_context(request, project_key, store, query_data, saved_name, notice, notice_name),
     )
+
+
+_NOTICE_KEYS = {
+    "saved": "search.advanced.notice_saved",
+    "renamed": "search.advanced.notice_renamed",
+    "deleted": "search.advanced.notice_deleted",
+    "exists": "search.advanced.notice_exists",
+    "not_found": "search.advanced.notice_not_found",
+    "invalid": "search.advanced.notice_invalid",
+}
+
+
+def _saved_context(
+    request: Request, project_key: str, store: SavedSearchStore,
+    query_data, saved_name: str, notice: str, notice_name: str,
+) -> dict:
+    """What the dialog shows of the saved searches (FEA-0010, phase 4)."""
+    data = store.read()
+    project = request.app.state.registry.project(project_key)
+    active = data["active"]
+    latest = ""
+    if active:
+        try:
+            latest = describe(parse_query(
+                active["query"], list(project.kinds), list(project.statuses)))
+        except InvalidSearch:
+            latest = ""
+    t = make_translator(language_from_request(request))
+    notice_text = t(_NOTICE_KEYS[notice], name=notice_name) if notice in _NOTICE_KEYS else ""
+    return {
+        "saved_searches": data["searches"],
+        "saved_names": [s["name"] for s in data["searches"]],
+        "saved_name": saved_name or (active["name"] if active and query_data is not None
+                                     and active["query"] == query_data else "") or "",
+        "latest_search": active,
+        "latest_search_text": latest,
+        "notice_text": notice_text,
+        # with no search in the address the dialog starts with the latest one (restored)
+        "builder_start": query_data if query_data is not None
+        else (active["query"] if active else None),
+    }
+
+
+def _back_to_search(
+    project_key: str, query_json: str, notice: str, name: str = "",
+) -> RedirectResponse:
+    params = {}
+    if query_json.strip():
+        params["query"] = query_json
+    params["notice"] = notice
+    if name:
+        params["notice_name"] = name
+    return RedirectResponse(
+        url=f"/dashboard/{project_key}/search?{urlencode(params)}", status_code=303)
+
+
+def _checked_query(request: Request, project_key: str, query_json: str) -> dict:
+    """The JSON of a form field as a search that the project accepts (else InvalidSearch)."""
+    try:
+        data = json.loads(query_json)
+    except ValueError as exc:
+        raise InvalidSearch("query: not valid JSON", details={"path": "query"}) from exc
+    project = request.app.state.registry.project(project_key)
+    parse_query(data, list(project.kinds), list(project.statuses))
+    return data
+
+
+@router.post("/{project_key}/search/saved")
+async def save_search(
+    project_key: str, request: Request,
+    name: str = Form(""),
+    query: str = Form(""),
+    overwrite: str = Form(""),
+):
+    store = SavedSearchStore(request.app.state.registry.server.data_dir, project_key)
+    try:
+        data = _checked_query(request, project_key, query)
+        entry = store.save(name, data, overwrite=overwrite == "1")
+    except SavedSearchExists as exc:
+        return _back_to_search(project_key, query, "exists", exc.details.get("name", name))
+    except InvalidSearch:
+        return _back_to_search(project_key, query, "invalid")
+    return _back_to_search(
+        project_key, json.dumps(data, ensure_ascii=False), "saved", entry["name"])
+
+
+@router.post("/{project_key}/search/saved/rename")
+async def rename_saved_search(
+    project_key: str, request: Request,
+    name: str = Form(""),
+    new_name: str = Form(""),
+):
+    store = SavedSearchStore(request.app.state.registry.server.data_dir, project_key)
+    try:
+        entry = store.rename(name, new_name)
+    except SavedSearchNotFound:
+        return _back_to_search(project_key, "", "not_found", name)
+    except SavedSearchExists as exc:
+        return _back_to_search(project_key, "", "exists", exc.details.get("name", new_name))
+    except InvalidSearch:
+        return _back_to_search(project_key, "", "invalid")
+    return _back_to_search(project_key, "", "renamed", entry["name"])
+
+
+@router.post("/{project_key}/search/saved/delete")
+async def delete_saved_search(
+    project_key: str, request: Request,
+    name: str = Form(""),
+):
+    store = SavedSearchStore(request.app.state.registry.server.data_dir, project_key)
+    try:
+        store.delete(name)
+    except SavedSearchNotFound:
+        return _back_to_search(project_key, "", "not_found", name)
+    return _back_to_search(project_key, "", "deleted", name)
 
 
 def _t_request(request: Request, key: str) -> str:

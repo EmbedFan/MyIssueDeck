@@ -45,6 +45,16 @@ kept, a free id is added. Deleting a project removes its image folder; the backu
   that exist with the next free number, and `item_documents.json`: the links between items and
   documents. Written only when the project has documents.
 
+- `searches.json`: the project's saved searches of the advanced search (see
+  [Advanced Search](advanced-search.md)): the named searches and the latest one, in the stable form
+  of the store. Written only when the project has any.
+
+On import the saved searches are matched by name, ignoring case: the same name with the same search
+is unchanged, the same name with another search is skipped (the project's own is kept) and named in
+a warning, a free name is added, up to 50 in a project. The latest search of the snapshot is taken
+only when the project has none yet. Deleting a project removes its saved searches; the backup in
+`data/deleted-projects/` keeps them, so importing it restores them.
+
 On import every document is checked on its own: valid JSON, the id of its file name, a clean name,
 text that is text and not a binary, the SHA-256 of the text and of every kept revision, and at most
 50 revisions. A document that fails is skipped and named in a warning; the rest goes on. Only the
