@@ -9,6 +9,25 @@ versioning once public releases begin.
 
 ### Added
 
+- The query model of the advanced search, phase 1 of FEAT-0010 (no page or API uses it yet).
+  `features/search/query.py` checks a search given as JSON: blocks `text` (mode `simple` or
+  `regex`, fields title and body, case sensitivity for regular expressions), `kind` and `status`,
+  joined by `and` / `or` (`and` binds tighter), in groups, nested at most 2 levels (a parameter, so
+  deeper nesting can be allowed later), at most 20 blocks. It refuses everything else with the path
+  of the fault (`items[2].group[1]`): unknown keys, kinds or statuses the project does not have, an
+  operator on the first block, a group in a group, a regular expression that is invalid, longer than
+  200 characters or repeats a repeat such as `(a+)+`. `features/search/evaluator.py` runs a query:
+  every block gives the set of the items it matches and the sets are combined as the query says.
+  Plain words go to the full-text index quoted word by word with bound parameters (all words must
+  occur; a word such as `OR`, `*` or a quote is only a word; the index stems words, so `import` also
+  finds `importing`). A regular expression runs in a separate process that is killed when its time
+  is up (2 s by default, after the process has started), so no pattern can hang the server; the
+  result then says it is partial and which expression did not finish, and keeps what was finished.
+  Only the newest 50,000 items are given to the expressions. `describe()` writes a query in words
+  with explicit brackets for the dialog.
+
+### Added
+
 - Help and documents for working with an AI agent (IS-0014). The built-in help has a new part
   *Using MyIssueDeck with Claude* and one *Using MyIssueDeck with Codex* (English, Hungarian and
   Chinese): the connection steps (Claude Code, Claude Desktop, and the Codex command line client
