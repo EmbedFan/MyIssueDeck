@@ -44,3 +44,61 @@ def test_main_refuses_the_development_port(tmp_path, monkeypatch):
     monkeypatch.setattr("sys.argv", ["x", "--target", str(tmp_path), "--check"])
     with pytest.raises(update.UpdateError, match="8766"):
         update.main()
+
+
+def _update_world(tmp_path, monkeypatch, *, rename):
+    """Everything outside the folder rename is replaced, so that main() runs without a server."""
+    import zipfile
+    from types import SimpleNamespace
+
+    target = tmp_path / "MyIssueDeck_0.10.2"
+    target.mkdir()
+    info = {"product": "myissuedeck", "version": "0.10.2", "port": 8765}
+    (target / "install.json").write_text(json.dumps(info), encoding="utf-8")
+    installer = tmp_path / "installer.zip"
+    with zipfile.ZipFile(installer, "w") as archive:
+        archive.writestr("installer.py", "")
+    seen = {}
+
+    def fake_run(command, **kwargs):
+        seen["command"] = command
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(update, "source_version", lambda: "0.10.3")
+    monkeypatch.setattr(update, "check_installer", lambda version: installer)
+    monkeypatch.setattr(update, "stop_server", lambda folder, port: True)
+    monkeypatch.setattr(update, "counts", lambda folder, port: {"items": 3, "projects": 1})
+    monkeypatch.setattr(update, "wait_ready", lambda port, version: {"status": "ready"})
+    monkeypatch.setattr(update.subprocess, "run", fake_run)
+    if rename is not None:
+        monkeypatch.setattr(Path, "rename", rename)
+    monkeypatch.setattr("sys.argv", ["x", "--target", str(target)])
+    return target, seen
+
+
+def test_a_folder_that_cannot_be_renamed_is_updated_in_place(tmp_path, monkeypatch, capsys):
+    def refuse(self, new):
+        raise PermissionError(13, "Access denied")  # another program has the folder open
+
+    target, seen = _update_world(tmp_path, monkeypatch, rename=refuse)
+
+    assert update.main() == 0
+
+    command = seen["command"]
+    assert command[command.index("--target") + 1] == str(target)  # the old folder, not the new
+    assert "cannot rename MyIssueDeck_0.10.2 (Access denied); updating in place" in (
+        capsys.readouterr().out)
+    assert target.is_dir() and not (tmp_path / "MyIssueDeck_0.10.3").exists()
+
+
+def test_a_folder_that_can_be_renamed_is_updated_under_its_new_name(
+        tmp_path, monkeypatch, capsys):
+    target, seen = _update_world(tmp_path, monkeypatch, rename=None)
+
+    assert update.main() == 0
+
+    command = seen["command"]
+    renamed = tmp_path / "MyIssueDeck_0.10.3"
+    assert command[command.index("--target") + 1] == str(renamed)
+    assert renamed.is_dir() and not target.exists()
+    assert "renamed to" in capsys.readouterr().out

@@ -7,6 +7,14 @@ versioning once public releases begin.
 
 ## [Unreleased]
 
+### Changed
+
+- `scripts/update_test_copy.py` (TASK-0005): when Windows refuses to rename the installed folder to
+  the new version (another program, such as Explorer, a terminal or an editor, has it open), the
+  update now goes on in place under the old folder name and says so, instead of stopping with an
+  error after the server was already stopped. A test covers both the refused and the successful
+  rename.
+
 ## [0.13.0] - 2026-11-27
 
 ### Added

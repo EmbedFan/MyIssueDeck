@@ -171,9 +171,14 @@ def main() -> int:
     if rename:
         if new_dir.exists():
             raise UpdateError(f"{new_dir} already exists; nothing was renamed")
-        target.rename(new_dir)
-        final = new_dir
-        say(f"renamed to {new_dir}")
+        try:
+            target.rename(new_dir)
+        except OSError as exc:
+            # another program (Explorer, a terminal, an editor) has the folder open
+            say(f"cannot rename {target.name} ({exc.strerror}); updating in place instead")
+        else:
+            final = new_dir
+            say(f"renamed to {new_dir}")
 
     with tempfile.TemporaryDirectory(prefix="myissuedeck-installer-") as scratch:
         with zipfile.ZipFile(zip_path) as archive:
